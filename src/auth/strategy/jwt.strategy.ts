@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { JwtInterface } from "src/globals/interfaces/jwt.interface";
+import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             secretOrKey: new ConfigService().getOrThrow('JWT_SECRETKEY')
         })
     }
-    async validate(payload: any) {
-        return payload
+    async validate(payload: JwtPayload) {
+        return { id: payload.id, email: payload.email }
     }
 } 

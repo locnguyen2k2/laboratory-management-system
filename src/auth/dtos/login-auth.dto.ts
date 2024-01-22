@@ -4,13 +4,13 @@ import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator";
 
 export class LoginAuthDto {
 
-    @ApiProperty({})
+    @ApiProperty({default: "locnguyentan1230@gmail.com"})
     @Expose()
     @IsEmail()
     @IsNotEmpty()
     email: string;
 
-    @ApiProperty({})
+    @ApiProperty({default: "07112002NTLoc"})
     @Expose()
     @IsString()
     @Length(8, 32)

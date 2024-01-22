@@ -1,8 +1,10 @@
-import { Injectable, NotAcceptableException, Post, Request, UseGuards } from "@nestjs/common";
-import * as bcrypt from 'bcryptjs'
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "src/user/user.service";
-import { RegisterAuthDto } from "./dtos/register-auth.dto";
+import { RegisterUserDto } from "../user/dtos/register-user.dto";
+import * as bcrypt from 'bcryptjs'
+import { JwtPayload } from "./interfaces/jwt.interface";
+import { UserStatusEnum } from "./enums/user-status.enum";
 
 @Injectable()
 export class AuthService {
@@ -11,32 +13,37 @@ export class AuthService {
         private jwtService: JwtService
     ) { }
 
-    // Tested
-    async validateUser(email: string, password: string): Promise<boolean> {
-        return await this.userService.checkLogin(email, password)
-    }
-
-    // Tested
-    async login(email: string, password: string): Promise<any> {
-        const isCheck = await this.userService.emailCheck(email)
-        if (isCheck) {
-            if (await this.userService.checkLogin(email, password)) {
-                const user = await this.userService.getUserByEmail(email)[0];
-                const payload = {
-                    id: user.id,
-                    email: user.email,
-                    fullName: user.firstName + ' ' + user.lastName,
-                }
-                const access_token = this.jwtService.sign(payload)
-                return access_token
-            }
-            return false
+    async credentialByPassword(email: string, password: string): Promise<any> {
+        const user = await this.userService.findOne(email)
+        console.log('oke')
+        if (!user) {
+            throw new HttpException("Email or password is incorrect!", HttpStatus.NOT_FOUND)
         }
-        return false
+        if (user.status !== UserStatusEnum.ACTIVE) {
+            throw new HttpException("Verify your account before, please!", HttpStatus.UNAUTHORIZED)
+        }
+        const isCheckPass = await bcrypt.compareSync(password, user?.password);
+        if (!isCheckPass) {
+            throw new HttpException("Email or password is incorrect!", HttpStatus.NOT_FOUND)
+        }
+        const payload: JwtPayload = {
+            id: user.id,
+            email: user.email
+        }
+        return {
+            access_token: await this.jwtService.signAsync(payload)
+        }
     }
 
-    // Tested
-    async register(user: RegisterAuthDto): Promise<boolean> {
-        return await this.userService.createUser(user)
+    async register(user: RegisterUserDto): Promise<boolean> {
+        return await this.userService.create(user)
+    }
+
+    async getUserByEmail(email: string): Promise<any> {
+        let user = await this.userService.findByEmail(email)
+        delete user.token;
+        delete user.refresh_token;
+        delete user.password;
+        return user
     }
 }

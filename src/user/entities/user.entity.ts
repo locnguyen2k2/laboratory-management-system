@@ -1,5 +1,5 @@
-import { RoleEnum } from "src/globals/enums/role.enum";
-import { UserStatusEnum } from "src/globals/enums/user-status.enum";
+import { RoleEnum } from "src/auth/enums/role.enum";
+import { UserStatusEnum } from "src/auth/enums/user-status.enum";
 import { Column, Entity, PrimaryGeneratedColumn, } from "typeorm";
 
 @Entity()
