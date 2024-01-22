@@ -27,7 +27,8 @@ export class AuthController {
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
-    @UseGuards(JwtGuard)
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.USER)
     @Post('info')
     async info(@Request() req: JwtPayload): Promise<any> {
         return await this.authService.getUserByEmail(req.email)
