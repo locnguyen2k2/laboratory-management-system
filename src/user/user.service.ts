@@ -7,6 +7,7 @@ import { plainToClass } from "class-transformer";
 import * as bcrypt from 'bcryptjs'
 import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 import { RegisterAdminDto } from "./dtos/register-admin.dto";
+import { RegisterManagerDto } from "./dtos/register-manager.dto";
 
 @Injectable({})
 export class UserService {
@@ -36,5 +37,31 @@ export class UserService {
         const newUser = new UserEntity(data);
         await this.userRepository.save(newUser);
         return true
+    }
+
+    async createManager(user: RegisterManagerDto) {
+        const { email, password, confirmPassword } = user;
+        const isExisted = await this.findByEmail(email);
+        if (isExisted || password !== confirmPassword) { return false }
+        let data = RegisterManagerDto.plainToClass(user)
+        data.password = await bcrypt.hashSync(data.password, 10);
+        const newUser = new UserEntity(data);
+        await this.userRepository.save(newUser);
+        return true
+    }
+
+    async createAdmin(user: RegisterAdminDto) {
+        const { email, password, confirmPassword } = user;
+        const isExisted = await this.findByEmail(email);
+        if (isExisted || password !== confirmPassword) { return false }
+        let data = RegisterAdminDto.plainToClass(user)
+        data.password = await bcrypt.hashSync(data.password, 10);
+        const newUser = new UserEntity(data);
+        await this.userRepository.save(newUser);
+        return true
+    }
+
+    async createOrUpdate(user: any): Promise<any> {
+
     }
 }

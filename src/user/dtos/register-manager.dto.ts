@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Length, Matches } from "class-validator"
+import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString, Length, Matches } from "class-validator"
+import { RoleEnum } from "src/auth/enums/role.enum";
 import { BaseDto } from "src/globals/base.dto";
 
-export class RegisterUserDto extends BaseDto {
+export class RegisterManagerDto extends BaseDto {
 
     @ApiProperty({ default: "Loc" })
     @IsString()
@@ -17,7 +18,7 @@ export class RegisterUserDto extends BaseDto {
     @Expose()
     lastName: string;
 
-    @ApiProperty({ default: "user01@gmail.com" })
+    @ApiProperty({ default: "manager01@gmail.com" })
     @IsEmail()
     @IsNotEmpty()
     @Expose()
@@ -49,5 +50,8 @@ export class RegisterUserDto extends BaseDto {
     @Expose()
     confirmPassword: string;
 
-    
+    @Expose()
+    @IsEnum(RoleEnum)
+    @Transform(() => RoleEnum.MANAGER)
+    role: RoleEnum;
 }

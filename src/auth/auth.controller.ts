@@ -8,6 +8,10 @@ import { RoleEnum } from "src/auth/enums/role.enum";
 import { RolesGuard } from "./guard/roles-auth.guard";
 import { JwtGuard } from "./guard/jwt-auth.guard";
 import { JwtPayload } from "src/auth/interfaces/jwt.interface";
+import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
+import { plainToClass } from "class-transformer";
+import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller('auths')
 export class AuthController {
@@ -22,13 +26,35 @@ export class AuthController {
 
     @Post('register')
     async register(@Body() user: RegisterUserDto): Promise<any> {
-        return await this.authService.register(user) ?
+        return await this.authService.registerUser(user) ?
             new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
+    @ApiBearerAuth()  
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(RoleEnum.USER)
+    @Roles(RoleEnum.ADMIN)
+    @Post('register/manager')
+    async registerManager(@Body() user: RegisterManagerDto): Promise<any> {
+        return await this.authService.registerManager(user) ?
+            new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
+            : new UnauthorizedException("User isn't created").getResponse()
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    @Post('register/admin')
+    async registerAdmin(@Body() user: RegisterAdminDto): Promise<any> {
+        return await this.authService.registerAdmin(user) ?
+            new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
+            : new UnauthorizedException("User isn't created").getResponse()
+    }
+
+
+    @ApiBearerAuth()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.USER, RoleEnum.ADMIN)
     @Post('info')
     async info(@Request() req: JwtPayload): Promise<any> {
         return await this.authService.getUserByEmail(req.email)

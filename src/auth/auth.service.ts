@@ -5,6 +5,8 @@ import { RegisterUserDto } from "../user/dtos/register-user.dto";
 import * as bcrypt from 'bcryptjs'
 import { JwtPayload } from "./interfaces/jwt.interface";
 import { UserStatusEnum } from "./enums/user-status.enum";
+import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
+import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 
 @Injectable()
 export class AuthService {
@@ -15,7 +17,6 @@ export class AuthService {
 
     async credentialByPassword(email: string, password: string): Promise<any> {
         const user = await this.userService.findOne(email)
-        console.log('oke')
         if (!user) {
             throw new HttpException("Email or password is incorrect!", HttpStatus.NOT_FOUND)
         }
@@ -35,8 +36,16 @@ export class AuthService {
         }
     }
 
-    async register(user: RegisterUserDto): Promise<boolean> {
+    async registerUser(user: RegisterUserDto): Promise<boolean> {
         return await this.userService.create(user)
+    }
+
+    async registerManager(user: RegisterManagerDto): Promise<boolean> {
+        return await this.userService.createManager(user)
+    }
+
+    async registerAdmin(user: RegisterAdminDto): Promise<boolean> {
+        return await this.userService.createAdmin(user)
     }
 
     async getUserByEmail(email: string): Promise<any> {
