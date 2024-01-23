@@ -31,6 +31,7 @@ export class AuthService {
             id: user.id,
             email: user.email
         }
+
         return {
             access_token: await this.jwtService.signAsync(payload)
         }
@@ -54,5 +55,9 @@ export class AuthService {
         delete user.refresh_token;
         delete user.password;
         return user
+    }
+
+    async disable(email: string, status: UserStatusEnum): Promise<any> {
+        return await this.userService.disable(email, status)
     }
 }

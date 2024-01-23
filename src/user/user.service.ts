@@ -1,4 +1,4 @@
-import { Injectable, NotAcceptableException, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotAcceptableException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
 import { Admin, EntityManager, Repository } from "typeorm";
@@ -8,6 +8,10 @@ import * as bcrypt from 'bcryptjs'
 import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 import { RegisterAdminDto } from "./dtos/register-admin.dto";
 import { RegisterManagerDto } from "./dtos/register-manager.dto";
+import { UpdateUserDto } from "./dtos/update-user.dto";
+import { UpdateAdminDto } from "./dtos/update-admin.dto";
+import { RoleEnum } from "src/auth/enums/role.enum";
+import { UserStatusEnum } from "src/auth/enums/user-status.enum";
 
 @Injectable({})
 export class UserService {
@@ -28,6 +32,7 @@ export class UserService {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
 
+    // Create services
     async create(user: RegisterUserDto) {
         const { email, password, confirmPassword } = user;
         const isExisted = await this.findByEmail(email);
@@ -61,7 +66,38 @@ export class UserService {
         return true
     }
 
-    async createOrUpdate(user: any): Promise<any> {
-
+    // Update services
+    async update(email: string, user: UpdateUserDto): Promise<any> {
+        const updateInfo = UpdateUserDto.plainToClass(user);
+        await this.userRepository.update({ email: email }, updateInfo)
+        return updateInfo
     }
+
+    async updateAdmin(email: string, user: UpdateAdminDto): Promise<any> {
+        const isCheck = await this.findByEmail(user.email)
+        if (!isCheck) {
+            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+        }
+        const updateInfo = UpdateAdminDto.plainToClass(user)
+        await this.userRepository.update({ email: updateInfo.email },
+            {
+                firstName: updateInfo.firstName,
+                lastName: updateInfo.lastName,
+                phone: updateInfo.phone,
+                address: updateInfo.address,
+                status: updateInfo.status,
+                role: updateInfo.role,
+            })
+        throw new HttpException("User is updated!", HttpStatus.ACCEPTED)
+    }
+
+    // Disable
+    async disable(email: string, status: UserStatusEnum) {
+        if (await this.findByEmail(email)) {
+            await this.userRepository.update({ email: email }, { status: status })
+            throw new HttpException("User's status is updated!", HttpStatus.ACCEPTED)
+        }
+        throw new HttpException("User not found!", HttpStatus.NOT_FOUND)
+    }
+
 }
