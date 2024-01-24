@@ -1,16 +1,14 @@
-import { HttpException, HttpStatus, Injectable, NotAcceptableException, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
-import { Admin, EntityManager, Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { RegisterUserDto } from "src/user/dtos/register-user.dto";
 import { plainToClass } from "class-transformer";
 import * as bcrypt from 'bcryptjs'
-import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 import { RegisterAdminDto } from "./dtos/register-admin.dto";
 import { RegisterManagerDto } from "./dtos/register-manager.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { UpdateAdminDto } from "./dtos/update-admin.dto";
-import { RoleEnum } from "src/auth/enums/role.enum";
 import { UserStatusEnum } from "src/auth/enums/user-status.enum";
 
 @Injectable({})
@@ -32,6 +30,8 @@ export class UserService {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
 
+
+
     // Create services
     async create(user: RegisterUserDto) {
         const { email, password, confirmPassword } = user;
@@ -39,6 +39,16 @@ export class UserService {
         if (isExisted || password !== confirmPassword) { return false }
         let data = plainToClass(RegisterUserDto, user, { excludeExtraneousValues: true });
         data.password = await bcrypt.hashSync(data.password, 10);
+        const newUser = new UserEntity(data);
+        await this.userRepository.save(newUser);
+        return true
+    }
+
+    async createWithEmail(user: any) {
+        const { email } = user;
+        const isExisted = await this.findByEmail(email);
+        if (isExisted) { return false }
+        let data = plainToClass(RegisterUserDto, user, { excludeExtraneousValues: true });
         const newUser = new UserEntity(data);
         await this.userRepository.save(newUser);
         return true
@@ -66,7 +76,7 @@ export class UserService {
         return true
     }
 
-    // Update services
+    // Update services  
     async update(email: string, user: UpdateUserDto): Promise<any> {
         const updateInfo = UpdateUserDto.plainToClass(user);
         await this.userRepository.update({ email: email }, updateInfo)

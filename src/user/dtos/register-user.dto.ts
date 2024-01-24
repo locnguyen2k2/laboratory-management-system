@@ -5,25 +5,25 @@ import { BaseDto } from "src/globals/base.dto";
 
 export class RegisterUserDto extends BaseDto {
 
-    @ApiProperty({ default: "Loc" })
+    @ApiProperty({})
     @IsString()
     @IsNotEmpty()
     @Expose()
     firstName: string;
 
-    @ApiProperty({ default: "Nguyen" })
+    @ApiProperty({})
     @IsString()
     @IsNotEmpty()
     @Expose()
     lastName: string;
 
-    @ApiProperty({ default: "user01@gmail.com" })
+    @ApiProperty({})
     @IsEmail()
     @IsNotEmpty()
     @Expose()
     email: string;
 
-    @ApiProperty({ default: "0327688962" })
+    @ApiProperty({})
     @IsPhoneNumber('VN')
     @IsNotEmpty()
     @Expose()
@@ -49,5 +49,4 @@ export class RegisterUserDto extends BaseDto {
     @Expose()
     confirmPassword: string;
 
-    
 }

@@ -20,7 +20,7 @@ import { DatabaseModule } from './database/database.module';
     PassportModule.register({
       defaultStrategy: 'jwt',
       property: 'user',
-      session: false,
+      session: true,
     }),
     DatabaseModule, UserModule, AuthModule
   ],

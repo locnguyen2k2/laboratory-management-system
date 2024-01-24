@@ -17,7 +17,7 @@ export class AuthService {
 
     async credentialByPassword(email: string, password: string): Promise<any> {
         const user = await this.userService.findOne(email)
-        if (!user) {
+        if (!user || !user?.password) {
             throw new HttpException("Email or password is incorrect!", HttpStatus.NOT_FOUND)
         }
         if (user.status !== UserStatusEnum.ACTIVE) {
@@ -32,6 +32,20 @@ export class AuthService {
             email: user.email
         }
 
+        return {
+            access_token: await this.jwtService.signAsync(payload)
+        }
+    }
+
+    async credentialWithoutPassword(email: string): Promise<any> {
+        const user = await this.userService.findOne(email)
+        if (user.status !== UserStatusEnum.ACTIVE) {
+            throw new HttpException("Verify your account before, please!", HttpStatus.UNAUTHORIZED)
+        }
+        const payload: JwtPayload = {
+            id: user.id,
+            email: user.email
+        }
         return {
             access_token: await this.jwtService.signAsync(payload)
         }
