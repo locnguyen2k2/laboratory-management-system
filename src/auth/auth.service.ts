@@ -40,7 +40,7 @@ export class AuthService {
     async credentialWithoutPassword(email: string): Promise<any> {
         const user = await this.userService.findOne(email)
         if (user.status !== UserStatusEnum.ACTIVE) {
-            throw new HttpException("Verify your account before, please!", HttpStatus.UNAUTHORIZED)
+            throw new HttpException("Verify your account before login, please!", HttpStatus.UNAUTHORIZED)
         }
         const payload: JwtPayload = {
             id: user.id,

@@ -68,8 +68,8 @@ export class AuthController {
     @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Get('info')
-    async info(@Request() req: JwtPayload): Promise<any> {
-        return await this.authService.getUserByEmail(req.email)
+    async info(@Request() req: any): Promise<any> {
+        return await this.authService.getUserByEmail(req.user.email)
     }
 
     @ApiBearerAuth()

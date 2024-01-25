@@ -32,16 +32,16 @@ export class UserEntity {
     @Column({ default: () => "CURRENT_TIMESTAMP" })
     updated_at: Date;
 
-    @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.UNACTIVE })
+    @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.UNACTIVE, nullable: false })
     status: UserStatusEnum;
 
     @Column({ default: null })
     token: string;
 
     @Column({ default: null })
-    refresh_token: string;
+    refresh_token: string; 
 
-    @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.USER })
+    @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.USER, nullable: false })
     role: RoleEnum
 
     constructor(userEntity: Partial<UserEntity>) {
