@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Patch, Post, Request, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, HttpStatus, Patch, Post, Query, Request, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginAuthDto } from "./dtos/login-auth.dto";
 import { RegisterUserDto } from "../user/dtos/register-user.dto";
@@ -13,11 +13,17 @@ import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { DisableDto } from "./dtos/disable-auth.dto";
 import { GoogleGuard } from "./guard/google-auth.guard";
+import { EmailService } from "src/email/email.service";
+import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
+import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 
 @Controller('auths')
 export class AuthController {
 
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+        private readonly emailService: EmailService,
+    ) { }
 
     @UseGuards(LocalGuard)
     @Post('login')
@@ -30,18 +36,26 @@ export class AuthController {
     async loginWithGoogle() {
         console.log("Login with Google account processing...!")
     }
+
     @UseGuards(GoogleGuard)
     @Get('google/redirect')
     async handleRedirect(@Request() req: any) {
-        const user = await this.authService.getUserByEmail(req.user.email)
+        const data: GoogleRedirectDto = req.user;
+        const user = await this.authService.getUserByEmail(data.email)
         return await this.authService.credentialWithoutPassword(user.email)
     }
 
     @Post('register')
     async register(@Body() user: RegisterUserDto): Promise<any> {
         return await this.authService.registerUser(user) ?
-            new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
-            : new UnauthorizedException("User isn't created").getResponse()
+            new HttpException({ message: 'The account has been created, verify your email to continute!', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
+            : new UnauthorizedException("The email already link to another account or is existed!").getResponse()
+    }
+
+    @Get('confirm-email')
+    async confirmRegister(@Query() confirmationEmailData: ConfirmationEmailDto) {
+        const email = await this.emailService.decodeConfirmationToken(confirmationEmailData.token)
+        return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException("Can not confirm this email", HttpStatus.BAD_REQUEST);
     }
 
     @UseGuards(JwtGuard, RolesGuard)
@@ -75,4 +89,5 @@ export class AuthController {
     async disable(@Body() data: DisableDto) {
         return await this.authService.disable(data.email, data.status) ? new HttpException("User's status is updated", HttpStatus.ACCEPTED) : new HttpException("User not found", HttpStatus.NOT_FOUND)
     }
+
 }

@@ -7,12 +7,16 @@ import { JwtPayload } from "./interfaces/jwt.interface";
 import { UserStatusEnum } from "./enums/user-status.enum";
 import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
 import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
+import { ConfigService } from "@nestjs/config";
+import { EmailService } from "src/email/email.service";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly userService: UserService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailService
     ) { }
 
     async credentialByPassword(email: string, password: string): Promise<any> {
@@ -52,7 +56,11 @@ export class AuthService {
     }
 
     async registerUser(user: RegisterUserDto): Promise<boolean> {
-        return await this.userService.create(user)
+        const create = await this.userService.create(user);
+        if (create) {
+            await this.emailService.sendConfirmationEmail(user.email);
+        }
+        return create;
     }
 
     async registerManager(user: RegisterManagerDto): Promise<boolean> {
@@ -74,4 +82,5 @@ export class AuthService {
     async disable(email: string, status: UserStatusEnum): Promise<any> {
         return await this.userService.disable(email, status)
     }
+
 }

@@ -35,14 +35,14 @@ export class RegisterUserDto extends BaseDto {
     @Expose()
     address: string;
 
-    @ApiProperty({ default: "07112002NTLoc" })
+    @ApiProperty({ default: "" })
     @IsString()
     @Length(8, 32)
     @IsNotEmpty()
     @Expose()
     password: string;
 
-    @ApiProperty({ default: "07112002NTLoc" })
+    @ApiProperty({ default: "" })
     @IsString()
     @Length(8, 32)
     @IsNotEmpty()

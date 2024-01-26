@@ -7,12 +7,13 @@ import { RolesGuard } from './auth/guard/roles-auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { DatabaseModule } from './database/database.module';
+import { EmailModule } from './email/email.module';
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
-    JwtModule.register({
+    JwtModule.register({  
       global: true,
       secret: new ConfigService().getOrThrow('JWT_SECRETKEY'),
       signOptions: { expiresIn: new ConfigService().getOrThrow('JWT_EXPIRATION') }
@@ -22,7 +23,7 @@ import { DatabaseModule } from './database/database.module';
       property: 'user',
       session: true,
     }),
-    DatabaseModule, UserModule, AuthModule
+    DatabaseModule, UserModule, AuthModule, EmailModule
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })

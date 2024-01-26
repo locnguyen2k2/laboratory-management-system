@@ -9,7 +9,10 @@ export class GoogleGuard extends AuthGuard('google') {
             const request = context.switchToHttp().getRequest();
             await super.logIn(request);
             return activate;
-        } catch {
+        } catch (error) {
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
             throw new HttpException("Your accesse is inavlid", HttpStatus.UNAUTHORIZED)
         }
     }

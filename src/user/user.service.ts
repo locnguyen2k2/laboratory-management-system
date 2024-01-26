@@ -15,7 +15,7 @@ import { UserStatusEnum } from "src/auth/enums/user-status.enum";
 export class UserService {
     constructor(
         private readonly userManager: EntityManager,
-        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>
+        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
 
     async findAll() {

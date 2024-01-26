@@ -5,6 +5,7 @@ import { UserService } from "src/user/user.service";
 import { VerifiedCallback } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { UserStatusEnum } from "../enums/user-status.enum";
+import { GoogleRedirectDto } from "../dtos/googleRedirect-auth.dto";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -18,13 +19,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     }
     async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifiedCallback) {
         const { name, emails, photos } = profile;
-        const user = {
+        const user: GoogleRedirectDto = {
             email: emails[0].value,
             firstName: name.familyName,
             lastName: name.givenName,
             photo: photos[0].value,
             accessToken,
-            refreshToken,
         }
         const isCheck = await this.userService.findByEmail(user.email)
         if (!isCheck) {
@@ -34,6 +34,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
                 email: user.email
             })
             let active = await this.userService.disable(user.email, UserStatusEnum.ACTIVE)
+        }
+        if (isCheck?.password) {
+            throw new HttpException("The email already link to existed account!", HttpStatus.BAD_REQUEST).getResponse()
         }
         done(null, user)
     }
