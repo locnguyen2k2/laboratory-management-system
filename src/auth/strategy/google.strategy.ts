@@ -4,6 +4,7 @@ import { Profile, Strategy } from "passport-google-oauth20";
 import { UserService } from "src/user/user.service";
 import { VerifiedCallback } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
+import { UserStatusEnum } from "../enums/user-status.enum";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -27,11 +28,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
         }
         const isCheck = await this.userService.findByEmail(user.email)
         if (!isCheck) {
-            await this.userService.createWithEmail({
+            let newUser = await this.userService.createWithEmail({
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email
             })
+            let active = await this.userService.disable(user.email, UserStatusEnum.ACTIVE)
         }
         done(null, user)
     }

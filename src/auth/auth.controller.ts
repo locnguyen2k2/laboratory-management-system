@@ -44,7 +44,6 @@ export class AuthController {
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Post('register/manager')
@@ -54,7 +53,6 @@ export class AuthController {
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Post('register/admin')
@@ -65,18 +63,16 @@ export class AuthController {
     }
 
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Get('info')
     async info(@Request() req: any): Promise<any> {
         return await this.authService.getUserByEmail(req.user.email)
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Patch('disable')
     async disable(@Body() data: DisableDto) {
-        return await this.authService.disable(data.email, data.status)
+        return await this.authService.disable(data.email, data.status) ? new HttpException("User's status is updated", HttpStatus.ACCEPTED) : new HttpException("User not found", HttpStatus.NOT_FOUND)
     }
 }

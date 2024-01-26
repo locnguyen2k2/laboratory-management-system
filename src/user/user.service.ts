@@ -105,9 +105,9 @@ export class UserService {
     async disable(email: string, status: UserStatusEnum) {
         if (await this.findByEmail(email)) {
             await this.userRepository.update({ email: email }, { status: status })
-            throw new HttpException("User's status is updated!", HttpStatus.ACCEPTED)
+            return true
         }
-        throw new HttpException("User not found!", HttpStatus.NOT_FOUND)
+        return false
     }
 
 }
