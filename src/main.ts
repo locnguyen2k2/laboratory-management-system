@@ -13,7 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("apis")
   app.use(session({
-    secret: process.env.JWT_SECRETKEY,
+    secret: new ConfigService().getOrThrow('JWT_SECRETKEY'),
     saveUninitialized: false,
     resave: false,
     cookie: {

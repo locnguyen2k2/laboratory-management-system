@@ -15,8 +15,8 @@ import { EmailModule } from './email/email.module';
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRETKEY,
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION }
+      secret: new ConfigService().getOrThrow('JWT_SECRETKEY'),
+      signOptions: { expiresIn: new ConfigService().getOrThrow('JWT_EXPIRATION') }
     }),
     PassportModule.register({
       defaultStrategy: 'jwt',
