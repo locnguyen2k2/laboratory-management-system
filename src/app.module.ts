@@ -11,7 +11,7 @@ import { EmailModule } from './email/email.module';
 
 
 @Module({
-  imports: [
+  imports: [ 
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     JwtModule.register({
       global: true,
