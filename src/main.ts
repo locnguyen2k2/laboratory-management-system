@@ -13,7 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("apis")
   app.use(session({
-    secret: new ConfigService().getOrThrow("JWT_SECRETKEY"),
+    secret: process.env.JWT_SECRETKEY,
     saveUninitialized: false,
     resave: false,
     cookie: {
@@ -32,7 +32,7 @@ async function bootstrap() {
     .addTag('example')
     .build()
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('apis', app, document); 
+  SwaggerModule.setup('apis', app, document);
   await app.listen(3000);
   if (module.hot) {
     module.hot.accept();

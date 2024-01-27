@@ -16,10 +16,10 @@ export class EmailService {
         private readonly jwtService: JwtService
     ) {
         this.nodeMailerTransport = createTransport({
-            service: configService.getOrThrow('EMAIL_SERVICE'),
+            service: process.env.EMAIL_SERVICE,
             auth: {
-                user: configService.getOrThrow('EMAIL_USER'),
-                pass: configService.getOrThrow('EMAIL_PASSWORD')
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD
             }
         });
     }
@@ -32,7 +32,7 @@ export class EmailService {
         const user = await this.userService.findByEmail(email)
         const payload: JwtPayload = { id: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
-        const url = `${this.configService.getOrThrow("EMAIL_CONFIRMATION_URL")}?token=${token}`;
+        const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
         const text = `Welcome to Laboratory Management System. To confirm the email address, click here: ${url}`;
         return this.sendEmail({
             to: email,

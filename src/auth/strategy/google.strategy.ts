@@ -11,9 +11,9 @@ import { GoogleRedirectDto } from "../dtos/googleRedirect-auth.dto";
 export class GoogleStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly userService: UserService) {
         super({
-            clientID: new ConfigService().getOrThrow("GG_CLIENTID"),
-            clientSecret: new ConfigService().getOrThrow("GG_CLIENT_SECRET"),
-            callbackURL: "http://localhost:3000/apis/auths/google/redirect",
+            clientID: process.env.GG_CLIENTID,
+            clientSecret: process.env.GG_CLIENT_SECRET,
+            callbackURL: process.env.GG_CLIENT_CALLBACK,
             scope: ["profile", "email"]
         })
     }

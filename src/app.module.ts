@@ -12,11 +12,11 @@ import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
-    JwtModule.register({  
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    JwtModule.register({
       global: true,
-      secret: new ConfigService().getOrThrow('JWT_SECRETKEY'),
-      signOptions: { expiresIn: new ConfigService().getOrThrow('JWT_EXPIRATION') }
+      secret: process.env.JWT_SECRETKEY,
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION }
     }),
     PassportModule.register({
       defaultStrategy: 'jwt',
