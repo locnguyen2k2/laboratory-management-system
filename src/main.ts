@@ -5,15 +5,13 @@ import { DocumentBuilder } from '@nestjs/swagger';
 import { SwaggerModule } from '@nestjs/swagger';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { ConfigService } from '@nestjs/config';
-
 declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("apis")
   app.use(session({
-    secret: new ConfigService().getOrThrow('JWT_SECRETKEY'),
+    secret: process.env.JWT_SECRETKEY,
     saveUninitialized: false,
     resave: false,
     cookie: {
