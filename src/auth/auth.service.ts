@@ -64,11 +64,19 @@ export class AuthService {
     }
 
     async registerManager(user: RegisterManagerDto): Promise<boolean> {
-        return await this.userService.createManager(user)
+        const create = await this.userService.createManager(user)
+        if (create) {
+            await this.emailService.sendConfirmationEmail(user.email);
+        }
+        return create
     }
 
     async registerAdmin(user: RegisterAdminDto): Promise<boolean> {
-        return await this.userService.createAdmin(user)
+        const create = await this.userService.createAdmin(user)
+        if (create) {
+            await this.emailService.sendConfirmationEmail(user.email);
+        }
+        return create
     }
 
     async getUserByEmail(email: string): Promise<any> {
