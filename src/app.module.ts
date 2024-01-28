@@ -12,7 +12,7 @@ import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETKEY,
