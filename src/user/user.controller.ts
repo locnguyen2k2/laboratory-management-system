@@ -15,12 +15,14 @@ export class UserController {
 
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Post('update')
     async update(@Body() user: UpdateUserDto, @Request() req: any): Promise<any> {
         return await this.userService.update(req.user.email, user);
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Post('update/admin')

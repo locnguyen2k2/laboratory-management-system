@@ -58,6 +58,7 @@ export class AuthController {
         return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException("Can not confirm this email", HttpStatus.BAD_REQUEST);
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Post('register/manager')
@@ -67,6 +68,7 @@ export class AuthController {
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Post('register/admin')
@@ -76,13 +78,14 @@ export class AuthController {
             : new UnauthorizedException("User isn't created").getResponse()
     }
 
-
+    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Get('info')
     async info(@Request() req: any): Promise<any> {
         return await this.authService.getUserByEmail(req.user.email)
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @Patch('disable')
