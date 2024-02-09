@@ -41,6 +41,9 @@ export class UserEntity {
     @Column({ default: null })
     refresh_token: string;
 
+    @Column({ default: null })
+    repass_token: string;
+
     @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.USER, nullable: false })
     role: RoleEnum
 

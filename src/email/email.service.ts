@@ -41,6 +41,17 @@ export class EmailService {
         })
     }
 
+    async sendConfirmationRePassword(email: string, digitalNumbs: string) {
+        const user = await this.userService.findByEmail(email)
+        const payload: JwtPayload = { id: user.id, email: user.email };
+        const text = `Your digital numbers to confirm reset password, here: ${digitalNumbs}`;
+        this.sendEmail({
+            to: email,
+            subject: 'Reset Password confirmation. Do not show your digital numbers to another!',
+            text,
+        })
+        return { digitalNumbs: digitalNumbs };
+    }
 
     async confirmEmail(email: string) {
         const user = await this.userService.findByEmail(email);

@@ -7,13 +7,10 @@ import { UpdateUserDto } from "./dtos/update-user.dto";
 import { Roles } from "src/auth/decorator/roles.decorator";
 import { RoleEnum } from "src/auth/enums/role.enum";
 import { UpdateAdminDto } from "./dtos/update-admin.dto";
-import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 
 @Controller('users')
 export class UserController {
-    constructor(private readonly userService: UserService) {
-
-    }
+    constructor(private readonly userService: UserService) { }
 
     @ApiBearerAuth()
     @UseGuards(JwtGuard)

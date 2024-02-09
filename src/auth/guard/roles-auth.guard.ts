@@ -8,9 +8,14 @@ import { UserService } from "src/user/user.service";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) { }
+    constructor(
+        private reflector: Reflector,
+        private readonly jwtService: JwtService,
+        private readonly userService: UserService
+    ) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(ROLES_KEY,
+        const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(
+            ROLES_KEY,
             [context.getHandler(), context.getClass()]
         );
         if (!(requiredRoles)) {

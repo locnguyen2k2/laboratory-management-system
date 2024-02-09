@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Transform } from "class-transformer";
-import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString } from "class-validator";
-import { UserStatusEnum } from "src/auth/enums/user-status.enum";
+import { Expose } from "class-transformer";
+import { IsPhoneNumber, IsString } from "class-validator";
 import { BaseDto } from "src/globals/base.dto";
 
 export class UpdateUserDto extends BaseDto {

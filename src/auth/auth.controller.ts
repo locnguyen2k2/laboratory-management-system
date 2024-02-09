@@ -7,7 +7,6 @@ import { Roles } from "./decorator/roles.decorator";
 import { RoleEnum } from "src/auth/enums/role.enum";
 import { RolesGuard } from "./guard/roles-auth.guard";
 import { JwtGuard } from "./guard/jwt-auth.guard";
-import { JwtPayload } from "src/auth/interfaces/jwt.interface";
 import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
 import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
@@ -16,6 +15,8 @@ import { GoogleGuard } from "./guard/google-auth.guard";
 import { EmailService } from "src/email/email.service";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
+import { ResetPaswordDto } from "src/auth/dtos/reset-password.dto";
+import { ConfirmRePasswordDto } from "./dtos/confirm-repassword.dto";
 
 @Controller('auths')
 export class AuthController {
@@ -23,6 +24,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly emailService: EmailService,
+
     ) { }
 
     @UseGuards(LocalGuard)
@@ -93,4 +95,18 @@ export class AuthController {
         return await this.authService.disable(data.email, data.status) ? new HttpException("User's status is updated", HttpStatus.ACCEPTED) : new HttpException("User not found", HttpStatus.NOT_FOUND)
     }
 
+    @ApiBearerAuth()
+    @Patch('reset-password')
+    async resetPassword(@Body() data: ResetPaswordDto): Promise<any> {
+        const isResult = await this.authService.resetPassword(data.email);
+        if (isResult) {
+            return new HttpException("Digital numbers send to your email!", HttpStatus.ACCEPTED)
+        }
+        return new HttpException("Email not found or not yet register!", HttpStatus.NOT_FOUND)
+    }
+    @ApiBearerAuth()
+    @Patch('confirm-reset-password')
+    async confirmRePassword(@Body() data: ConfirmRePasswordDto): Promise<any> {
+        return await this.authService.confirmRePassword(data)
+    }
 }

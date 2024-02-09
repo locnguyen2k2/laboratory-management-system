@@ -9,6 +9,7 @@ import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
 import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 import { ConfigService } from "@nestjs/config";
 import { EmailService } from "src/email/email.service";
+import { ConfirmRePasswordDto } from "./dtos/confirm-repassword.dto";
 
 @Injectable()
 export class AuthService {
@@ -35,9 +36,10 @@ export class AuthService {
             id: user.id,
             email: user.email
         }
+        const access_token = await this.jwtService.signAsync(payload)
 
         return {
-            access_token: await this.jwtService.signAsync(payload)
+            access_token: access_token
         }
     }
 
@@ -50,8 +52,10 @@ export class AuthService {
             id: user.id,
             email: user.email
         }
+        const access_token = await this.jwtService.signAsync(payload)
+
         return {
-            access_token: await this.jwtService.signAsync(payload)
+            access_token: access_token
         }
     }
 
@@ -91,4 +95,37 @@ export class AuthService {
         return await this.userService.disable(email, status)
     }
 
+    async resetPassword(email: string): Promise<any> {
+        const isExisted = await this.userService.findByEmail(email);
+        if (!isExisted || !isExisted.password) {
+            return false
+        }
+        const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
+        const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
+        const repassToken = await this.jwtService.signAsync(payload);
+        await this.userService.updateRepassToken(email, repassToken);
+        return true;
+    }
+
+    async confirmRePassword(data: ConfirmRePasswordDto) {
+        const isExisted = await this.userService.findByEmail(data.email);
+        if (!isExisted) {
+            throw new HttpException('Email is not register', HttpStatus.NOT_FOUND);
+        }
+        try {
+            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
+            if (data.digitalNumbs === decoded.digitalNumbs) {
+                const isCheckPass = await bcrypt.compareSync(data.password, isExisted.password);
+                if (!isCheckPass) {
+                    const password = await bcrypt.hashSync(data.password, 10);
+                    await this.userService.updatePassword(data.email, password);
+                    throw new HttpException('Your password is updated!', HttpStatus.ACCEPTED);
+                }
+                throw new HttpException('The password is duplicated', HttpStatus.NOT_FOUND);
+            }
+            throw new HttpException('Digital numbers incorrect', HttpStatus.NOT_FOUND);
+        } catch (error) {
+            return error;
+        }
+    }
 }

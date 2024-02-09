@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Length, Matches } from "class-validator"
+import { Expose} from "class-transformer";
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Length } from "class-validator"
 import { BaseDto } from "src/globals/base.dto";
 
 export class RegisterUserDto extends BaseDto {

@@ -30,9 +30,6 @@ export class UserService {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
 
-
-
-    // Create services
     async create(user: RegisterUserDto) {
         const { email, password, confirmPassword } = user;
         const isExisted = await this.findByEmail(email);
@@ -76,7 +73,6 @@ export class UserService {
         return true
     }
 
-    // Update services  
     async update(email: string, user: UpdateUserDto): Promise<any> {
         const updateInfo = UpdateUserDto.plainToClass(user);
         await this.userRepository.update({ email: email }, updateInfo)
@@ -101,7 +97,20 @@ export class UserService {
         throw new HttpException("User is updated!", HttpStatus.ACCEPTED)
     }
 
-    // Disable
+    async updateRepassToken(email: string, repassToken: string) {
+        return await this.userRepository.update({ email: email },
+            {
+                repass_token: repassToken,
+            })
+    }
+
+    async updatePassword(email: string, password: string) {
+        return await this.userRepository.update({ email: email },
+            {
+                password: password,
+            })
+    }
+
     async disable(email: string, status: UserStatusEnum) {
         if (await this.findByEmail(email)) {
             await this.userRepository.update({ email: email }, { status: status })
@@ -109,5 +118,4 @@ export class UserService {
         }
         return false
     }
-
 }
