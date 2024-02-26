@@ -19,18 +19,19 @@ export class UserService {
     ) { }
 
     async findAll() {
-        return await this.userRepository.find()
-    }
-
-    async findOne(email: string) {
-        return (await this.userRepository.find({ where: { email: email } }))[0]
+        let listUser = await this.userRepository.find();
+        listUser.forEach((item: any) => {
+            delete item.password,
+            delete item.token,
+            delete item.repass_token,
+            delete item.refresh_token;
+        })
+        return listUser;
     }
 
     async findByEmail(email: string) {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
-
-
 
     async create(user: any) {
         const { email, password, confirmPassword } = user;

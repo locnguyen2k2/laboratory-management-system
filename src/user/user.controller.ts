@@ -13,6 +13,15 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @ApiBearerAuth()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    @Post('get-list')
+    async findAll(): Promise<any> {
+        return await this.userService.findAll();
+    }
+
+
+    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Post('update')
     async update(@Body() user: UpdateUserDto, @Request() req: any): Promise<any> {

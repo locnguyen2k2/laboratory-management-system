@@ -21,7 +21,7 @@ export class AuthService {
     ) { }
 
     async credentialByPassword(email: string, password: string): Promise<any> {
-        const user = await this.userService.findOne(email)
+        const user = await this.userService.findByEmail(email)
         if (!user || !user?.password) {
             throw new HttpException("Email or password is incorrect!", HttpStatus.NOT_FOUND)
         }
@@ -44,7 +44,7 @@ export class AuthService {
     }
 
     async credentialWithoutPassword(email: string): Promise<any> {
-        const user = await this.userService.findOne(email)
+        const user = await this.userService.findByEmail(email)
         if (user.status !== UserStatusEnum.ACTIVE) {
             throw new HttpException("Verify your account before login, please!", HttpStatus.UNAUTHORIZED)
         }
@@ -58,6 +58,7 @@ export class AuthService {
             access_token: access_token
         }
     }
+
     async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<boolean> {
         const create = await this.userService.create(user);
         if (create) {
