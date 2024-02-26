@@ -30,7 +30,8 @@ export class AuthController {
     @UseGuards(LocalGuard)
     @Post('login')
     async login(@Body() user: LoginAuthDto): Promise<any> {
-        return await this.authService.credentialByPassword(user.email, user.password)
+        const access_token = await this.authService.credentialByPassword(user.email, user.password)
+        return new HttpException(access_token, HttpStatus.ACCEPTED)
     }
 
     @UseGuards(GoogleGuard)
@@ -44,14 +45,20 @@ export class AuthController {
     async handleRedirect(@Request() req: any) {
         const data: GoogleRedirectDto = req.user;
         const user = await this.authService.getUserByEmail(data.email)
-        return await this.authService.credentialWithoutPassword(user.email)
+        const access_token = await this.authService.credentialWithoutPassword(user.email)
+        return new HttpException(access_token, HttpStatus.ACCEPTED)
     }
 
     @Post('register')
     async register(@Body() user: RegisterUserDto): Promise<any> {
+        const emailHandle = (user.email.split('@'))[1];
+        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        if (!isEmailCTUET) {
+            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+        }
         return await this.authService.registerUser(user) ?
-            new HttpException({ message: 'The account has been created, verify your email to continute!', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
-            : new UnauthorizedException("The email already link to another account or is existed!").getResponse()
+            new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
     }
 
     @Get('confirm-email')
@@ -65,6 +72,11 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Post('register/manager')
     async registerManager(@Body() user: RegisterManagerDto): Promise<any> {
+        const emailHandle = (user.email.split('@'))[1];
+        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        if (!isEmailCTUET) {
+            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+        }
         return await this.authService.registerManager(user) ?
             new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
             : new UnauthorizedException("User isn't created").getResponse()
@@ -75,6 +87,11 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Post('register/admin')
     async registerAdmin(@Body() user: RegisterAdminDto): Promise<any> {
+        const emailHandle = (user.email.split('@'))[1];
+        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        if (!isEmailCTUET) {
+            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+        }
         return await this.authService.registerAdmin(user) ?
             new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
             : new UnauthorizedException("User isn't created").getResponse()

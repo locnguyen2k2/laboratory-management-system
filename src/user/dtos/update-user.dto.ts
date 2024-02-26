@@ -5,15 +5,15 @@ import { BaseDto } from "src/globals/base.dto";
 
 export class UpdateUserDto extends BaseDto {
 
-    @ApiProperty({})
+    @ApiProperty({default: ""})
     @Expose()
     @IsString()
     firstName: string;
-    @ApiProperty({})
+    @ApiProperty({default: ""})
     @Expose()
     @IsString()
     lastName: string;
-    @ApiProperty({})
+    @ApiProperty({default: ""})
     @Expose()
     @IsPhoneNumber('VN')
     phone: string;

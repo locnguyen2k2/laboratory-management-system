@@ -3,7 +3,6 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Profile, Strategy } from "passport-google-oauth20";
 import { UserService } from "src/user/user.service";
 import { VerifiedCallback } from "passport-jwt";
-import { ConfigService } from "@nestjs/config";
 import { UserStatusEnum } from "../enums/user-status.enum";
 import { GoogleRedirectDto } from "../dtos/googleRedirect-auth.dto";
 
@@ -26,7 +25,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
             photo: photos[0].value,
             accessToken,
         }
+        const emailHandle = (user.email.split('@'))[1];
+        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         const isCheck = await this.userService.findByEmail(user.email)
+        if (!isEmailCTUET) {
+            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+        }
         if (!isCheck) {
             let newUser = await this.userService.createWithEmail({
                 firstName: user.firstName,
@@ -36,7 +40,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
             let active = await this.userService.disable(user.email, UserStatusEnum.ACTIVE)
         }
         if (isCheck?.password) {
-            throw new HttpException("The email already link to existed account!", HttpStatus.BAD_REQUEST).getResponse()
+            throw new HttpException("The email already link to existed account!", HttpStatus.BAD_REQUEST)
         }
         done(null, user)
     }
