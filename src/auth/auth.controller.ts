@@ -36,9 +36,7 @@ export class AuthController {
 
     @UseGuards(GoogleGuard)
     @Get('google/login')
-    async loginWithGoogle() {
-        console.log("Login with Google account processing...!")
-    }
+    async loginWithGoogle() { }
 
     @UseGuards(GoogleGuard)
     @Get('google/redirect')
@@ -49,14 +47,15 @@ export class AuthController {
         return new HttpException(access_token, HttpStatus.ACCEPTED)
     }
 
-    @Post('register')
-    async register(@Body() user: RegisterUserDto): Promise<any> {
-        const emailHandle = (user.email.split('@'))[1];
+    @Post('user-register')
+    async register(@Body() data: RegisterUserDto): Promise<any> {
+        const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
-            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
         }
-        return await this.authService.registerUser(user) ?
+        const user = RegisterUserDto.plainToClass(data);
+        throw await this.authService.register(user) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
             : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
     }
@@ -70,31 +69,33 @@ export class AuthController {
     @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    @Post('register/manager')
-    async registerManager(@Body() user: RegisterManagerDto): Promise<any> {
-        const emailHandle = (user.email.split('@'))[1];
+    @Post('manager-register')
+    async registerManager(@Body() data: RegisterManagerDto): Promise<any> {
+        const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
             return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
         }
-        return await this.authService.registerManager(user) ?
-            new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
-            : new UnauthorizedException("User isn't created").getResponse()
+        const manager = RegisterManagerDto.plainToClass(data);
+        return await this.authService.register(manager) ?
+            new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
     }
 
     @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    @Post('register/admin')
-    async registerAdmin(@Body() user: RegisterAdminDto): Promise<any> {
-        const emailHandle = (user.email.split('@'))[1];
+    @Post('admin-register')
+    async registerAdmin(@Body() data: RegisterAdminDto): Promise<any> {
+        const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
             return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
         }
-        return await this.authService.registerAdmin(user) ?
-            new HttpException({ message: 'User is created', statusCode: 201 }, HttpStatus.ACCEPTED).getResponse()
-            : new UnauthorizedException("User isn't created").getResponse()
+        const admin = RegisterAdminDto.plainToClass(data);
+        return await this.authService.register(admin) ?
+            new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
     }
 
     @ApiBearerAuth()

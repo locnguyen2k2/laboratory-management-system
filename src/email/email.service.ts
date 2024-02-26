@@ -11,7 +11,6 @@ import { UserService } from "src/user/user.service";
 export class EmailService {
     private nodeMailerTransport: Mail;
     constructor(
-        private readonly configService: ConfigService,
         private readonly userService: UserService,
         private readonly jwtService: JwtService
     ) {
@@ -30,6 +29,9 @@ export class EmailService {
 
     async sendConfirmationEmail(email: string) {
         const user = await this.userService.findByEmail(email)
+        if (!user) {
+            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
+        }
         const payload: JwtPayload = { id: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
         const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
@@ -43,7 +45,9 @@ export class EmailService {
 
     async sendConfirmationRePassword(email: string, digitalNumbs: string) {
         const user = await this.userService.findByEmail(email)
-        const payload: JwtPayload = { id: user.id, email: user.email };
+        if (!user) {
+            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
+        }
         const text = `Your digital numbers to confirm reset password, here: ${digitalNumbs}`;
         this.sendEmail({
             to: email,

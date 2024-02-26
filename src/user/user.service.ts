@@ -30,13 +30,15 @@ export class UserService {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
 
-    async create(user: RegisterUserDto) {
+
+
+    async create(user: any) {
         const { email, password, confirmPassword } = user;
         const isExisted = await this.findByEmail(email);
-        if (isExisted || password !== confirmPassword) { return false }
-        let data = plainToClass(RegisterUserDto, user, { excludeExtraneousValues: true });
-        data.password = await bcrypt.hashSync(data.password, 10);
-        const newUser = new UserEntity(data);
+        if (isExisted || password !== confirmPassword) {
+            return false
+        }
+        const newUser = new UserEntity(user);
         await this.userRepository.save(newUser);
         return true
     }
@@ -46,28 +48,6 @@ export class UserService {
         const isExisted = await this.findByEmail(email);
         if (isExisted) { return false }
         let data = plainToClass(RegisterUserDto, user, { excludeExtraneousValues: true });
-        const newUser = new UserEntity(data);
-        await this.userRepository.save(newUser);
-        return true
-    }
-
-    async createManager(user: RegisterManagerDto) {
-        const { email, password, confirmPassword } = user;
-        const isExisted = await this.findByEmail(email);
-        if (isExisted || password !== confirmPassword) { return false }
-        let data = RegisterManagerDto.plainToClass(user)
-        data.password = await bcrypt.hashSync(data.password, 10);
-        const newUser = new UserEntity(data);
-        await this.userRepository.save(newUser);
-        return true
-    }
-
-    async createAdmin(user: RegisterAdminDto) {
-        const { email, password, confirmPassword } = user;
-        const isExisted = await this.findByEmail(email);
-        if (isExisted || password !== confirmPassword) { return false }
-        let data = RegisterAdminDto.plainToClass(user)
-        data.password = await bcrypt.hashSync(data.password, 10);
         const newUser = new UserEntity(data);
         await this.userRepository.save(newUser);
         return true

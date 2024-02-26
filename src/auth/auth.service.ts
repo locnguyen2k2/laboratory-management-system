@@ -58,25 +58,8 @@ export class AuthService {
             access_token: access_token
         }
     }
-
-    async registerUser(user: RegisterUserDto): Promise<boolean> {
+    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<boolean> {
         const create = await this.userService.create(user);
-        if (create) {
-            await this.emailService.sendConfirmationEmail(user.email);
-        }
-        return create;
-    }
-
-    async registerManager(user: RegisterManagerDto): Promise<boolean> {
-        const create = await this.userService.createManager(user)
-        if (create) {
-            await this.emailService.sendConfirmationEmail(user.email);
-        }
-        return create
-    }
-
-    async registerAdmin(user: RegisterAdminDto): Promise<boolean> {
-        const create = await this.userService.createAdmin(user)
         if (create) {
             await this.emailService.sendConfirmationEmail(user.email);
         }
@@ -85,6 +68,9 @@ export class AuthService {
 
     async getUserByEmail(email: string): Promise<any> {
         let user = await this.userService.findByEmail(email)
+        if (!user) {
+            throw new HttpException("Email not found", HttpStatus.NOT_FOUND)
+        }
         delete user.token;
         delete user.refresh_token;
         delete user.password;
