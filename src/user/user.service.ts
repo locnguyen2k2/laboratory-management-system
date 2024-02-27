@@ -22,9 +22,9 @@ export class UserService {
         let listUser = await this.userRepository.find();
         listUser.forEach((item: any) => {
             delete item.password,
-            delete item.token,
-            delete item.repass_token,
-            delete item.refresh_token;
+                delete item.token,
+                delete item.repass_token,
+                delete item.refresh_token;
         })
         return listUser;
     }
@@ -39,6 +39,8 @@ export class UserService {
         if (isExisted || password !== confirmPassword) {
             return false
         }
+        delete user.confirmPassword;
+        user.password = await bcrypt.hashSync(user.password, 10);
         const newUser = new UserEntity(user);
         await this.userRepository.save(newUser);
         return true

@@ -87,6 +87,14 @@ export class AuthService {
         if (!isExisted || !isExisted.password) {
             return false
         }
+        // try {
+        //     const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
+        //     if (decoded) {
+        //         throw new HttpException("The digital numbers was send to your Email!", HttpStatus.ACCEPTED)
+        //     }
+        // } catch (error) {
+        //     console.log(error)
+        // }
         const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
         const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
         const repassToken = await this.jwtService.signAsync(payload);
