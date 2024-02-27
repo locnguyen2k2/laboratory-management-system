@@ -34,7 +34,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
         if (!isCheck) {
             let newUser = await this.userService.createWithEmail({
                 firstName: user.firstName,
-                lastName: user.lastName,
+                lastName: user.lastName,    
                 email: user.email
             })
             let active = await this.userService.disable(user.email, UserStatusEnum.ACTIVE)
