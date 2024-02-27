@@ -85,21 +85,20 @@ export class AuthService {
     async resetPassword(email: string): Promise<any> {
         const isExisted = await this.userService.findByEmail(email);
         if (!isExisted || !isExisted.password) {
-            return false
+            throw new HttpException("Email not found or not yet register!", HttpStatus.ACCEPTED)
         }
-        // try {
-        //     const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
-        //     if (decoded) {
-        //         throw new HttpException("The digital numbers was send to your Email!", HttpStatus.ACCEPTED)
-        //     }
-        // } catch (error) {
-        //     console.log(error)
-        // }
-        const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
-        const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
-        const repassToken = await this.jwtService.signAsync(payload);
-        await this.userService.updateRepassToken(email, repassToken);
-        return true;
+        try {
+            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
+            if (decoded) {
+                return { message: "Please, check your digital numbers in your email before!", status: 202 }
+            }
+        } catch (error) {
+            const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
+            const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
+            const repassToken = await this.jwtService.signAsync(payload);
+            await this.userService.updateRepassToken(email, repassToken);
+            throw new HttpException("The new digital numbers was send to your Email!", HttpStatus.ACCEPTED)
+        }
     }
 
     async confirmRePassword(data: ConfirmRePasswordDto) {

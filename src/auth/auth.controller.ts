@@ -52,18 +52,12 @@ export class AuthController {
         const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
-            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }
         const user = RegisterUserDto.plainToClass(data);
         throw await this.authService.register(user) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
-    }
-
-    @Get('confirm-email')
-    async confirmRegister(@Query() confirmationEmailData: ConfirmationEmailDto) {
-        const email = await this.emailService.decodeConfirmationToken(confirmationEmailData.token)
-        return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException("Can not confirm this email", HttpStatus.BAD_REQUEST);
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()
@@ -74,12 +68,12 @@ export class AuthController {
         const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
-            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }
         const manager = RegisterManagerDto.plainToClass(data);
         return await this.authService.register(manager) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()
@@ -90,12 +84,18 @@ export class AuthController {
         const emailHandle = (data.email.split('@'))[1];
         const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
         if (!isEmailCTUET) {
-            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST)
+            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }
         const admin = RegisterAdminDto.plainToClass(data);
         return await this.authService.register(admin) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.NOT_ACCEPTABLE)
+            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
+    }
+
+    @Get('confirm-email')
+    async confirmRegister(@Query() confirmationEmailData: ConfirmationEmailDto) {
+        const email = await this.emailService.decodeConfirmationToken(confirmationEmailData.token)
+        return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException("Can not confirm this email", HttpStatus.BAD_REQUEST);
     }
 
     @ApiBearerAuth()
@@ -116,11 +116,7 @@ export class AuthController {
     @ApiBearerAuth()
     @Patch('reset-password')
     async resetPassword(@Body() data: ResetPaswordDto): Promise<any> {
-        const isResult = await this.authService.resetPassword(data.email);
-        if (isResult) {
-            return new HttpException("Digital numbers send to your email!", HttpStatus.ACCEPTED)
-        }
-        return new HttpException("Email not found or not yet register!", HttpStatus.NOT_FOUND)
+        return await this.authService.resetPassword(data.email);
     }
     @ApiBearerAuth()
     @Patch('confirm-reset-password')
