@@ -44,7 +44,7 @@ export class AuthController {
         const data: GoogleRedirectDto = req.user;
         const user = await this.authService.getUserByEmail(data.email)
         const access_token = await this.authService.credentialWithoutPassword(user.email)
-        return { access_token: access_token, status: 202 };
+        return {access_token: access_token.access_token, status: 202};
     }
 
     @Post('user-register')
