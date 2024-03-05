@@ -56,8 +56,8 @@ export class AuthService {
         return true;
     }
 
-    async ggAccessTokenVerify(accessToken: string) {
-        return lastValueFrom(this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}123`).pipe(map((res) => res.data)))
+    async ggAccessTokenVerify(accessToken: string): Promise<Observable<AxiosResponse<any, any>>> {
+        return lastValueFrom(this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).pipe(map((res) => res.data)))
     }
 
     async credentialWithoutPassword(email: string): Promise<any> {

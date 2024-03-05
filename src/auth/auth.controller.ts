@@ -37,12 +37,12 @@ export class AuthController {
     // @UseGuards(GoogleGuard)
     // @Get('google/login')
     // async loginWithGoogle() { }
-
+    // @UseGuards(GoogleGuard)
     @Get('google/login')
     async handleRedirect(@Body() data: GoogleRedirectDto) {
         try {
             const isVerifyToken = await this.authService.ggAccessTokenVerify(data.accessToken).then((res) => res)
-            if (isVerifyToken && isVerifyToken?.verified_email) {
+            if (isVerifyToken) {
                 const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
                 if (!isEmailCTUET) {
                     throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
