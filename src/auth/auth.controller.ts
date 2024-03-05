@@ -45,14 +45,14 @@ export class AuthController {
             if (isVerifyToken) {
                 const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
                 if (!isEmailCTUET) {
-                    throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
+                    throw new HttpException({message: "This email must have the extension 'ctuet.edu.vn'!", statusCode: 404}, HttpStatus.ACCEPTED)
                 }
                 const user = await this.authService.getUserByEmail(data.email)
                 const access_token = await this.authService.credentialWithoutPassword(user.email)
                 return { access_token: access_token.access_token, status: 202 };
             }
         } catch (error) {
-            throw new HttpException("Your email is not verified or the token is invalid", HttpStatus.NOT_ACCEPTABLE)
+            throw new HttpException({message: "Your email is not verified or the token is invalid", statusCode: 404}, HttpStatus.ACCEPTED)
         }
     }
 
@@ -60,12 +60,12 @@ export class AuthController {
     async register(@Body() data: RegisterUserDto): Promise<any> {
         const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
-            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
+            throw new HttpException({message: "This email must have the extension 'ctuet.edu.vn'!", statusCode: 404}, HttpStatus.ACCEPTED)
         }
         const user = RegisterUserDto.plainToClass(data);
         throw await this.authService.register(user) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
+            : new HttpException({message: "The email already link to another account or is existed!", statusCode: 404}, HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()
@@ -75,12 +75,12 @@ export class AuthController {
     async registerManager(@Body() data: RegisterManagerDto): Promise<any> {
         const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
-            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
+            return new HttpException({message: "This email must have the extension 'ctuet.edu.vn'!", statusCode: 404}, HttpStatus.ACCEPTED)
         }
         const manager = RegisterManagerDto.plainToClass(data);
         return await this.authService.register(manager) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
+            : new HttpException({message: "The email already link to another account or is existed!", statusCode: 404}, HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()
@@ -90,18 +90,18 @@ export class AuthController {
     async registerAdmin(@Body() data: RegisterAdminDto): Promise<any> {
         const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
-            return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
+            return new HttpException({message: "This email must have the extension 'ctuet.edu.vn'!", statusCode: 404}, HttpStatus.ACCEPTED)
         }
         const admin = RegisterAdminDto.plainToClass(data);
         return await this.authService.register(admin) ?
             new HttpException('The account has been created, verify your email to continute!', HttpStatus.ACCEPTED)
-            : new HttpException("The email already link to another account or is existed!", HttpStatus.ACCEPTED)
+            : new HttpException({message: "The email already link to another account or is existed!", statusCode: 404}, HttpStatus.ACCEPTED)
     }
 
     @Get('confirm-email')
     async confirmRegister(@Query() confirmationEmailData: ConfirmationEmailDto) {
         const email = await this.emailService.decodeConfirmationToken(confirmationEmailData.token)
-        return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException("Can not confirm this email", HttpStatus.BAD_REQUEST);
+        return await this.emailService.confirmEmail(email) ? new HttpException("The email is confirmed", HttpStatus.ACCEPTED) : new HttpException({message: "Can not confirm this email", statusCode: 404}, HttpStatus.ACCEPTED);
     }
 
     @ApiBearerAuth()
@@ -116,7 +116,7 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Patch('disable')
     async disable(@Body() data: DisableDto) {
-        return await this.authService.disable(data.email, data.status) ? new HttpException("User's status is updated", HttpStatus.ACCEPTED) : new HttpException("User not found", HttpStatus.NOT_FOUND)
+        return await this.authService.disable(data.email, data.status) ? new HttpException("User's status is updated", HttpStatus.ACCEPTED) : new HttpException({message: "User not found", statusCode: 404}, HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()

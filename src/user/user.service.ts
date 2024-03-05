@@ -65,7 +65,7 @@ export class UserService {
     async updateAdmin(email: string, user: UpdateAdminDto): Promise<any> {
         const isCheck = await this.findByEmail(user.email)
         if (!isCheck) {
-            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+            throw new HttpException({ message: "User not found", statusCode: 404 }, HttpStatus.ACCEPTED)
         }
         const updateInfo = UpdateAdminDto.plainToClass(user)
         await this.userRepository.update({ email: updateInfo.email },
