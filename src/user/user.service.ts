@@ -65,7 +65,7 @@ export class UserService {
     async updateAdmin(email: string, user: UpdateAdminDto): Promise<any> {
         const isCheck = await this.findByEmail(user.email)
         if (!isCheck) {
-            throw new HttpException({ message: "User not found", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "User not found", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         const updateInfo = UpdateAdminDto.plainToClass(user)
         await this.userRepository.update({ email: updateInfo.email },
@@ -77,7 +77,7 @@ export class UserService {
                 status: updateInfo.status,
                 role: updateInfo.role,
             })
-        throw new HttpException("User is updated!", HttpStatus.ACCEPTED)
+        throw new HttpException({message: "User is updated!", statusCode: 202}, HttpStatus.ACCEPTED).getResponse()
     }
 
     async updateRepassToken(email: string, repassToken: string) {

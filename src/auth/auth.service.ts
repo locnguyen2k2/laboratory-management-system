@@ -27,14 +27,14 @@ export class AuthService {
     async credentialByPassword(email: string, password: string): Promise<any> {
         const user = await this.userService.findByEmail(email)
         if (!user || !user?.password) {
-            throw new HttpException({ message: "Email or password is incorrect", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Email or password is incorrect", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         if (user.status !== UserStatusEnum.ACTIVE) {
-            throw new HttpException({ message: "Verify your account before, please!", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Verify your account before, please!", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         const isCheckPass = await bcrypt.compareSync(password, user?.password);
         if (!isCheckPass) {
-            throw new HttpException({ message: "Email or password is incorrect!", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Email or password is incorrect!", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         const payload: JwtPayload = {
             id: user.id,
@@ -63,7 +63,7 @@ export class AuthService {
     async credentialWithoutPassword(email: string): Promise<any> {
         const user = await this.userService.findByEmail(email)
         if (user.status !== UserStatusEnum.ACTIVE) {
-            throw new HttpException({ message: "Verify your account before login, please!", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Verify your account before login, please!", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         const payload: JwtPayload = {
             id: user.id,
@@ -87,7 +87,7 @@ export class AuthService {
     async getUserByEmail(email: string): Promise<any> {
         let user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException({ message: "Email not found", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Email not found", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         delete user.token;
         delete user.refresh_token;
@@ -102,26 +102,26 @@ export class AuthService {
     async resetPassword(email: string): Promise<any> {
         const isExisted = await this.userService.findByEmail(email);
         if (!isExisted || !isExisted.password) {
-            throw new HttpException({ message: "Email not found or not yet register!", statusCode: 404 }, HttpStatus.ACCEPTED)
+            throw new HttpException({ message: "Email not found or not yet register!", statusCode: 404 }, HttpStatus.ACCEPTED).getResponse()
         }
         try {
             const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
             if (decoded) {
-                throw new HttpException({ message: "Please, check your digital numbers in your email before!", status: 404 }, HttpStatus.ACCEPTED)
+                throw new HttpException({ message: "Please, check your digital numbers in your email before!", status: 404 }, HttpStatus.ACCEPTED).getResponse()
             }
         } catch (error) {
             const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
             const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
             const repassToken = await this.jwtService.signAsync(payload);
             await this.userService.updateRepassToken(email, repassToken);
-            throw new HttpException("The new digital numbers was send to your Email!", HttpStatus.ACCEPTED)
+            throw new HttpException({message: "The new digital numbers was send to your Email!", statusCode: 202}, HttpStatus.ACCEPTED).getResponse()
         }
     }
 
     async confirmRePassword(data: ConfirmRePasswordDto) {
         const isExisted = await this.userService.findByEmail(data.email);
         if (!isExisted) {
-            throw new HttpException({ message: 'Email is not register', statusCode: 404 }, HttpStatus.ACCEPTED);
+            throw new HttpException({ message: 'Email is not register', statusCode: 404 }, HttpStatus.ACCEPTED).getResponse();
         }
         try {
             const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
@@ -130,11 +130,11 @@ export class AuthService {
                 if (!isCheckPass) {
                     const password = await bcrypt.hashSync(data.password, 10);
                     await this.userService.updatePassword(data.email, password);
-                    throw new HttpException('Your password is updated!', HttpStatus.ACCEPTED);
+                    throw new HttpException('Your password is updated!', HttpStatus.ACCEPTED).getResponse();
                 }
-                throw new HttpException({ message: 'The password is duplicated', statusCode: 404 }, HttpStatus.ACCEPTED);
+                throw new HttpException({ message: 'The password is duplicated', statusCode: 404 }, HttpStatus.ACCEPTED).getResponse();
             }
-            throw new HttpException({ message: 'Digital numbers incorrect', statusCode: 404 }, HttpStatus.ACCEPTED);
+            throw new HttpException({ message: 'Digital numbers incorrect', statusCode: 404 }, HttpStatus.ACCEPTED).getResponse();
         } catch (error) {
             return error;
         }
