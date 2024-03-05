@@ -11,7 +11,7 @@ import { RegisterAdminDto } from "src/user/dtos/register-admin.dto";
 import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { DisableDto } from "./dtos/disable-auth.dto";
-import { GoogleGuard } from "./guard/google-auth.guard";
+// import { GoogleGuard } from "./guard/google-auth.guard";
 import { EmailService } from "src/email/email.service";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
@@ -34,23 +34,31 @@ export class AuthController {
         return new HttpException(access_token, HttpStatus.ACCEPTED)
     }
 
-    @UseGuards(GoogleGuard)
-    @Get('google/login')
-    async loginWithGoogle() { }
+    // @UseGuards(GoogleGuard)
+    // @Get('google/login')
+    // async loginWithGoogle() { }
 
-    @UseGuards(GoogleGuard)
-    @Get('google/redirect')
-    async handleRedirect(@Request() req: any) {
-        const data: GoogleRedirectDto = req.user;
-        const user = await this.authService.getUserByEmail(data.email)
-        const access_token = await this.authService.credentialWithoutPassword(user.email)
-        return {access_token: access_token.access_token, status: 202};
+    @Get('google/login')
+    async handleRedirect(@Body() data: GoogleRedirectDto) {
+        try {
+            const isVerifyToken = await this.authService.ggAccessTokenVerify(data.accessToken).then((res) => res)
+            if (isVerifyToken && isVerifyToken?.verified_email) {
+                const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
+                if (!isEmailCTUET) {
+                    throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
+                }
+                const user = await this.authService.getUserByEmail(data.email)
+                const access_token = await this.authService.credentialWithoutPassword(user.email)
+                return { access_token: access_token.access_token, status: 202 };
+            }
+        } catch (error) {
+            throw new HttpException("Your email is not verified or the token is invalid", HttpStatus.NOT_ACCEPTABLE)
+        }
     }
 
     @Post('user-register')
     async register(@Body() data: RegisterUserDto): Promise<any> {
-        const emailHandle = (data.email.split('@'))[1];
-        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
             throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }
@@ -65,8 +73,7 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Post('manager-register')
     async registerManager(@Body() data: RegisterManagerDto): Promise<any> {
-        const emailHandle = (data.email.split('@'))[1];
-        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
             return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }
@@ -81,8 +88,7 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Post('admin-register')
     async registerAdmin(@Body() data: RegisterAdminDto): Promise<any> {
-        const emailHandle = (data.email.split('@'))[1];
-        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        const isEmailCTUET = await this.authService.isCtuetEmail(data.email);
         if (!isEmailCTUET) {
             return new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.ACCEPTED)
         }

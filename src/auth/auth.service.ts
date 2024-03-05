@@ -10,6 +10,9 @@ import { RegisterManagerDto } from "src/user/dtos/register-manager.dto";
 import { ConfigService } from "@nestjs/config";
 import { EmailService } from "src/email/email.service";
 import { ConfirmRePasswordDto } from "./dtos/confirm-repassword.dto";
+import { HttpService } from "@nestjs/axios";
+import { Observable, lastValueFrom, map } from "rxjs";
+import { AxiosResponse } from "axios";
 
 @Injectable()
 export class AuthService {
@@ -17,7 +20,8 @@ export class AuthService {
         private readonly userService: UserService,
         private jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly emailService: EmailService
+        private readonly emailService: EmailService,
+        private readonly httpService: HttpService
     ) { }
 
     async credentialByPassword(email: string, password: string): Promise<any> {
@@ -41,6 +45,19 @@ export class AuthService {
         return {
             access_token: access_token
         }
+    }
+
+    async isCtuetEmail(email: string): Promise<boolean> {
+        const emailHandle = email.split('@')[1];
+        const isEmailCTUET = emailHandle.includes('ctuet.edu.vn');
+        if (!isEmailCTUET) {
+            return false;
+        }
+        return true;
+    }
+
+    async ggAccessTokenVerify(accessToken: string) {
+        return lastValueFrom(this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}123`).pipe(map((res) => res.data)))
     }
 
     async credentialWithoutPassword(email: string): Promise<any> {
