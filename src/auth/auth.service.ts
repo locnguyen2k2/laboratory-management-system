@@ -114,7 +114,7 @@ export class AuthService {
             const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
             const repassToken = await this.jwtService.signAsync(payload);
             await this.userService.updateRepassToken(email, repassToken);
-            throw new HttpException({message: "The new digital numbers was send to your Email!", status: 202}, HttpStatus.ACCEPTED).getResponse()
+            throw new HttpException({ message: "The new digital numbers was send to your Email!", status: 202 }, HttpStatus.ACCEPTED).getResponse()
         }
     }
 
@@ -130,7 +130,7 @@ export class AuthService {
                 if (!isCheckPass) {
                     const password = await bcrypt.hashSync(data.password, 10);
                     await this.userService.updatePassword(data.email, password);
-                    throw new HttpException('Your password is updated!', HttpStatus.ACCEPTED).getResponse();
+                    throw new HttpException({ message: 'Your password is updated!', status: 202 }, HttpStatus.ACCEPTED).getResponse();
                 }
                 throw new HttpException({ message: 'The password is duplicated', status: 404 }, HttpStatus.ACCEPTED);
             }
