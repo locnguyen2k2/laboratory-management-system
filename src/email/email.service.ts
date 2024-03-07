@@ -30,7 +30,7 @@ export class EmailService {
     async sendConfirmationEmail(email: string) {
         const user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException({ message: "The email not found", status: 200 }, HttpStatus.ACCEPTED).getResponse();
+            throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
         }
         const payload: JwtPayload = { id: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
@@ -89,7 +89,7 @@ export class EmailService {
             throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
         }
         if (user.status === UserStatusEnum.ACTIVE) {
-            throw new HttpException({ message: "Email already confirmed", status: 404 }, HttpStatus.ACCEPTED);
+            throw new HttpException({ message: "Email already confirmed", status: 200 }, HttpStatus.ACCEPTED).getResponse();
         }
         await this.sendConfirmationEmail(user.email);
         throw new HttpException({ message: "The confirmation email link already send", status: 200 }, HttpStatus.ACCEPTED).getResponse()

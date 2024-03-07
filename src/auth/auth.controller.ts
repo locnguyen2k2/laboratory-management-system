@@ -31,7 +31,7 @@ export class AuthController {
     @Post('login')
     async login(@Body() user: LoginAuthDto): Promise<any> {
         const access_token = await this.authService.credentialByPassword(user.email, user.password)
-        return new HttpException({ message: access_token, status: 200 }, HttpStatus.ACCEPTED).getResponse()
+        throw new HttpException({ message: access_token, status: 200 }, HttpStatus.ACCEPTED).getResponse()
     }
 
     // @UseGuards(GoogleGuard)
@@ -49,7 +49,7 @@ export class AuthController {
                 }
                 const user = await this.authService.getUserByEmail(data.email)
                 const access_token = await this.authService.credentialWithoutPassword(user.email)
-                return { access_token: access_token.access_token, status: 200 };
+                throw new HttpException({ message: access_token, status: 200 }, HttpStatus.ACCEPTED).getResponse()
             }
         } catch (error) {
             throw new HttpException({ message: "Your email is not verified or the token is invalid", status: 404 }, HttpStatus.ACCEPTED)
