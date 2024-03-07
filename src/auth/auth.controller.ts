@@ -79,7 +79,7 @@ export class AuthController {
         }
         const manager = RegisterManagerDto.plainToClass(data);
         return await this.authService.register(manager) ?
-            new HttpException({ message: 'The account has been created, verify your email to continute!', status: 202 }, HttpStatus.ACCEPTED).getResponse()
+            new HttpException({ message: 'The account has been created, verify your email to continute!', status: 200 }, HttpStatus.ACCEPTED).getResponse()
             : new HttpException({ message: "The email already link to another account or is existed!", status: 404 }, HttpStatus.ACCEPTED)
     }
 
@@ -94,14 +94,14 @@ export class AuthController {
         }
         const admin = RegisterAdminDto.plainToClass(data);
         return await this.authService.register(admin) ?
-            new HttpException({ message: 'The account has been created, verify your email to continute!', status: 202 }, HttpStatus.ACCEPTED).getResponse()
+            new HttpException({ message: 'The account has been created, verify your email to continute!', status: 200 }, HttpStatus.ACCEPTED).getResponse()
             : new HttpException({ message: "The email already link to another account or is existed!", status: 404 }, HttpStatus.ACCEPTED)
     }
 
     @Get('confirm-email')
     async confirmRegister(@Query() confirmationEmailData: ConfirmationEmailDto) {
         const email = await this.emailService.decodeConfirmationToken(confirmationEmailData.token)
-        return await this.emailService.confirmEmail(email) ? new HttpException({ message: "The email is confirmed", status: 202 }, HttpStatus.ACCEPTED).getResponse() : new HttpException({ message: "Can not confirm this email", status: 404 }, HttpStatus.ACCEPTED);
+        return await this.emailService.confirmEmail(email) ? new HttpException({ message: "The email is confirmed", status: 200 }, HttpStatus.ACCEPTED).getResponse() : new HttpException({ message: "Can not confirm this email", status: 404 }, HttpStatus.ACCEPTED);
     }
 
     @ApiBearerAuth()
@@ -116,7 +116,7 @@ export class AuthController {
     @Roles(RoleEnum.ADMIN)
     @Patch('disable')
     async disable(@Body() data: DisableDto) {
-        return await this.authService.disable(data.email, data.status) ? new HttpException({ message: "User's status is updated", status: 202 }, HttpStatus.ACCEPTED).getResponse() : new HttpException({ message: "User not found", status: 404 }, HttpStatus.ACCEPTED)
+        return await this.authService.disable(data.email, data.status) ? new HttpException({ message: "User's status is updated", status: 200 }, HttpStatus.ACCEPTED).getResponse() : new HttpException({ message: "User not found", status: 404 }, HttpStatus.ACCEPTED)
     }
 
     @ApiBearerAuth()

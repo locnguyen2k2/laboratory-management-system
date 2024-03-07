@@ -30,7 +30,7 @@ export class EmailService {
     async sendConfirmationEmail(email: string) {
         const user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
+            throw new HttpException({ message: "The email not found", status: 200 }, HttpStatus.ACCEPTED).getResponse();
         }
         const payload: JwtPayload = { id: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
@@ -46,7 +46,7 @@ export class EmailService {
     async sendConfirmationRePassword(email: string, digitalNumbs: string) {
         const user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
+            throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
         }
         const text = `Your digital numbers to confirm reset password, here: ${digitalNumbs}`;
         this.sendEmail({
@@ -60,10 +60,10 @@ export class EmailService {
     async confirmEmail(email: string) {
         const user = await this.userService.findByEmail(email);
         if (!user) {
-            throw new HttpException("Email not found", HttpStatus.NOT_FOUND)
+            throw new HttpException({ message: "Email not found", status: 404 }, HttpStatus.ACCEPTED)
         }
         if (user.status === UserStatusEnum.ACTIVE) {
-            throw new HttpException("User already confirmed", HttpStatus.ACCEPTED);
+            throw new HttpException({ message: "User already confirmed", status: 200 }, HttpStatus.ACCEPTED).getResponse();
         }
         return await this.userService.disable(email, UserStatusEnum.ACTIVE);
     }
@@ -76,9 +76,9 @@ export class EmailService {
             }
         } catch (error) {
             if (error?.name === 'TokenExpiredError') {
-                throw new HttpException("Email confirmation token expired", HttpStatus.BAD_REQUEST)
+                throw new HttpException({ message: "Email confirmation token expired", status: 404 }, HttpStatus.ACCEPTED)
             }
-            throw new HttpException("Bad confirmation token", HttpStatus.BAD_REQUEST)
+            throw new HttpException({ message: "Bad confirmation token", status: 404 }, HttpStatus.ACCEPTED)
         }
 
     }
@@ -86,12 +86,12 @@ export class EmailService {
     async resendConfirmationLink(email: string) {
         const user = await this.userService.findByEmail(email);
         if (!user) {
-            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
+            throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
         }
         if (user.status === UserStatusEnum.ACTIVE) {
-            throw new HttpException("Email already confirmed", HttpStatus.BAD_REQUEST);
+            throw new HttpException({ message: "Email already confirmed", status: 404 }, HttpStatus.ACCEPTED);
         }
         await this.sendConfirmationEmail(user.email);
-        throw new HttpException("The confirmation email link already send", HttpStatus.ACCEPTED)
+        throw new HttpException({ message: "The confirmation email link already send", status: 200 }, HttpStatus.ACCEPTED).getResponse()
     }
 }
