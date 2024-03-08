@@ -35,7 +35,7 @@ export class AuthController {
 
     }
 
-    @Post('user-register')
+    @Post('register')
     async register(@Body() data: RegisterUserDto): Promise<any> {
         const user = RegisterUserDto.plainToClass(data);
         return this.authService.register(user);
@@ -44,7 +44,7 @@ export class AuthController {
     @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    @Post('manager-register')
+    @Post('manager-create')
     async registerManager(@Body() data: RegisterManagerDto): Promise<any> {
         const manager = RegisterManagerDto.plainToClass(data);
         return await this.authService.register(manager);
@@ -53,7 +53,7 @@ export class AuthController {
     @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    @Post('admin-register')
+    @Post('admin-create')
     async registerAdmin(@Body() data: RegisterAdminDto): Promise<any> {
         const admin = RegisterAdminDto.plainToClass(data);
         return await this.authService.register(admin);
@@ -69,7 +69,7 @@ export class AuthController {
     @UseGuards(JwtGuard)
     @Get('info')
     async info(@Request() req: any): Promise<any> {
-        return await this.authService.getUserByEmail(req.user.email)
+        return await this.authService.getInfoByEmail(req.user.email)
     }
 
     @ApiBearerAuth()

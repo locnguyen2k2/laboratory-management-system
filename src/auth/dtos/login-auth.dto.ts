@@ -3,15 +3,15 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator";
 import { BaseDto } from "src/globals/base.dto";
 
-export class LoginAuthDto extends BaseDto{
+export class LoginAuthDto {
 
-    @ApiProperty({default: "@gmail.com"})
+    @ApiProperty({ default: "" })
     @Expose()
     @IsEmail()
     @IsNotEmpty()
     email: string;
 
-    @ApiProperty({default: ""})
+    @ApiProperty({ default: "" })
     @Expose()
     @IsString()
     @Length(8, 32)

@@ -81,14 +81,15 @@ export class AuthService {
         }
     }
 
-    async getUserByEmail(email: string): Promise<any> {
+    async getInfoByEmail(email: string): Promise<any> {
         let user = await this.userService.findByEmail(email)
-        if (!user) {
-            throw new HttpException("Email not found", HttpStatus.NOT_FOUND)
+        if (!user || user.status == UserStatusEnum.UNACTIVE) {
+            throw new HttpException("Email not found or blocked", HttpStatus.NOT_FOUND)
         }
         delete user.token;
         delete user.refresh_token;
         delete user.password;
+        delete user.repass_token;
         return user
     }
 

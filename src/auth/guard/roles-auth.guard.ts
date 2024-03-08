@@ -33,7 +33,7 @@ export class RolesGuard implements CanActivate {
                 request['user'] = payload;
                 return true
             }
-            throw new HttpException("Permission denied!", HttpStatus.UNAUTHORIZED)
+            throw new HttpException("Permission denied!", HttpStatus.BAD_REQUEST)
         }
         throw new HttpException("Token is invalid", HttpStatus.BAD_REQUEST)
     }

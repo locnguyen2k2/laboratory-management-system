@@ -38,7 +38,7 @@ export class EmailService {
     async sendConfirmationEmail(email: string) {
         const user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
+            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
         }
         const payload: JwtPayload = { id: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
@@ -54,7 +54,7 @@ export class EmailService {
     async sendConfirmationRePassword(email: string, digitalNumbs: string) {
         const user = await this.userService.findByEmail(email)
         if (!user) {
-            throw new HttpException({ message: "The email not found", status: 404 }, HttpStatus.ACCEPTED);
+            throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
         }
         const text = `Your digital numbers to confirm reset password, here: ${digitalNumbs}`;
         this.sendEmail({
@@ -96,11 +96,18 @@ export class EmailService {
         const user = await this.userService.findByEmail(email);
         if (!user) {
             throw new HttpException("The email not found", HttpStatus.NOT_FOUND);
-        }
+        };
         if (user.status === UserStatusEnum.ACTIVE) {
             return "Email is already confirmed";
+        };
+        try {
+            const decode = await this.decodeConfirmationToken(email);
+            if (decode) {
+                return "Please, click the link was send to your account before!"
+            }
+        } catch (error: any) {
+            await this.sendConfirmationEmail(user.email);
+            return "The confirmation email link already send";
         }
-        await this.sendConfirmationEmail(user.email);
-        return "The confirmation email link already send";
     }
 }

@@ -23,7 +23,7 @@ export class UserController {
 
     @ApiBearerAuth()
     @UseGuards(JwtGuard)
-    @Post('update')
+    @Post('user-update')
     async update(@Body() user: UpdateUserDto, @Request() req: any): Promise<any> {
         return await this.userService.update(req.user.email, user);
     }
@@ -31,7 +31,7 @@ export class UserController {
     @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    @Post('update/admin')
+    @Post('admin-update')
     async updateAdmin(@Body() user: UpdateAdminDto, @Request() req: any): Promise<any> {
         return await this.userService.updateAdmin(req.user.email, user);
     }

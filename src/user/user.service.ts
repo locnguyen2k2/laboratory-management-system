@@ -87,17 +87,20 @@ export class UserService {
     }
 
     async updateRepassToken(email: string, repassToken: string) {
-        return await this.userRepository.update({ email: email },
-            {
-                repass_token: repassToken,
-            })
+        const user = await this.findByEmail(email);
+        if (user && user.status == UserStatusEnum.ACTIVE) {
+            await this.userRepository.update({ email: email }, { repass_token: repassToken, })
+            return true;
+        }
+        throw new HttpException('User not found or blocked', HttpStatus.NOT_FOUND);
     }
 
     async updatePassword(email: string, password: string) {
-        return await this.userRepository.update({ email: email },
-            {
-                password: password,
-            })
+        const user = await this.findByEmail(email);
+        if (user && user.status == UserStatusEnum.ACTIVE) {
+            return await this.userRepository.update({ email: email }, { password: password })
+        }
+        throw new HttpException('User not found or blocked', HttpStatus.NOT_FOUND);
     }
 
     async disable(email: string, status: UserStatusEnum) {
