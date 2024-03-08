@@ -24,7 +24,7 @@ export class RolesGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
-            throw new HttpException({message: "Token is required!", statusCode: 404}, HttpStatus.ACCEPTED);
+            throw new HttpException("Token is required!", HttpStatus.UNAUTHORIZED);
         }
         const payload = await this.jwtService.decode(token);
         if (payload?.id) {
@@ -33,9 +33,9 @@ export class RolesGuard implements CanActivate {
                 request['user'] = payload;
                 return true
             }
-            throw new HttpException({message: "User do not accept to access!", statusCode: 404}, HttpStatus.ACCEPTED)
+            throw new HttpException("Permission denied!", HttpStatus.UNAUTHORIZED)
         }
-        throw new HttpException({message: "Token is invalid", statusCode: 404}, HttpStatus.ACCEPTED)
+        throw new HttpException("Token is invalid", HttpStatus.BAD_REQUEST)
     }
     private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];

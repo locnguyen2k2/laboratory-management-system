@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEmail, IsNotEmpty, IsNumber, IsString, Length } from "class-validator";
+import { BaseDto } from "src/globals/base.dto";
 
-export class ConfirmRePasswordDto {
+export class ConfirmRePasswordDto extends BaseDto {
     @ApiProperty({ default: "" })
     @IsEmail()
     @IsNotEmpty()

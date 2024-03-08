@@ -23,6 +23,9 @@ export class UserEntity {
     @Column({ default: null })
     address: string;
 
+    @Column({ default: null })
+    photo: string;
+
     @Column({ nullable: true })
     password: string;
 

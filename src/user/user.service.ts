@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
-import { EntityManager, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { RegisterUserDto } from "src/user/dtos/register-user.dto";
 import { plainToClass } from "class-transformer";
 import * as bcrypt from 'bcryptjs'
@@ -10,11 +10,11 @@ import { RegisterManagerDto } from "./dtos/register-manager.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { UpdateAdminDto } from "./dtos/update-admin.dto";
 import { UserStatusEnum } from "src/auth/enums/user-status.enum";
+import { GoogleRedirectDto } from "src/auth/dtos/googleRedirect-auth.dto";
 
 @Injectable({})
 export class UserService {
     constructor(
-        private readonly userManager: EntityManager,
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
 
@@ -33,27 +33,34 @@ export class UserService {
         return (await this.userRepository.find({ where: { email: email } }))[0]
     }
 
-    async create(user: any) {
+    async create(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)) {
         const { email, password, confirmPassword } = user;
         const isExisted = await this.findByEmail(email);
-        if (isExisted || password !== confirmPassword) {
-            return false
-        }
+        if (isExisted) {
+            throw new HttpException('This email address is already used', HttpStatus.BAD_REQUEST);
+        };
+        if (password !== confirmPassword) {
+            throw new HttpException('Confirmation password does not match', HttpStatus.BAD_REQUEST);
+        };
         delete user.confirmPassword;
         user.password = await bcrypt.hashSync(user.password, 10);
         const newUser = new UserEntity(user);
         await this.userRepository.save(newUser);
-        return true
+        return true;
     }
 
-    async createWithEmail(user: any) {
-        const { email } = user;
-        const isExisted = await this.findByEmail(email);
-        if (isExisted) { return false }
-        let data = plainToClass(RegisterUserDto, user, { excludeExtraneousValues: true });
-        const newUser = new UserEntity(data);
-        await this.userRepository.save(newUser);
-        return true
+    async createWithGoogle(user: GoogleRedirectDto) {
+        const isExisted = await this.findByEmail(user.email);
+        if (isExisted && isExisted.password || isExisted.status == UserStatusEnum.UNACTIVE) {
+            throw new HttpException("Email is existed or blocked", HttpStatus.BAD_REQUEST)
+        };
+        if (!isExisted) {
+            let data = plainToClass(GoogleRedirectDto, user, { excludeExtraneousValues: true });
+            const newUser = new UserEntity(data);
+            await this.userRepository.save(newUser);
+            await this.disable(data.email, UserStatusEnum.ACTIVE)
+        }
+        return true;
     }
 
     async update(email: string, user: UpdateUserDto): Promise<any> {
@@ -63,10 +70,9 @@ export class UserService {
     }
 
     async updateAdmin(email: string, user: UpdateAdminDto): Promise<any> {
-        const isCheck = await this.findByEmail(user.email)
-        if (!isCheck) {
-            throw new HttpException({ message: "User not found", status: 404 }, HttpStatus.ACCEPTED)
-        }
+        if (!(await this.findByEmail(user.email))) {
+            throw new HttpException("Email not found", HttpStatus.NOT_FOUND);
+        };
         const updateInfo = UpdateAdminDto.plainToClass(user)
         await this.userRepository.update({ email: updateInfo.email },
             {
@@ -77,7 +83,7 @@ export class UserService {
                 status: updateInfo.status,
                 role: updateInfo.role,
             })
-        throw new HttpException({message: "User is updated!", statusCode: 200}, HttpStatus.ACCEPTED).getResponse()
+        return updateInfo;
     }
 
     async updateRepassToken(email: string, repassToken: string) {
@@ -99,6 +105,6 @@ export class UserService {
             await this.userRepository.update({ email: email }, { status: status })
             return true
         }
-        return false
+        throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
     }
 }

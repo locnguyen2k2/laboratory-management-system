@@ -1,6 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { EmailService } from "./email.service";
-import { ConfigService } from "@nestjs/config";
 import { UserModule } from "src/user/user.module";
 import { EmailController } from "./email.controller";
 

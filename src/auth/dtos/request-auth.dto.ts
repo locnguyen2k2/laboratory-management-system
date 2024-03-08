@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { BaseDto } from "src/globals/base.dto";
 
-export class RequestAuthDto {
+export class RequestAuthDto extends BaseDto {
     @ApiProperty({ default: "" })
     @IsNumber()
     @IsNotEmpty()

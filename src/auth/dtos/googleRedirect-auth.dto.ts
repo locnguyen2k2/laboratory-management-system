@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { BaseDto } from "src/globals/base.dto";
 
-export class GoogleRedirectDto {
+export class GoogleRedirectDto extends BaseDto {
 
     @ApiProperty({ default: "" })
     @IsEmail()
