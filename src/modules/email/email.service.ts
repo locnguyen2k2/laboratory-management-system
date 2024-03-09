@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { createTransport } from "nodemailer";
 import { JwtPayload } from "./../auth/interfaces/jwt.interface";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { ConfirmationEmailDto } from "../auth/dtos/confirmationEmail-auth.dto";
+import { ConfirmationEmailDto } from "../user/dtos/confirmationEmail-auth.dto";
 
 @Injectable()
 export class EmailService {

@@ -14,8 +14,8 @@ import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
 import { EmailService } from '../email/email.service';
 import { RoleEnum } from '../auth/enums/role.enum';
 import { JwtService } from '@nestjs/jwt';
-import { ConfirmRePasswordDto } from '../auth/dtos/confirm-repassword.dto';
-import { ConfirmationEmailDto } from '../auth/dtos/confirmationEmail-auth.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 
 @Injectable({})
@@ -139,7 +139,7 @@ export class UserService {
             throw new HttpException("The email is confirmeation!", HttpStatus.ACCEPTED)
         }
     }
-    async confirmRePassword(data: ConfirmRePasswordDto) {
+    async confirmRePassword(data: ForgotPasswordDto) {
         const isExisted = await this.findByEmail(data.email);
         if (!isExisted || !isExisted.password || isExisted.status == UserStatusEnum.UNACTIVE) {
             throw new HttpException('Email not found or blocked!', HttpStatus.NOT_FOUND);
