@@ -3,11 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { PassportModule } from "@nestjs/passport";
 import { ConfigModule } from '@nestjs/config';
-import { RolesGuard } from './auth/guard/roles-auth.guard';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { RolesGuard } from './modules/auth/guard/roles-auth.guard';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './database/database.module';
-import { EmailModule } from './email/email.module';
+import { EmailModule } from './modules/email/email.module';
 
 
 @Module({
@@ -23,7 +23,7 @@ import { EmailModule } from './email/email.module';
       property: 'user',
       session: true,
     }),
-    DatabaseModule, UserModule, AuthModule, EmailModule
+    DatabaseModule, UserModule, AuthModule, EmailModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })
