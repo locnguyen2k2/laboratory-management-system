@@ -1,9 +1,9 @@
 import { Request } from "express";
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import { RoleEnum } from "./../enums/role.enum";
+import { RoleEnum } from "../../../common/enums/role.enum";
 import { UserService } from "./../../user/user.service";
-import { ROLES_KEY } from "../decorator/roles.decorator";
+import { ROLES_KEY } from "./../../../common/decorators/roles.decorator";
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()

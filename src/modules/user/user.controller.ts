@@ -1,18 +1,19 @@
 import { UserService } from "./user.service";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { UpdateUserDto } from "./dtos/update-user.dto";
-import { UpdateAdminDto } from "./dtos/update-admin.dto";
+import { UpdateUserDto } from "./dtos/update.dto";
+import { UpdateAdminDto } from "./dtos/update.dto";
 import { DisableDto } from "../auth/dtos/disable-auth.dto";
-import { RoleEnum } from "./../../modules/auth/enums/role.enum";
+import { RoleEnum } from "../../common/enums/role.enum";
 import { ResetPaswordDto } from "../auth/dtos/reset-password.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { JwtGuard } from "./../../modules/auth/guard/jwt-auth.guard";
 import { EmailLinkConfirmDto } from "../email/dtos/email-confirm.dto";
-import { Roles } from "./../../modules/auth/decorator/roles.decorator";
+import { Roles } from "./../../common/decorators/roles.decorator";
 import { RolesGuard } from "./../../modules/auth/guard/roles-auth.guard";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
 import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query } from "@nestjs/common";
-import { ForgotPasswordDto } from "./dtos/forgot-password.dto";
+import { ForgotPasswordDto } from "./dtos/password.dto";
+import { UserStatusEnum } from "src/common/enums/user-status.enum";
 
 @Controller('users')
 export class UserController {
@@ -85,10 +86,22 @@ export class UserController {
     }
 
     @ApiBearerAuth()
+    @Patch('status/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
+    async updateStatus(@IdParam() id: number, @Body() data: DisableDto) {
+        return await this.userService.updateStatus(id, data.status);
+    }
+
+    @ApiBearerAuth()
     @Patch('disable')
-    async disable(@Body() data: DisableDto) {
-        return await this.userService.disable(data.email, data.status);
+    @UseGuards(JwtGuard)
+    async disable(@Request() req: any) {
+        const user = await this.userService.findByEmail(req.user.email)
+        const unactive = await this.userService.updateStatus(user.id, UserStatusEnum.DISABLE);
+        if (unactive) {
+            return "Your account is disabled";
+        }
+
     }
 }  

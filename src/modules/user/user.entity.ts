@@ -1,6 +1,6 @@
 import { CommonEntity } from "src/common/entity/common.entity";
-import { RoleEnum } from "./../auth/enums/role.enum";
-import { UserStatusEnum } from "./../auth/enums/user-status.enum";
+import { RoleEnum } from "../../common/enums/role.enum";
+import { UserStatusEnum } from "../../common/enums/user-status.enum";
 import { Column, Entity } from "typeorm";
 
 @Entity({ name: 'user_entity' })

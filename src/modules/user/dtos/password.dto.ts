@@ -1,9 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
-import { BaseDto } from "src/globals/base.dto";
+import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
-export class PasswordUpdateDto extends BaseDto {
+export class PasswordUpdateDto {
     @ApiProperty({ description: 'Old password' })
     @IsString()
     @Matches(/^[a-z0-9A-Z\W_]+$/)
@@ -18,11 +17,26 @@ export class PasswordUpdateDto extends BaseDto {
     newPassword: string
 }
 
-export class UserPasswordDto extends BaseDto {
+export class UserPasswordDto {
 
     @ApiProperty({ description: 'Password' })
     @Matches(/^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Za-z])\S*$/, { message: 'Password format is incorrect', })
     @IsNotEmpty()
     @Expose()
     password: string
+}
+
+export class ForgotPasswordDto extends UserPasswordDto {
+    @ApiProperty({ default: "" })
+    @Expose()
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+
+    @ApiProperty({ default: "" })
+    @Expose()
+    @IsString()
+    @IsNotEmpty()
+    digitalNumbs: string;
+
 }

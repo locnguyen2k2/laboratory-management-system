@@ -3,14 +3,14 @@ import { AxiosResponse } from "axios";
 import { HttpService } from "@nestjs/axios";
 import { UserService } from "./../user/user.service";
 import { Observable, lastValueFrom, map } from "rxjs";
-import { EmailService } from "./../email/email.service";
+import { MailService } from "./../email/mail.service";
 import { JwtPayload } from "./interfaces/jwt.interface";
-import { UserStatusEnum } from "./enums/user-status.enum";
-import { RegisterUserDto } from "../user/dtos/register-user.dto";
+import { UserStatusEnum } from "../../common/enums/user-status.enum";
+import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
-import { RegisterAdminDto } from "./../user/dtos/register-admin.dto";
+import { RegisterAdminDto } from "./../user/dtos/register.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { RegisterManagerDto } from "./../user/dtos/register-manager.dto";
+import { RegisterManagerDto } from "./../user/dtos/register.dto";
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly userService: UserService,
-        private readonly emailService: EmailService,
+        private readonly emailService: MailService,
         private readonly httpService: HttpService
     ) { }
 
@@ -71,10 +71,6 @@ export class AuthService {
 
     async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<any> {
         return await this.userService.create(user)
-    }
-
-    async disable(email: string, status: UserStatusEnum): Promise<any> {
-        return await this.userService.disable(email, status)
     }
 
 }

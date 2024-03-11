@@ -1,40 +1,35 @@
 import { AuthService } from "./auth.service";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { JwtGuard } from "./guard/jwt-auth.guard";
-import { Roles } from "./decorator/roles.decorator";
+import { Roles } from "./../../common/decorators/roles.decorator";
 import { LoginAuthDto } from "./dtos/login-auth.dto";
-import { RoleEnum } from "./../auth/enums/role.enum";
-import { DisableDto } from "./dtos/disable-auth.dto";
+import { RoleEnum } from "../../common/enums/role.enum";
 import { RolesGuard } from "./guard/roles-auth.guard";
-import { RegisterUserDto } from "../user/dtos/register-user.dto";
+import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
-import { ResetPaswordDto } from "./../auth/dtos/reset-password.dto";
-import { RegisterAdminDto } from "./../user/dtos/register-admin.dto";
-import { RegisterManagerDto } from "./../user/dtos/register-manager.dto";
-import { Body, Controller, Get, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { UserService } from "../user/user.service";
+import { RegisterAdminDto } from "./../user/dtos/register.dto";
+import { RegisterManagerDto } from "./../user/dtos/register.dto";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 
 @Controller('auths')
 export class AuthController {
-    constructor(
-        private readonly userService: UserService,
-        private readonly authService: AuthService,
-    ) { }
+    constructor(private readonly authService: AuthService) { }
 
     @Post('login')
-    async login(@Body() user: LoginAuthDto): Promise<any> {
-        return await this.authService.credentialByPassword(user.email, user.password);
+    async login(@Body() dto: LoginAuthDto): Promise<any> {
+        return await this.authService.credentialByPassword(dto.email, dto.password);
     }
 
     @Post('google-login')
-    async loginWithGoogle(@Body() data: GoogleRedirectDto) {
-        return await this.authService.credentialWithoutPassword(data)
+    async loginWithGoogle(@Body() dto: GoogleRedirectDto) {
+        return await this.authService.credentialWithoutPassword(dto)
 
     }
 
     @Post('register')
-    async register(@Body() data: RegisterUserDto): Promise<any> {
-        const user = RegisterUserDto.plainToClass(data);
+    async register(@Body() dto: RegisterUserDto): Promise<any> {
+        const user = plainToClass(RegisterUserDto, dto, { excludeExtraneousValues: true });
         return this.authService.register(user);
     }
 
@@ -42,8 +37,8 @@ export class AuthController {
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    async registerManager(@Body() data: RegisterManagerDto): Promise<any> {
-        const manager = RegisterManagerDto.plainToClass(data);
+    async registerManager(@Body() dto: RegisterManagerDto): Promise<any> {
+        const manager = plainToClass(RegisterManagerDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(manager);
     }
 
@@ -51,8 +46,8 @@ export class AuthController {
     @Post('admin-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    async registerAdmin(@Body() data: RegisterAdminDto): Promise<any> {
-        const admin = RegisterAdminDto.plainToClass(data);
+    async registerAdmin(@Body() dto: RegisterAdminDto): Promise<any> {
+        const admin = plainToClass(RegisterAdminDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(admin);
     }
 

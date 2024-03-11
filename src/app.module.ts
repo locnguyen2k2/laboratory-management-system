@@ -6,8 +6,9 @@ import { ConfigModule } from '@nestjs/config';
 import { RolesGuard } from './modules/auth/guard/roles-auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-import { DatabaseModule } from './database/database.module';
-import { EmailModule } from './modules/email/email.module';
+import { DatabaseModule } from './configs/database.config';
+import { MailModule } from './modules/email/mail.module';
+import { CategoryModule } from './modules/categories/category.module';
 
 
 @Module({
@@ -23,7 +24,7 @@ import { EmailModule } from './modules/email/email.module';
       property: 'user',
       session: true,
     }),
-    DatabaseModule, UserModule, AuthModule, EmailModule,
+    DatabaseModule, UserModule, AuthModule, MailModule, CategoryModule
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })

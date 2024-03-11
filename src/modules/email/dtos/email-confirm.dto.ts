@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty } from "class-validator";
-import { BaseDto } from "./../../../globals/base.dto";
 
-export class EmailLinkConfirmDto extends BaseDto {
+export class EmailLinkConfirmDto {
     @ApiProperty({ default: "" })
     @IsEmail()
     @IsNotEmpty()

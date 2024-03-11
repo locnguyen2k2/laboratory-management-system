@@ -1,6 +1,6 @@
 import { Controller } from "@nestjs/common";
 
-@Controller('email')
-export class EmailController {
+@Controller('mailer')
+export class MailController {
     constructor() { }
 }

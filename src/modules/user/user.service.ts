@@ -3,18 +3,18 @@ import { Repository } from "typeorm";
 import { UserEntity } from "./user.entity";
 import { plainToClass } from "class-transformer";
 import { InjectRepository } from "@nestjs/typeorm";
-import { UpdateUserDto } from "./dtos/update-user.dto";
-import { UpdateAdminDto } from "./dtos/update-admin.dto";
-import { RegisterAdminDto } from "./dtos/register-admin.dto";
-import { RegisterManagerDto } from "./dtos/register-manager.dto";
-import { UserStatusEnum } from "./../auth/enums/user-status.enum";
-import { RegisterUserDto } from "./../user/dtos/register-user.dto";
+import { UpdateUserDto } from "./dtos/update.dto";
+import { UpdateAdminDto } from "./dtos/update.dto";
+import { RegisterAdminDto } from "./dtos/register.dto";
+import { RegisterManagerDto } from "./dtos/register.dto";
+import { UserStatusEnum } from "../../common/enums/user-status.enum";
+import { RegisterUserDto } from "./../user/dtos/register.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
-import { EmailService } from '../email/email.service';
-import { RoleEnum } from '../auth/enums/role.enum';
+import { MailService } from '../email/mail.service';
+import { RoleEnum } from '../../common/enums/role.enum';
 import { JwtService } from '@nestjs/jwt';
-import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ForgotPasswordDto } from './dtos/password.dto';
 import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 
@@ -22,7 +22,7 @@ import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 export class UserService {
     constructor(
         private jwtService: JwtService,
-        private readonly emailService: EmailService,
+        private readonly emailService: MailService,
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
     async findAll() {
@@ -70,14 +70,15 @@ export class UserService {
     async createWithGoogle(data: GoogleRedirectDto) {
         if (await this.emailService.isCtuetEmail(data.email)) {
             const user = await this.findByEmail(data.email);
-            if (user && user.password || user.status == UserStatusEnum.UNACTIVE) {
+            if (user && user.password || user.status !== UserStatusEnum.ACTIVE) {
                 throw new HttpException("Email is existed or blocked", HttpStatus.BAD_REQUEST)
             };
             if (!user) {
                 let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 const newUser = new UserEntity(newData);
                 await this.userRepository.save(newUser);
-                await this.disable(newData.email, UserStatusEnum.ACTIVE)
+                const user = await this.findByEmail(newUser.email);
+                await this.updateStatus(user.id, UserStatusEnum.ACTIVE)
             }
             return true;
         }
@@ -85,7 +86,7 @@ export class UserService {
     async updateAccountInfo(email: string, data: UpdateUserDto): Promise<any> {
         const user = await this.findByEmail(email);
         if (user && user.status == UserStatusEnum.ACTIVE) {
-            const updateInfo = UpdateUserDto.plainToClass(data);
+            const updateInfo = plainToClass(UpdateUserDto, data, { excludeExtraneousValues: true });
             await this.userRepository.update({ email: email }, updateInfo)
             return updateInfo
         }
@@ -95,7 +96,7 @@ export class UserService {
         const user = await this.findByEmail(email);
         if (user && user.status == UserStatusEnum.ACTIVE && user.role == RoleEnum.ADMIN) {
             if (await this.findById(id)) {
-                const updateInfo = UpdateAdminDto.plainToClass(data)
+                const updateInfo = plainToClass(UpdateAdminDto, data, { excludeExtraneousValues: true })
                 await this.userRepository.update({ id: id },
                     {
                         firstName: updateInfo.firstName,
@@ -131,8 +132,11 @@ export class UserService {
         const email = await this.emailService.confirmEmail(dto);
         if (email) {
             const user = await this.findByEmail(email);
+            if (user.status == UserStatusEnum.DISABLE) {
+                throw new HttpException("Your account is blocked", HttpStatus.BAD_REQUEST);
+            }
             if (user.status == UserStatusEnum.UNACTIVE) {
-                await this.disable(email, UserStatusEnum.ACTIVE);
+                await this.updateStatus(user.id, UserStatusEnum.ACTIVE);
                 await this.userRepository.update({ email: email }, { refresh_token: null, })
                 return "Your account is confirmation!"
             }
@@ -141,7 +145,7 @@ export class UserService {
     }
     async confirmRePassword(data: ForgotPasswordDto) {
         const isExisted = await this.findByEmail(data.email);
-        if (!isExisted || !isExisted.password || isExisted.status == UserStatusEnum.UNACTIVE) {
+        if (!isExisted || !isExisted.password || isExisted.status !== UserStatusEnum.ACTIVE) {
             throw new HttpException('Email not found or blocked!', HttpStatus.NOT_FOUND);
         }
         try {
@@ -162,7 +166,7 @@ export class UserService {
     }
     async resetPassword(email: string): Promise<any> {
         const isExisted = await this.findByEmail(email);
-        if (!isExisted || !isExisted.password || isExisted.status == UserStatusEnum.UNACTIVE) {
+        if (!isExisted || !isExisted.password || isExisted.status !== UserStatusEnum.ACTIVE) {
             throw new HttpException("Email not found or blocked!", HttpStatus.NOT_FOUND)
         };
         try {
@@ -178,16 +182,17 @@ export class UserService {
             return "The new digital numbers was send to your Email!";
         }
     }
-    async disable(email: string, status: UserStatusEnum) {
-        if (await this.findByEmail(email)) {
-            await this.userRepository.update({ email: email }, { status: status })
+    async updateStatus(id: number, status: UserStatusEnum) {
+        const user = await this.findById(id);
+        if (user) {
+            await this.userRepository.update({ email: user.email }, { status: status })
             return true
         }
         throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
     }
     async getAccountInfo(email: string): Promise<any> {
         let user = await this.findByEmail(email)
-        if (!user || user.status == UserStatusEnum.UNACTIVE) {
+        if (!user || user.status !== UserStatusEnum.ACTIVE) {
             throw new HttpException("Email not found or blocked", HttpStatus.NOT_FOUND)
         }
         delete user.token;
@@ -198,7 +203,7 @@ export class UserService {
     }
     async resendConfirmationLink(dto: EmailLinkConfirmDto) {
         const user = await this.findByEmail(dto.email);
-        if (user) {
+        if (user && user.status !== UserStatusEnum.DISABLE) {
             if (user.status == UserStatusEnum.UNACTIVE) {
                 try {
                     const decode = await this.emailService.decodeConfirmationToken(user.refresh_token);
@@ -213,6 +218,6 @@ export class UserService {
             }
             throw new HttpException("Your account is confirmed!", HttpStatus.ACCEPTED);
         }
-        throw new HttpException("User not found!", HttpStatus.BAD_REQUEST);
+        throw new HttpException("User is not existed or blocked!", HttpStatus.BAD_REQUEST);
     }
 }

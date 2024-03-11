@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsNotEmpty, IsPhoneNumber, IsString } from "class-validator";
-import { BaseDto } from "./../../../globals/base.dto";
+import { IsEnum, IsNotEmpty, IsPhoneNumber, IsString } from "class-validator";
+import { RoleEnum } from "src/common/enums/role.enum";
+import { UserStatusEnum } from "src/common/enums/user-status.enum";
 
-export class UpdateUserDto extends BaseDto {
+export class UpdateUserDto {
 
     @ApiProperty({ default: "" })
     @Expose()
@@ -29,4 +30,16 @@ export class UpdateUserDto extends BaseDto {
     @Expose()
     @IsString()
     photo: string;
+}
+
+export class UpdateAdminDto extends UpdateUserDto {
+
+    @ApiProperty({ default: "" })
+    @Expose()
+    @IsEnum(UserStatusEnum)
+    status: UserStatusEnum
+    @ApiProperty({ default: "" })
+    @Expose()
+    @IsEnum(RoleEnum)
+    role: RoleEnum
 }

@@ -6,7 +6,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfirmationEmailDto } from "../user/dtos/confirmationEmail-auth.dto";
 
 @Injectable()
-export class EmailService {
+export class MailService {
     private nodeMailerTransport: Mail;
     constructor(
         private readonly jwtService: JwtService
@@ -16,7 +16,7 @@ export class EmailService {
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD
-            }
+            },
         });
     }
 
@@ -48,14 +48,13 @@ export class EmailService {
         const token = this.jwtService.sign(payload);
         const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
         const text = `Welcome to Laboratory Management System. To confirm the email address, click here: ${url}`;
-        this.sendEmail({ to: email, subject: 'Email confirmation', text, })
+        this.sendEmail({ to: email, subject: 'Email confirmation', text })
         return token;
     }
 
     async sendConfirmationRePassword(email: string, digitalNumbs: string) {
         const text = `Your digital numbers to confirm reset password, here: ${digitalNumbs}`;
         try {
-
             this.sendEmail({
                 to: email,
                 subject: 'Reset Password confirmation. Do not show your digital numbers to another!',

@@ -1,9 +1,8 @@
 import { Expose } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseDto } from "./../../../globals/base.dto";
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 
-export class GoogleRedirectDto extends BaseDto {
+export class GoogleRedirectDto {
 
     @ApiProperty({ default: "" })
     @Expose()
