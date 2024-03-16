@@ -11,7 +11,7 @@ import { EmailLinkConfirmDto } from "../email/dtos/email-confirm.dto";
 import { Roles } from "./../../common/decorators/roles.decorator";
 import { RolesGuard } from "./../../modules/auth/guard/roles-auth.guard";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
-import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query } from "@nestjs/common";
+import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query, Post } from "@nestjs/common";
 import { ForgotPasswordDto } from "./dtos/password.dto";
 import { UserStatusEnum } from "src/common/enums/user-status.enum";
 
@@ -38,14 +38,14 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Patch('update')
+    @Put('update')
     @UseGuards(JwtGuard)
     async updateAccountInfo(@Body() dto: UpdateUserDto, @Request() req: any): Promise<any> {
         return await this.userService.updateAccountInfo(req.user.email, dto);
     }
 
     @ApiBearerAuth()
-    @Patch('update/:id')
+    @Put('update/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     async update(
@@ -74,13 +74,13 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Put('forget-password')
+    @Post('forget-password')
     async resetPassword(@Body() data: ResetPaswordDto): Promise<any> {
         return await this.userService.resetPassword(data.email);
     }
 
     @ApiBearerAuth()
-    @Put('update-password')
+    @Patch('update-password')
     async updatePassword(@Body() dto: ForgotPasswordDto) {
         return await this.userService.confirmRePassword(dto)
     }
