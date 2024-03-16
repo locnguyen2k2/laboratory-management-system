@@ -9,6 +9,7 @@ import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './configs/database.config';
 import { MailModule } from './modules/email/mail.module';
 import { CategoryModule } from './modules/categories/category.module';
+import { DeviceModule } from './modules/devices/device.module';
 
 
 @Module({
@@ -24,7 +25,12 @@ import { CategoryModule } from './modules/categories/category.module';
       property: 'user',
       session: true,
     }),
-    DatabaseModule, UserModule, AuthModule, MailModule, CategoryModule
+    DatabaseModule,
+    UserModule,
+    AuthModule,
+    MailModule,
+    CategoryModule,
+    DeviceModule
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })
