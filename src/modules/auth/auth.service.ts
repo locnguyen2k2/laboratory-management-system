@@ -39,6 +39,7 @@ export class AuthService {
                 email: user.email
             };
             return {
+                userInfo: await this.userService.getAccountInfo(email),
                 access_token: await this.jwtService.signAsync(payload)
             }
         }
