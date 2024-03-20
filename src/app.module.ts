@@ -9,7 +9,8 @@ import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './configs/database.config';
 import { MailModule } from './modules/email/mail.module';
 import { CategoryModule } from './modules/categories/category.module';
-import { DeviceModule } from './modules/devices/device.module';
+import { EquipmentModule } from './modules/equipment/equipment.module';
+import { ImageModule } from './modules/images/image.module';
 
 
 @Module({
@@ -30,7 +31,8 @@ import { DeviceModule } from './modules/devices/device.module';
     AuthModule,
     MailModule,
     CategoryModule,
-    DeviceModule
+    EquipmentModule,
+    ImageModule
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })

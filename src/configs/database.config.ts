@@ -3,9 +3,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserEntity } from "./../modules/user/user.entity";
 import { ConfigModule } from "@nestjs/config";
 import { CategoryEntity } from "src/modules/categories/category.entity";
-import { DeviceEntity } from "src/modules/devices/device.entity";
+import { EquipmentEntity } from "src/modules/equipment/equipment.entity";
+import { ImageEntity } from "src/modules/images/image.entity";
+import { ToolsEntity } from "src/modules/tools/tools.entity";
+import { ChemicalsEntity } from "src/modules/chemicals/chemicals.entity";
 
-@Module({
+@Module({ 
     imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot({
@@ -15,7 +18,7 @@ import { DeviceEntity } from "src/modules/devices/device.entity";
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            entities: [UserEntity, CategoryEntity, DeviceEntity],
+            entities: [UserEntity, CategoryEntity, EquipmentEntity, ImageEntity, ToolsEntity, ChemicalsEntity],
             synchronize: true,
         })
     ],

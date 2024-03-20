@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Patch, Delete } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Patch, Delete, Get } from "@nestjs/common";
 import { CategoryService } from "./category.service";
 import { JwtGuard } from "./../auth/guard/jwt-auth.guard";
 import { RoleEnum } from "./../../common/enums/role.enum";
@@ -14,6 +14,14 @@ export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService,
     ) { }
+
+    @ApiBearerAuth()
+    @Get()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    async getAll() {
+        return await this.categoryService.findAll();
+    }
 
     @ApiBearerAuth()
     @Post()
