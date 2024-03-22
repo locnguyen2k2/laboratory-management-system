@@ -1,6 +1,6 @@
 import { Expose } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
-import { UserStatusEnum } from "../../../common/enums/user-status.enum";
+import { UserStatus } from "./../../user/user.constant";
 import { IsEmail, IsEnum, IsNotEmpty } from "class-validator";
 
 export class DisableDto {
@@ -12,7 +12,7 @@ export class DisableDto {
     email: string;
     @ApiProperty({ description: "0, 1 or 2" })
     @Expose()
-    @IsEnum(UserStatusEnum)
+    @IsEnum(UserStatus)
     @IsNotEmpty()
-    status: UserStatusEnum;
+    status: UserStatus;
 }

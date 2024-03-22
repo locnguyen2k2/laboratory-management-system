@@ -7,10 +7,11 @@ import { MailModule } from "./../email/mail.module";
 import { JwtStrategy } from "./strategy/jwt.strategy";
 import { SessionSerializer } from "./utils/Serializer";
 import { LocalStrategy } from "./strategy/local.strategy";
+import { RoleModule } from "../system/role/role.module";
 
 
 @Module({
-    imports: [UserModule, MailModule, HttpModule],
+    imports: [UserModule, MailModule, HttpModule, RoleModule],
     controllers: [AuthController],
     providers: [AuthService, SessionSerializer, LocalStrategy, JwtStrategy],
     exports: [AuthService],

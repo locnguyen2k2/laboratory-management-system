@@ -7,6 +7,7 @@ import { EquipmentEntity } from "src/modules/equipment/equipment.entity";
 import { ImageEntity } from "src/modules/images/image.entity";
 import { ToolsEntity } from "src/modules/tools/tools.entity";
 import { ChemicalsEntity } from "src/modules/chemicals/chemicals.entity";
+import { RoleEntity } from "src/modules/system/role/role.entity";
 
 @Module({ 
     imports: [
@@ -18,7 +19,7 @@ import { ChemicalsEntity } from "src/modules/chemicals/chemicals.entity";
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            entities: [UserEntity, CategoryEntity, EquipmentEntity, ImageEntity, ToolsEntity, ChemicalsEntity],
+            entities: [UserEntity, CategoryEntity, EquipmentEntity, ImageEntity, ToolsEntity, ChemicalsEntity, RoleEntity],
             synchronize: true,
         })
     ],

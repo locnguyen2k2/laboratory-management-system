@@ -3,7 +3,7 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
-import { RoleEnum } from "src/common/enums/role.enum";
+import { UserRole } from "./../user/user.constant";
 import { AddEquipmentDto } from "./dtos/add-equipment.dto";
 import { plainToClass } from "class-transformer";
 import { EquipmentService } from "./equipment.service";
@@ -25,7 +25,7 @@ export class EquipmentController {
     @ApiBearerAuth()
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+    @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async add(@Body() dto: AddEquipmentDto) {
         const data = plainToClass(AddEquipmentDto, dto, { excludeExtraneousValues: true });
         return await this.equipmentService.add(data);
@@ -34,7 +34,7 @@ export class EquipmentController {
     @ApiBearerAuth()
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+    @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateEquipmentDto) {
         const data = plainToClass(UpdateEquipmentDto, dto, { excludeExtraneousValues: true });
         return await this.equipmentService.update(id, data);

@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsPhoneNumber, IsString, Validate } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { RoleEnum } from "src/common/enums/role.enum";
-import { UserStatusEnum } from "src/common/enums/user-status.enum";
+import { UserRole } from "./../user.constant";
+import { UserStatus } from "./../user.constant";
 
 export class UpdateUserDto {
 
@@ -40,10 +40,19 @@ export class UpdateAdminDto extends UpdateUserDto {
 
     @ApiProperty({ default: "" })
     @Expose()
-    @IsEnum(UserStatusEnum)
-    status: UserStatusEnum
+    @IsEnum(UserStatus)
+    status: UserStatus
+}
+
+export class UpdatePermissionDto {
     @ApiProperty({ default: "" })
     @Expose()
-    @IsEnum(RoleEnum)
-    role: RoleEnum
+    @IsNumber()
+    @IsNotEmpty()
+    oldRid: number;
+    @ApiProperty({ default: "" })
+    @Expose()
+    @IsNumber()
+    @IsNotEmpty()
+    newRid: number;
 }

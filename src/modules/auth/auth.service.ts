@@ -5,7 +5,7 @@ import { UserService } from "./../user/user.service";
 import { Observable, lastValueFrom, map } from "rxjs";
 import { MailService } from "./../email/mail.service";
 import { JwtPayload } from "./interfaces/jwt.interface";
-import { UserStatusEnum } from "../../common/enums/user-status.enum";
+import { UserStatus } from "./../user/user.constant";
 import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 import { RegisterAdminDto } from "./../user/dtos/register.dto";
@@ -28,7 +28,7 @@ export class AuthService {
             if (!user || !user?.password) {
                 throw new HttpException("Email or password is incorrect", HttpStatus.NOT_FOUND);
             };
-            if (user.status !== UserStatusEnum.ACTIVE) {
+            if (user.status !== UserStatus.ACTIVE) {
                 throw new HttpException("Your account not confirmed or blocked!", HttpStatus.UNAUTHORIZED);
             };
             if (!(await bcrypt.compareSync(password, user?.password))) {
@@ -38,9 +38,21 @@ export class AuthService {
                 id: user.id,
                 email: user.email
             };
-            return {
-                userInfo: await this.userService.getAccountInfo(email),
-                access_token: await this.jwtService.signAsync(payload)
+            const userInfo = await this.userService.getAccountInfo(email);
+            try {
+                if (await this.jwtService.verifyAsync(user.token)) {
+                    return {
+                        userInfo,
+                        access_token: user.token
+                    }
+                }
+            } catch (error: any) {
+                const access_token = await this.jwtService.signAsync(payload);
+                await this.userService.updateToken(payload.email, access_token);
+                return {
+                    userInfo,
+                    access_token
+                }
             }
         }
     }
@@ -56,12 +68,25 @@ export class AuthService {
                 const isCreated = await this.userService.createWithGoogle(data);
                 if (isCreated) {
                     const user = await this.userService.findByEmail(data.email);
-                    const payload: JwtPayload = {
-                        id: user.id,
-                        email: user.email
-                    }
-                    return {
-                        access_token: await this.jwtService.signAsync(payload)
+                    const userInfo = await this.userService.getAccountInfo(data.email);
+                    try {
+                        if (await this.jwtService.verifyAsync(user.token)) {
+                            return {
+                                userInfo,
+                                access_token: user.token
+                            }
+                        }
+                    } catch (error: any) {
+                        const payload: JwtPayload = {
+                            id: user.id,
+                            email: user.email
+                        }
+                        const access_token = await this.jwtService.signAsync(payload);
+                        await this.userService.updateToken(payload.email, access_token);
+                        return {
+                            userInfo,
+                            access_token
+                        }
                     }
                 }
             }

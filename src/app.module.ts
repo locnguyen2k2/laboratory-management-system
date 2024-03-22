@@ -11,6 +11,7 @@ import { MailModule } from './modules/email/mail.module';
 import { CategoryModule } from './modules/categories/category.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { ImageModule } from './modules/images/image.module';
+import { SystemModule } from './modules/system/system.module';
 
 
 @Module({
@@ -27,12 +28,13 @@ import { ImageModule } from './modules/images/image.module';
       session: true,
     }),
     DatabaseModule,
+    SystemModule,
     UserModule,
     AuthModule,
     MailModule,
     CategoryModule,
     EquipmentModule,
-    ImageModule
+    ImageModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })
