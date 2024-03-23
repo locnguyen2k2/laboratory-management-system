@@ -20,7 +20,7 @@ export class MailService {
         });
     }
 
-    async isCtuetEmail(email: string): Promise<boolean> {
+    async isCtuetEmail(email: string): Promise<boolean | HttpException> {
         const emailHandle = email.split('@')[1];
         if (!(emailHandle.includes('ctuet.edu.vn'))) {
             throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST);
@@ -28,7 +28,7 @@ export class MailService {
         return true;
     }
 
-    async sendEmail(options: Mail.Options) {
+    async sendEmail(options: Mail.Options): Promise<any> {
         return this.nodeMailerTransport.sendMail(options);
     }
 

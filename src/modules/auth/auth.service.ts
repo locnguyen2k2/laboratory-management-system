@@ -12,6 +12,10 @@ import { RegisterAdminDto } from "./../user/dtos/register.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { RegisterManagerDto } from "./../user/dtos/register.dto";
 import { JwtService } from '@nestjs/jwt';
+import { UserEntity } from '../user/user.entity';
+import { Credential } from './interfaces/credential.interface';
+import { BusinessException } from 'src/common/exceptions/biz.exception';
+import { ErrorEnum } from 'src/constants/error-code.constant';
 
 @Injectable()
 export class AuthService {
@@ -22,21 +26,14 @@ export class AuthService {
         private readonly httpService: HttpService
     ) { }
 
-    async credentialByPassword(email: string, password: string): Promise<any> {
+    async credentialByPassword(email: string, password: string): Promise<Credential> {
         if (await this.emailService.isCtuetEmail(email)) {
             const user = await this.userService.findByEmail(email)
-            if (!user || !user?.password) {
-                throw new HttpException("Email or password is incorrect", HttpStatus.NOT_FOUND);
+            if (!user || !user?.password || !(await bcrypt.compareSync(password, user?.password))) {
+                throw new BusinessException(ErrorEnum.INVALID_LOGIN);
             };
             if (user.status !== UserStatus.ACTIVE) {
                 throw new HttpException("Your account not confirmed or blocked!", HttpStatus.UNAUTHORIZED);
-            };
-            if (!(await bcrypt.compareSync(password, user?.password))) {
-                throw new HttpException("Email or password is incorrect", HttpStatus.NOT_FOUND);
-            };
-            const payload: JwtPayload = {
-                id: user.id,
-                email: user.email
             };
             const userInfo = await this.userService.getAccountInfo(email);
             try {
@@ -47,6 +44,10 @@ export class AuthService {
                     }
                 }
             } catch (error: any) {
+                const payload: JwtPayload = {
+                    id: user.id,
+                    email: user.email
+                };
                 const access_token = await this.jwtService.signAsync(payload);
                 await this.userService.updateToken(payload.email, access_token);
                 return {
@@ -61,25 +62,24 @@ export class AuthService {
         return lastValueFrom(this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).pipe(map((res) => res.data)))
     }
 
-    async credentialWithoutPassword(data: GoogleRedirectDto): Promise<any> {
+    async credentialWithoutPassword(data: GoogleRedirectDto): Promise<Credential> {
         try {
             const isVerifyToken = await this.ggAccessTokenVerify(data.accessToken).then((res) => res)
             if (isVerifyToken) {
-                const isCreated = await this.userService.createWithGoogle(data);
-                if (isCreated) {
-                    const user = await this.userService.findByEmail(data.email);
+                const newUser = await this.userService.createWithGoogle(data);
+                if (newUser) {
                     const userInfo = await this.userService.getAccountInfo(data.email);
                     try {
-                        if (await this.jwtService.verifyAsync(user.token)) {
+                        if (await this.jwtService.verifyAsync(newUser.token)) {
                             return {
                                 userInfo,
-                                access_token: user.token
+                                access_token: newUser.token
                             }
                         }
                     } catch (error: any) {
                         const payload: JwtPayload = {
-                            id: user.id,
-                            email: user.email
+                            id: newUser.id,
+                            email: newUser.email
                         }
                         const access_token = await this.jwtService.signAsync(payload);
                         await this.userService.updateToken(payload.email, access_token);
@@ -91,11 +91,11 @@ export class AuthService {
                 }
             }
         } catch (error) {
-            throw new HttpException("Your email is not verified or the token is invalid", HttpStatus.BAD_REQUEST)
+            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         }
     }
 
-    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<any> {
+    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<UserEntity> {
         return await this.userService.create(user)
     }
 

@@ -2,8 +2,7 @@ import { UserService } from "./user.service";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
 import { UpdateAdminDto } from "./dtos/update.dto";
-import { DisableDto } from "../auth/dtos/disable-auth.dto";
-import { UserRole } from "./user.constant";
+import { UserRole, UserStatus } from "./user.constant";
 import { ResetPaswordDto } from "../auth/dtos/reset-password.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { JwtGuard } from "./../../modules/auth/guard/jwt-auth.guard";
@@ -13,7 +12,8 @@ import { RolesGuard } from "./../../modules/auth/guard/roles-auth.guard";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
 import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query, Post } from "@nestjs/common";
 import { ForgotPasswordDto } from "./dtos/password.dto";
-import { UserStatus } from "./user.constant";
+import { UserEntity } from "./user.entity";
+import { AccountInfo } from "./interfaces/AccountInfo.interface";
 
 @Controller('users')
 export class UserController {
@@ -25,7 +25,7 @@ export class UserController {
     @Get('get')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async findAll(): Promise<any> {
+    async findAll(): Promise<UserEntity[]> {
         return await this.userService.findAll();
     }
 
@@ -33,14 +33,14 @@ export class UserController {
     @Get('get/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async findById(@IdParam() id: number): Promise<any> {
+    async findById(@IdParam() id: number): Promise<UserEntity> {
         return this.userService.findById(id);
     }
 
     @ApiBearerAuth()
     @Put('update')
     @UseGuards(JwtGuard)
-    async updateAccountInfo(@Body() dto: UpdateUserDto, @Request() req: any): Promise<any> {
+    async updateAccountInfo(@Body() dto: UpdateUserDto, @Request() req: any): Promise<AccountInfo> {
         return await this.userService.updateAccountInfo(req.user.email, dto);
     }
 
@@ -51,14 +51,23 @@ export class UserController {
     async update(
         @IdParam() id: number,
         @Body() dto: UpdateAdminDto,
-        @Request() req: any): Promise<any> {
+        @Request() req: any): Promise<UserEntity> {
         return await this.userService.update(id, dto, req.user.email);
+    }
+
+
+    @ApiBearerAuth()
+    @Patch('status/:id')
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    async updateStatus(@IdParam() id: number, @Body() status: UserStatus): Promise<UserEntity> {
+        return await this.userService.updateStatus(id, status);
     }
 
     @ApiBearerAuth()
     @Get('info')
     @UseGuards(JwtGuard)
-    async info(@Request() req: any): Promise<any> {
+    async info(@Request() req: any): Promise<AccountInfo> {
         return await this.userService.getAccountInfo(req.user.email)
     }
 
@@ -72,7 +81,7 @@ export class UserController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Patch('permision/:id')
-    async updatePermission(@IdParam() uid: number, @Body() dto: UpdatePermissionDto) {
+    async updatePermission(@IdParam() uid: number, @Body() dto: UpdatePermissionDto): Promise<UserEntity> {
         return await this.userService.updateUserPermission(uid, dto);
     }
 
@@ -91,25 +100,5 @@ export class UserController {
     @Patch('update-password')
     async updatePassword(@Body() dto: ForgotPasswordDto) {
         return await this.userService.confirmRePassword(dto)
-    }
-
-    @ApiBearerAuth()
-    @Patch('status/:id')
-    @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
-    async updateStatus(@IdParam() id: number, @Body() data: DisableDto) {
-        return await this.userService.updateStatus(id, data.status);
-    }
-
-    @ApiBearerAuth()
-    @Patch('disable')
-    @UseGuards(JwtGuard)
-    async disable(@Request() req: any) {
-        const user = await this.userService.findByEmail(req.user.email)
-        const unactive = await this.userService.updateStatus(user.id, UserStatus.DISABLE);
-        if (unactive) {
-            return "Your account is disabled";
-        }
-
     }
 }  

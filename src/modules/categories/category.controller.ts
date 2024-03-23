@@ -28,7 +28,6 @@ export class CategoryController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     async add(@Body() dto: AddCategoryDto) {
-        console.log(dto)
         return await this.categoryService.add(dto);
     }
 

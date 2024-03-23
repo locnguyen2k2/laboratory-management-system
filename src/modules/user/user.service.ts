@@ -1,19 +1,22 @@
 import * as bcrypt from 'bcryptjs'
 import { Repository } from "typeorm";
+import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from "./user.entity";
 import { plainToClass } from "class-transformer";
 import { InjectRepository } from "@nestjs/typeorm";
-import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
 import { UpdateAdminDto } from "./dtos/update.dto";
-import { UserRole, UserStatus } from "./user.constant";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
 import { MailService } from '../email/mail.service';
-import { JwtService } from '@nestjs/jwt';
+import { UserRole, UserStatus } from "./user.constant";
 import { ForgotPasswordDto } from './dtos/password.dto';
-import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
-import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 import { RoleService } from '../system/role/role.service';
+import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
+import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
+import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
+import { AccountInfo } from './interfaces/AccountInfo.interface';
+import { ErrorEnum } from 'src/constants/error-code.constant';
+import { BusinessException } from 'src/common/exceptions/biz.exception';
 
 @Injectable({})
 export class UserService {
@@ -23,50 +26,41 @@ export class UserService {
         private readonly emailService: MailService,
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
-    async findAll() {
-        let listUser = await this.userRepository.
+    async findAll(): Promise<UserEntity[]> {
+        return await this.userRepository.
             createQueryBuilder('user')
             .leftJoinAndSelect('user.roles', 'roles')
             .getMany();
-        listUser.forEach((item: any) => {
-            delete item.password,
-                delete item.token,
-                delete item.repass_token,
-                delete item.refresh_token;
-        })
-        return listUser;
     }
-    async findByEmail(email: string) {
-        return await this.userRepository
+    async findByEmail(email: string): Promise<UserEntity> {
+        const user = await this.userRepository
             .createQueryBuilder('user')
             .where({ email: email })
             .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
+        if (user)
+            return user
+        throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
     }
-    async findById(id: number) {
+    async findById(id: number): Promise<UserEntity> {
         const user = await this.userRepository
             .createQueryBuilder('user')
             .where({ id: id })
             .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
-        if (user) {
-            delete user.token;
-            delete user.password;
-            delete user.repass_token;
-            delete user.refresh_token;
+        if (user)
             return user
-        }
-        throw new HttpException("User not found!", HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
     }
-    async create(user: any) {
+    async create(user: any): Promise<UserEntity> {
         const { email, password, confirmPassword } = user;
         if (await this.emailService.isCtuetEmail(email)) {
             const isExisted = await this.findByEmail(email);
             if (isExisted) {
-                throw new HttpException('This email address is already used', HttpStatus.BAD_REQUEST);
+                throw new BusinessException(ErrorEnum.USER_EXISTS);
             };
             if (password !== confirmPassword) {
-                throw new HttpException('Confirmation password does not match', HttpStatus.BAD_REQUEST);
+                throw new BusinessException(ErrorEnum.PASSWORD_VERIFICATION_FAILED);
             };
             delete user.confirmPassword;
             user.password = await bcrypt.hashSync(user.password, 10);
@@ -80,22 +74,25 @@ export class UserService {
                     .of(newUser)
                     .add(roles);
                 await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-                return "Your account is created successfully!";
-            } catch (error) {
-                return error;
+                return await this.findById(newUser.id);
+            } catch (error: any) {
+                await this.userRepository.delete({ email: user.email })
+                throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
             }
         }
     }
-    async createWithGoogle(data: GoogleRedirectDto) {
+    async createWithGoogle(data: GoogleRedirectDto): Promise<UserEntity> {
         if (await this.emailService.isCtuetEmail(data.email)) {
             const user = await this.findByEmail(data.email);
-            if (user && user.password || user.status !== UserStatus.ACTIVE) {
-                throw new HttpException("Email is existed or blocked", HttpStatus.BAD_REQUEST)
+            if (user && user.password) {
+                throw new BusinessException(ErrorEnum.USER_EXISTS)
+            };
+            if (user.status == UserStatus.DISABLE) {
+                throw new BusinessException(ErrorEnum.USER_IS_BLOCKED)
             };
             if (!user) {
                 let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 try {
-
                     const newUser = new UserEntity(newData);
                     await this.userRepository.save(newUser);
                     await this.userRepository.createQueryBuilder()
@@ -104,11 +101,15 @@ export class UserService {
                         .add(UserRole.USER);
                     const user = await this.findByEmail(newUser.email);
                     await this.updateStatus(user.id, UserStatus.ACTIVE)
-                } catch (error) {
-                    return error
+                    return await this.findByEmail(newUser.email);
+                } catch (error: any) {
+                    throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
                 }
             }
-            return true;
+            if (user.status == UserStatus.UNACTIVE) {
+                await this.updateStatus(user.id, UserStatus.ACTIVE)
+            }
+            return await this.findByEmail(user.email);
         }
     }
     async updateToken(email: string, access_token: string): Promise<Boolean> {
@@ -121,39 +122,45 @@ export class UserService {
         }
         return false
     }
-    async updateAccountInfo(email: string, data: UpdateUserDto): Promise<any> {
+    async updateAccountInfo(email: string, data: UpdateUserDto): Promise<AccountInfo> {
         const user = await this.findByEmail(email);
+        if (!user) {
+            throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
+        }
         if (user && user.status == UserStatus.ACTIVE) {
             const updateInfo = plainToClass(UpdateUserDto, data, { excludeExtraneousValues: true });
             await this.userRepository.update({ email: email }, updateInfo)
-            return updateInfo
+            return await this.getAccountInfo(email);
         }
-        throw new HttpException("User not found or blocked", HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
     }
-    async update(id: number, data: UpdateAdminDto, email: string): Promise<any> {
+    async update(id: number, data: UpdateAdminDto, email: string): Promise<UserEntity> {
         const user = await this.findByEmail(email);
-        if (user && user.status == UserStatus.ACTIVE) {
-            const roles = await this.roleService.getRoleByUserId(user.id);
-            if (await this.roleService.hasAdminRole(roles)) {
-                if (await this.findById(id)) {
-                    const updateInfo = plainToClass(UpdateAdminDto, data, { excludeExtraneousValues: true })
-                    await this.userRepository.update({ id: id },
-                        {
-                            firstName: updateInfo.firstName,
-                            lastName: updateInfo.lastName,
-                            phone: updateInfo.phone,
-                            address: updateInfo.address,
-                            status: updateInfo.status,
-                        })
-                    return updateInfo;
+        if (!user) {
+            if (user.status == UserStatus.ACTIVE) {
+                const roles = await this.roleService.getRoleByUserId(user.id);
+                if (await this.roleService.hasAdminRole(roles)) {
+                    if (await this.findById(id)) {
+                        const updateInfo = plainToClass(UpdateAdminDto, data, { excludeExtraneousValues: true })
+                        await this.userRepository.update({ id: id },
+                            {
+                                firstName: updateInfo.firstName,
+                                lastName: updateInfo.lastName,
+                                phone: updateInfo.phone,
+                                address: updateInfo.address,
+                                status: updateInfo.status,
+                            })
+                        return await this.findByEmail(email);
+                    }
+                    throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
                 }
-                throw new HttpException("Email not found", HttpStatus.BAD_REQUEST);
+                throw new BusinessException(ErrorEnum.NO_PERMISSION);
             }
-            throw new HttpException("Access was denied!", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
         }
-        throw new HttpException("User not found, bolcked!", HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
     }
-    async updateUserPermission(uid: number, data: UpdatePermissionDto) {
+    async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
         const user = await this.findById(uid);
         if (user) {
             const updateInfo = plainToClass(UpdatePermissionDto, data, { excludeExtraneousValues: true });
@@ -169,7 +176,6 @@ export class UserService {
                 throw new HttpException("User has this role!", HttpStatus.BAD_REQUEST)
             }
             const userRoles = await this.roleService.getRolesByUser(uid);
-
             try {
                 const updatedRoles = userRoles.map(role => role.id === updateInfo.oldRid ? newRole : role);
                 await this.userRepository.createQueryBuilder()
@@ -178,46 +184,52 @@ export class UserService {
                     .addAndRemove(updatedRoles, userRoles);
                 return await this.findById(uid);
             } catch (error) {
-                return error
+                throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED)
             }
         }
-        throw new HttpException("User not found!", HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
     }
     async updateRepassToken(email: string, repassToken: string) {
         const user = await this.findByEmail(email);
-        if (user && user.status == UserStatus.ACTIVE) {
+        if (!user) {
+            throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
+        }
+        if (user.status == UserStatus.ACTIVE) {
             await this.userRepository.update({ email: email }, { repass_token: repassToken, })
             return true;
         };
-        throw new HttpException('User not found or blocked', HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
     }
     async updatePassword(email: string, password: string) {
         const user = await this.findByEmail(email);
-        if (user && user.status == UserStatus.ACTIVE) {
+        if (!user) {
+            throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
+        }
+        if (user.status == UserStatus.ACTIVE) {
             await this.userRepository.update({ email: email }, { password: password })
             return "Your password updated!"
         };
-        throw new HttpException('User not found or blocked', HttpStatus.NOT_FOUND);
+        throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
     }
     async userConfirmation(dto: ConfirmationEmailDto) {
         const email = await this.emailService.confirmEmail(dto);
         if (email) {
             const user = await this.findByEmail(email);
             if (user.status == UserStatus.DISABLE) {
-                throw new HttpException("Your account is blocked", HttpStatus.BAD_REQUEST);
+                throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
             }
             if (user.status == UserStatus.UNACTIVE) {
                 await this.updateStatus(user.id, UserStatus.ACTIVE);
                 await this.userRepository.update({ email: email }, { refresh_token: null, })
                 return "Your account is confirmation!"
             }
-            throw new HttpException("The email is confirmeation!", HttpStatus.ACCEPTED)
+            throw new HttpException("The email is confirmation!", HttpStatus.ACCEPTED)
         }
     }
     async confirmRePassword(data: ForgotPasswordDto) {
         const isExisted = await this.findByEmail(data.email);
         if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
-            throw new HttpException('Email not found or blocked!', HttpStatus.NOT_FOUND);
+            throw new BusinessException(ErrorEnum.USER_INVALID);
         }
         try {
             const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
@@ -238,7 +250,7 @@ export class UserService {
     async resetPassword(email: string): Promise<any> {
         const isExisted = await this.findByEmail(email);
         if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
-            throw new HttpException("Email not found or blocked!", HttpStatus.NOT_FOUND)
+            throw new BusinessException(ErrorEnum.USER_INVALID)
         };
         try {
             const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
@@ -253,18 +265,18 @@ export class UserService {
             return "The new digital numbers was send to your Email!";
         }
     }
-    async updateStatus(id: number, status: UserStatus) {
+    async updateStatus(id: number, status: UserStatus): Promise<UserEntity> {
         const user = await this.findById(id);
         if (user) {
             await this.userRepository.update({ email: user.email }, { status: status })
-            return true
+            return await this.findById(user.id);
         }
         throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
     }
-    async getAccountInfo(email: string): Promise<any> {
+    async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
         if (!user || user.status !== UserStatus.ACTIVE) {
-            throw new HttpException("Email not found or blocked", HttpStatus.NOT_FOUND)
+            throw new BusinessException(ErrorEnum.USER_INVALID)
         }
         delete user.token;
         delete user.refresh_token;
@@ -289,6 +301,6 @@ export class UserService {
             }
             throw new HttpException("Your account is confirmed!", HttpStatus.ACCEPTED);
         }
-        throw new HttpException("User is not existed or blocked!", HttpStatus.BAD_REQUEST);
+        throw new BusinessException(ErrorEnum.USER_INVALID);
     }
 }

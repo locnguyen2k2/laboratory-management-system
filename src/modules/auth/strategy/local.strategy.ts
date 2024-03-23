@@ -3,14 +3,17 @@ import { Strategy } from "passport-local";
 import { AuthService } from "./../auth.service";
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { UserStatus } from "./../../user/user.constant";
+import { Credential } from "../interfaces/credential.interface";
+import { BusinessException } from "src/common/exceptions/biz.exception";
+import { ErrorEnum } from "src/constants/error-code.constant";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly authService: AuthService) { super({ usernameField: 'email' }) }
-    async validate(usernameField: string, password: string) {
+    async validate(usernameField: string, password: string): Promise<Credential> {
         const user = await this.authService.credentialByPassword(usernameField, password)
-        if (!user || user.status !== UserStatus.ACTIVE) {
-            throw new HttpException("Your account is not existed or blocked", HttpStatus.BAD_REQUEST);
+        if (!user || user.userInfo.status !== UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorEnum.USER_INVALID);
         }
         return user;
     }
