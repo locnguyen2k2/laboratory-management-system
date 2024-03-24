@@ -1,6 +1,6 @@
 import { UserService } from "./user.service";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
+import { UpdatePermissionDto, UpdateStatusDto, UpdateUserDto } from "./dtos/update.dto";
 import { UpdateAdminDto } from "./dtos/update.dto";
 import { UserRole, UserStatus } from "./user.constant";
 import { ResetPaswordDto } from "../auth/dtos/reset-password.dto";
@@ -14,6 +14,8 @@ import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query, Post } fr
 import { ForgotPasswordDto } from "./dtos/password.dto";
 import { UserEntity } from "./user.entity";
 import { AccountInfo } from "./interfaces/AccountInfo.interface";
+import { AddPermissionDto } from "./dtos/add-permission.dto";
+import { plainToClass } from "class-transformer";
 
 @Controller('users')
 export class UserController {
@@ -59,8 +61,9 @@ export class UserController {
     @Patch('status/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async updateStatus(@IdParam() id: number, @Body() status: UserStatus): Promise<UserEntity> {
-        return await this.userService.updateStatus(id, status);
+    async updateStatus(@IdParam() id: number, @Body() dto: UpdateStatusDto): Promise<UserEntity> {
+        const data = plainToClass(UpdateStatusDto, dto, { excludeExtraneousValues: true });
+        return await this.userService.updateStatus(id, data.status);
     }
 
     @ApiBearerAuth()
@@ -74,6 +77,15 @@ export class UserController {
     @Patch('email/resent-confirm-links')
     async resendConfirmationLink(@Body() dto: EmailLinkConfirmDto) {
         return await this.userService.resendConfirmationLink(dto);
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @Post('permission')
+    async addPermission(@Body() dto: AddPermissionDto) {
+        const data = plainToClass(AddPermissionDto, dto, { excludeExtraneousValues: true })
+        return await this.userService.addPermission(data);
     }
 
     @ApiBearerAuth()

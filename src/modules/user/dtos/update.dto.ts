@@ -2,7 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { UserRole } from "./../user.constant";
 import { UserStatus } from "./../user.constant";
 
 export class UpdateUserDto {
@@ -55,4 +54,11 @@ export class UpdatePermissionDto {
     @IsNumber()
     @IsNotEmpty()
     newRid: number;
+}
+
+export class UpdateStatusDto {
+    @IsNotEmpty()
+    @Expose()
+    @IsEnum(UserStatus)
+    status: UserStatus
 }

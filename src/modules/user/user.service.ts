@@ -17,6 +17,7 @@ import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
 import { AccountInfo } from './interfaces/AccountInfo.interface';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
+import { AddPermissionDto } from './dtos/add-permission.dto';
 
 @Injectable({})
 export class UserService {
@@ -47,7 +48,6 @@ export class UserService {
             .where({ id: id })
             .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
-        console.log(user)
         if (user)
             return user
         throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
@@ -146,6 +146,22 @@ export class UserService {
                     status: updateInfo.status,
                 })
             return await this.findById(id);
+        }
+    }
+    async addPermission(data: AddPermissionDto) {
+        if (await this.findById(data.uid)) {
+            const user = await this.findById(data.uid);
+            const role = await this.roleService.findById(data.rid);
+            if (role) {
+                if (await this.roleService.checkUserHasRoleById(data.uid, data.rid)) {
+                    throw new BusinessException("Permission already exist")
+                }
+                await this.userRepository.createQueryBuilder()
+                    .relation(UserEntity, "roles")
+                    .of(user)
+                    .add(role);
+                return user;
+            }
         }
     }
     async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
@@ -252,7 +268,7 @@ export class UserService {
             throw new BusinessException("The new digital numbers was send to your Email!");
         }
     }
-    async updateStatus(id: number, status: UserStatus): Promise<UserEntity> {
+    async updateStatus(id: number, status: number): Promise<UserEntity> {
         if (await this.findById(id)) {
             const user = await this.findById(id);
             await this.userRepository.update({ id: user.id }, { status: status })
