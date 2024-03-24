@@ -2,7 +2,6 @@ import { Request } from "express";
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { UserRole } from "./../../user/user.constant";
-import { UserService } from "./../../user/user.service";
 import { ROLES_KEY } from "./../../../common/decorators/roles.decorator";
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { RoleService } from "src/modules/system/role/role.service";

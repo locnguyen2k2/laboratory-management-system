@@ -47,6 +47,7 @@ export class UserService {
             .where({ id: id })
             .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
+        console.log(user)
         if (user)
             return user
         throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
@@ -252,12 +253,11 @@ export class UserService {
         }
     }
     async updateStatus(id: number, status: UserStatus): Promise<UserEntity> {
-        const user = await this.findById(id);
-        if (user) {
-            await this.userRepository.update({ email: user.email }, { status: status })
+        if (await this.findById(id)) {
+            const user = await this.findById(id);
+            await this.userRepository.update({ id: user.id }, { status: status })
             return await this.findById(user.id);
         }
-        throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
     }
     async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
