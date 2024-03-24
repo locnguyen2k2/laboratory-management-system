@@ -50,9 +50,8 @@ export class UserController {
     @Roles(UserRole.ADMIN)
     async update(
         @IdParam() id: number,
-        @Body() dto: UpdateAdminDto,
-        @Request() req: any): Promise<UserEntity> {
-        return await this.userService.update(id, dto, req.user.email);
+        @Body() dto: UpdateAdminDto): Promise<UserEntity> {
+        return await this.userService.update(id, dto);
     }
 
 

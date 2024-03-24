@@ -4,6 +4,8 @@ import { createTransport } from "nodemailer";
 import { JwtPayload } from "./../auth/interfaces/jwt.interface";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfirmationEmailDto } from "../user/dtos/confirmationEmail-auth.dto";
+import { BusinessException } from "src/common/exceptions/biz.exception";
+import { ErrorEnum } from "src/constants/error-code.constant";
 
 @Injectable()
 export class MailService {
@@ -23,13 +25,13 @@ export class MailService {
     async isCtuetEmail(email: string): Promise<boolean | HttpException> {
         const emailHandle = email.split('@')[1];
         if (!(emailHandle.includes('ctuet.edu.vn'))) {
-            throw new HttpException("This email must have the extension 'ctuet.edu.vn'!", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorEnum.CTUET_EMAIL);
         }
         return true;
     }
 
     async sendEmail(options: Mail.Options): Promise<any> {
-        return this.nodeMailerTransport.sendMail(options);
+        return this.nodeMailerTransport.sendMail(options, (err, info) => { console.log(err, info) });
     }
 
     async confirmEmail(dto: ConfirmationEmailDto) {
@@ -39,7 +41,7 @@ export class MailService {
                 return email;
             }
         } catch (error) {
-            throw new HttpException("Your token is invalid!", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
         }
     }
 
@@ -48,7 +50,7 @@ export class MailService {
         const token = this.jwtService.sign(payload);
         const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
         const text = `Welcome to Laboratory Management System. To confirm the email address, click here: ${url}`;
-        this.sendEmail({ to: email, subject: 'Email confirmation', text })
+        await this.sendEmail({ to: email, subject: 'Email confirmation', text })
         return token;
     }
 
@@ -74,9 +76,9 @@ export class MailService {
             }
         } catch (error) {
             if (error?.name === 'TokenExpiredError') {
-                throw new HttpException("Email confirmation token expired", HttpStatus.BAD_REQUEST)
+                throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
             }
-            throw new HttpException("Bad confirmation token", HttpStatus.BAD_REQUEST)
+            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         }
 
     }

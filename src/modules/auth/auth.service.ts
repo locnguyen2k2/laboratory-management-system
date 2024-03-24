@@ -33,7 +33,7 @@ export class AuthService {
                 throw new BusinessException(ErrorEnum.INVALID_LOGIN);
             };
             if (user.status !== UserStatus.ACTIVE) {
-                throw new HttpException("Your account not confirmed or blocked!", HttpStatus.UNAUTHORIZED);
+                throw new BusinessException(ErrorEnum.USER_INVALID);
             };
             const userInfo = await this.userService.getAccountInfo(email);
             try {

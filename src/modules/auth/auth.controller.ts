@@ -26,7 +26,6 @@ export class AuthController {
     @Post('google-login')
     async loginWithGoogle(@Body() dto: GoogleRedirectDto): Promise<Credential> {
         return await this.authService.credentialWithoutPassword(dto)
-
     }
 
     @Post('register')
@@ -38,7 +37,7 @@ export class AuthController {
     @ApiBearerAuth()
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async registerManager(@Body() dto: RegisterManagerDto): Promise<UserEntity> {
         const manager = plainToClass(RegisterManagerDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(manager);

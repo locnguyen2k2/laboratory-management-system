@@ -19,10 +19,9 @@ export class BusinessException extends HttpException {
         const [code, message] = error.split(':');
         super(
             HttpException.createBody({
-                code,
                 message,
             }),
-            HttpStatus.OK,
+            parseInt(code),
         )
         this.errorCode = Number(code)
     }

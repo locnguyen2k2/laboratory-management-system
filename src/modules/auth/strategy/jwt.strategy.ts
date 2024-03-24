@@ -19,10 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         })
     }
     async validate(payload: JwtPayload): Promise<JwtPayload> {
-        const user = await this.userService.findByEmail(payload.email);
-        if (!user || user.status !== UserStatus.ACTIVE) {
+        if (await this.userService.findById(payload.id)) {
+            const user = await this.userService.findById(payload.id);
+            if (user.status == UserStatus.ACTIVE) {
+                return { id: payload.id, email: payload.email }
+            }
             throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
         }
-        return { id: payload.id, email: payload.email }
     }
-} 
+}
