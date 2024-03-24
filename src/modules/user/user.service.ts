@@ -160,8 +160,9 @@ export class UserService {
                     .relation(UserEntity, "roles")
                     .of(user)
                     .add(role);
-                return user;
+                return await this.findById(data.uid);
             }
+            throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
         }
     }
     async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
