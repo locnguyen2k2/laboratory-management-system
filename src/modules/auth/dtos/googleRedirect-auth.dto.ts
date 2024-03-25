@@ -22,7 +22,6 @@ export class GoogleRedirectDto {
     @ApiProperty({ default: "" })
     @Expose()
     @IsString()
-    @IsNotEmpty()
     photo: string;
     @ApiProperty({ default: "" })
     @Expose()

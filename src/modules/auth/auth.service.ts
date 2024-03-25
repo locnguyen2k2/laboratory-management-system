@@ -62,10 +62,11 @@ export class AuthService {
         return lastValueFrom(this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).pipe(map((res) => res.data)))
     }
 
-    async credentialWithoutPassword(data: GoogleRedirectDto): Promise<Credential> {
+    async credentialWithoutPassword(data: GoogleRedirectDto): Promise<any> {
         try {
-            const isVerifyToken = await this.ggAccessTokenVerify(data.accessToken).then((res) => res)
-            if (isVerifyToken) {
+            const isVerifyToken = await this.ggAccessTokenVerify(data.accessToken).then((res: any) => res)
+            if (isVerifyToken && isVerifyToken.email == data.email) {
+                console.log(isVerifyToken.email)
                 const newUser = await this.userService.createWithGoogle(data);
                 if (newUser) {
                     const userInfo = await this.userService.getAccountInfo(data.email);
@@ -90,6 +91,7 @@ export class AuthService {
                     }
                 }
             }
+            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         } catch (error) {
             throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         }

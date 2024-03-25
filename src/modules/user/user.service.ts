@@ -87,12 +87,16 @@ export class UserService {
             if (user && user.password) {
                 throw new BusinessException(ErrorEnum.USER_EXISTS)
             };
-            if (user.status == UserStatus.DISABLE) {
+            if (user?.status == UserStatus.DISABLE) {
                 throw new BusinessException(ErrorEnum.USER_IS_BLOCKED)
             };
+            if (user?.status == UserStatus.UNACTIVE) {
+                await this.updateStatus(user.id, UserStatus.ACTIVE)
+            }
             if (!user) {
                 let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 try {
+                    delete newData.accessToken;
                     const newUser = new UserEntity(newData);
                     await this.userRepository.save(newUser);
                     await this.userRepository.createQueryBuilder()
@@ -101,13 +105,10 @@ export class UserService {
                         .add(UserRole.USER);
                     const user = await this.findByEmail(newUser.email);
                     await this.updateStatus(user.id, UserStatus.ACTIVE)
-                    return await this.findByEmail(newUser.email);
+                    return await this.findByEmail(user.email);
                 } catch (error: any) {
                     throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
                 }
-            }
-            if (user.status == UserStatus.UNACTIVE) {
-                await this.updateStatus(user.id, UserStatus.ACTIVE)
             }
             return await this.findByEmail(user.email);
         }
