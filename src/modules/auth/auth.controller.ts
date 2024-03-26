@@ -9,10 +9,11 @@ import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 import { RegisterAdminDto } from "./../user/dtos/register.dto";
 import { RegisterManagerDto } from "./../user/dtos/register.dto";
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpException, Post, UseGuards } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { Credential } from "./interfaces/credential.interface";
 import { UserEntity } from "../user/user.entity";
+import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
 
 @Controller('auths')
 export class AuthController {
@@ -20,16 +21,18 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() dto: LoginAuthDto): Promise<Credential> {
-        return await this.authService.credentialByPassword(dto.email, dto.password);
+        const { email, password } = plainToClass(LoginAuthDto, dto, { excludeExtraneousValues: true });
+        return await this.authService.credentialByPassword(email, password);
     }
 
     @Post('google-login')
     async loginWithGoogle(@Body() dto: GoogleRedirectDto): Promise<Credential> {
-        return await this.authService.credentialWithoutPassword(dto)
+        const data = plainToClass(GoogleRedirectDto, dto, { excludeExtraneousValues: true });
+        return await this.authService.credentialWithoutPassword(data)
     }
 
     @Post('register')
-    async register(@Body() dto: RegisterUserDto): Promise<UserEntity> {
+    async register(@Body() dto: RegisterUserDto): Promise<AccountInfo> {
         const user = plainToClass(RegisterUserDto, dto, { excludeExtraneousValues: true });
         return this.authService.register(user);
     }
@@ -38,7 +41,7 @@ export class AuthController {
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
-    async registerManager(@Body() dto: RegisterManagerDto): Promise<UserEntity> {
+    async registerManager(@Body() dto: RegisterManagerDto): Promise<AccountInfo> {
         const manager = plainToClass(RegisterManagerDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(manager);
     }
@@ -47,7 +50,7 @@ export class AuthController {
     @Post('admin-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async registerAdmin(@Body() dto: RegisterAdminDto): Promise<UserEntity> {
+    async registerAdmin(@Body() dto: RegisterAdminDto): Promise<AccountInfo> {
         const admin = plainToClass(RegisterAdminDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(admin);
     }

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber } from "class-validator";
+import { UserRole } from "../user.constant";
 
 export class AddPermissionDto {
     @ApiProperty({ default: "" })
@@ -9,8 +10,8 @@ export class AddPermissionDto {
     @IsNotEmpty()
     uid: number;
     @ApiProperty({ default: "" })
-    @IsNumber()
     @Expose()
     @IsNotEmpty()
-    rid: number;
+    @IsEnum(UserRole)
+    rid: UserRole;
 }

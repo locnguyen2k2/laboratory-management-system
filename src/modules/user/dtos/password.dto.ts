@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength, Validate } from "class-validator";
+import { IsValidString } from "src/common/decorators/string-validation.decorator";
 
 export class PasswordUpdateDto {
     @ApiProperty({ description: 'Old password' })
@@ -37,6 +38,7 @@ export class ForgotPasswordDto extends UserPasswordDto {
     @Expose()
     @IsString()
     @IsNotEmpty()
+    @Validate(IsValidString)
     digitalNumbs: string;
 
 }

@@ -11,13 +11,15 @@ import { ForgotPasswordDto } from './dtos/password.dto';
 import { RoleService } from '../system/role/role.service';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
-import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
 import { AccountInfo } from './interfaces/AccountInfo.interface';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { AddPermissionDto } from './dtos/add-permission.dto';
+import { Credential } from '../auth/interfaces/credential.interface';
+import { JwtPayload } from '../auth/interfaces/jwt.interface';
 
 @Injectable({})
 export class UserService {
@@ -52,7 +54,7 @@ export class UserService {
             return user
         throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
     }
-    async create(user: any): Promise<UserEntity> {
+    async create(user: any): Promise<AccountInfo> {
         const { email, password, confirmPassword } = user;
         if (await this.emailService.isCtuetEmail(email)) {
             const isExisted = await this.findByEmail(email);
@@ -74,26 +76,23 @@ export class UserService {
                     .of(newUser)
                     .add(roles);
                 await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-                return await this.findByEmail(newUser.email);
+                return this.getAccountInfo(newUser.email);
             } catch (error: any) {
                 await this.userRepository.delete({ email: user.email })
                 throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
             }
         }
     }
-    async createWithGoogle(data: GoogleRedirectDto): Promise<UserEntity> {
-        if (await this.emailService.isCtuetEmail(data.email)) {
-            const user = await this.findByEmail(data.email);
-            if (user && user.password) {
+    async createWithGoogle(data: GoogleRedirectDto): Promise<Credential> {
+        const { email } = data;
+        if (await this.emailService.isCtuetEmail(email)) {
+            const user = await this.findByEmail(email);
+            if ((user && user.password) || user?.status == UserStatus.DISABLE) {
                 throw new BusinessException(ErrorEnum.USER_EXISTS)
-            };
-            if (user?.status == UserStatus.DISABLE) {
-                throw new BusinessException(ErrorEnum.USER_IS_BLOCKED)
             };
             if (user?.status == UserStatus.UNACTIVE) {
                 await this.updateStatus(user.id, UserStatus.ACTIVE)
-            }
-            if (!user) {
+            } else {
                 let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 try {
                     delete newData.accessToken;
@@ -103,14 +102,32 @@ export class UserService {
                         .relation(UserEntity, "roles")
                         .of(newUser)
                         .add(UserRole.USER);
-                    const user = await this.findByEmail(newUser.email);
-                    await this.updateStatus(user.id, UserStatus.ACTIVE)
-                    return await this.findByEmail(user.email);
+                    await this.updateStatus(newUser.id, UserStatus.ACTIVE)
                 } catch (error: any) {
                     throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
                 }
             }
-            return await this.findByEmail(user.email);
+            const userInfo = await this.findByEmail(email);
+            const newUser = await this.findByEmail(email);
+            try {
+                if (await this.jwtService.verifyAsync(newUser.token)) {
+                    return {
+                        userInfo,
+                        access_token: newUser.token
+                    }
+                }
+            } catch (error: any) {
+                const payload: JwtPayload = {
+                    id: newUser.id,
+                    email: newUser.email
+                }
+                const access_token = await this.jwtService.signAsync(payload);
+                await this.updateToken(payload.email, access_token);
+                return {
+                    userInfo,
+                    access_token
+                }
+            }
         }
     }
     async updateToken(email: string, access_token: string): Promise<Boolean> {
@@ -123,17 +140,16 @@ export class UserService {
         }
         return false
     }
-    async updateAccountInfo(email: string, data: UpdateUserDto): Promise<AccountInfo> {
-        const user = await this.findByEmail(email);
-        if (!user) {
+    async updateAccountInfo(id: number, data: UpdateUserDto): Promise<AccountInfo> {
+        if (await this.findById(id)) {
+            const user = await this.findById(id);
+            if (user.status == UserStatus.ACTIVE) {
+                const updateInfo = plainToClass(UpdateUserDto, data, { excludeExtraneousValues: true });
+                await this.userRepository.update({ id: id }, updateInfo)
+                return await this.getAccountInfo(user.email);
+            }
             throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
         }
-        if (user && user.status == UserStatus.ACTIVE) {
-            const updateInfo = plainToClass(UpdateUserDto, data, { excludeExtraneousValues: true });
-            await this.userRepository.update({ email: email }, updateInfo)
-            return await this.getAccountInfo(email);
-        }
-        throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
     }
     async update(id: number, data: UpdateAdminDto): Promise<UserEntity> {
         if (await this.findById(id)) {
@@ -151,36 +167,30 @@ export class UserService {
     }
     async addPermission(data: AddPermissionDto) {
         if (await this.findById(data.uid)) {
-            const user = await this.findById(data.uid);
-            const role = await this.roleService.findById(data.rid);
-            if (role) {
-                if (await this.roleService.checkUserHasRoleById(data.uid, data.rid)) {
+            try {
+                const role = await this.roleService.findById(data.rid);
+                if (await this.roleService.checkUserHasRoleById(data.uid, data.rid))
                     throw new BusinessException("Permission already exist")
-                }
+                const user = await this.findById(data.uid);
                 await this.userRepository.createQueryBuilder()
                     .relation(UserEntity, "roles")
                     .of(user)
                     .add(role);
                 return await this.findById(data.uid);
+            } catch (error) {
+                throw new BusinessException(ErrorEnum.ROLE_NOT_FOUND)
             }
-            throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
         }
     }
     async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
         if (await this.findById(uid)) {
             const user = await this.findById(uid);
             const updateInfo = plainToClass(UpdatePermissionDto, data, { excludeExtraneousValues: true });
-            const oldRole = await this.roleService.findById(updateInfo.oldRid);
             const newRole = await this.roleService.findById(updateInfo.newRid);
-            if (!oldRole || !newRole) {
+            if (!(await this.roleService.checkUserHasRoleById(uid, updateInfo.oldRid)))
                 throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
-            }
-            if (!(await this.roleService.checkUserHasRoleById(uid, updateInfo.oldRid))) {
-                throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
-            }
-            if (await this.roleService.checkUserHasRoleById(uid, updateInfo.newRid)) {
-                throw new BusinessException(ErrorEnum.RECORD_IS_EXISTED)
-            }
+            if (await this.roleService.checkUserHasRoleById(uid, updateInfo.newRid))
+                throw new BusinessException("User has this role!")
             const userRoles = await this.roleService.getRolesByUser(uid);
             try {
                 const updatedRoles = userRoles.map(role => role.id === updateInfo.oldRid ? newRole : role);
@@ -196,33 +206,25 @@ export class UserService {
     }
     async updateRepassToken(email: string, repassToken: string) {
         const user = await this.findByEmail(email);
-        if (!user) {
-            throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
+        if (!user || !user.password || user.status !== UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorEnum.USER_INVALID);
         }
-        if (user.status == UserStatus.ACTIVE) {
-            await this.userRepository.update({ email: email }, { repass_token: repassToken, })
-            return true;
-        };
-        throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
+        await this.userRepository.update({ email: email }, { repass_token: repassToken })
+        return true;
     }
     async updatePassword(email: string, password: string) {
         const user = await this.findByEmail(email);
-        if (!user) {
-            throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
-        }
-        if (user.status == UserStatus.ACTIVE) {
-            await this.userRepository.update({ email: email }, { password: password })
-            throw new BusinessException("Your password updated!")
-        };
-        throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
+        if (!user || !user.password || user.status !== UserStatus.ACTIVE)
+            throw new BusinessException(ErrorEnum.USER_INVALID)
+        await this.userRepository.update({ email: email }, { password: password })
+        throw new BusinessException("Your password updated!")
     }
     async userConfirmation(dto: ConfirmationEmailDto) {
         const email = await this.emailService.confirmEmail(dto);
         if (email) {
             const user = await this.findByEmail(email);
-            if (user.status == UserStatus.DISABLE) {
+            if (user.status == UserStatus.DISABLE)
                 throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
-            }
             if (user.status == UserStatus.UNACTIVE) {
                 await this.updateStatus(user.id, UserStatus.ACTIVE);
                 await this.userRepository.update({ email: email }, { refresh_token: null, })

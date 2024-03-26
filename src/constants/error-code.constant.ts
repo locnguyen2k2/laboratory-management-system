@@ -12,6 +12,7 @@ export enum ErrorEnum {
     REQUEST_INVALIDATED = "408:The current request has expired",
     INVALID_VERIFICATION_TOKEN = "404:Invalid token",
     TOKEN_IS_REQUIRE = "400:Token is required",
+    ROLE_NOT_FOUND = "404:Role not found",
     MISSION_EXECUTION_FAILED = "404:Task execution failed",
     CTUET_EMAIL = "400:This email must have the extension 'ctuet.edu.vn'!",
 }

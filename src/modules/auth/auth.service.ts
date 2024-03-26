@@ -16,6 +16,7 @@ import { UserEntity } from '../user/user.entity';
 import { Credential } from './interfaces/credential.interface';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
+import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
 
 @Injectable()
 export class AuthService {
@@ -66,29 +67,9 @@ export class AuthService {
         try {
             const isVerifyToken = await this.ggAccessTokenVerify(data.accessToken).then((res: any) => res)
             if (isVerifyToken && isVerifyToken.email == data.email) {
-                console.log(isVerifyToken.email)
                 const newUser = await this.userService.createWithGoogle(data);
                 if (newUser) {
-                    const userInfo = await this.userService.getAccountInfo(data.email);
-                    try {
-                        if (await this.jwtService.verifyAsync(newUser.token)) {
-                            return {
-                                userInfo,
-                                access_token: newUser.token
-                            }
-                        }
-                    } catch (error: any) {
-                        const payload: JwtPayload = {
-                            id: newUser.id,
-                            email: newUser.email
-                        }
-                        const access_token = await this.jwtService.signAsync(payload);
-                        await this.userService.updateToken(payload.email, access_token);
-                        return {
-                            userInfo,
-                            access_token
-                        }
-                    }
+                   
                 }
             }
             throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
@@ -97,7 +78,7 @@ export class AuthService {
         }
     }
 
-    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<UserEntity> {
+    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<AccountInfo> {
         return await this.userService.create(user)
     }
 

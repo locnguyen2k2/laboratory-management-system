@@ -11,10 +11,10 @@ import { ErrorEnum } from "src/constants/error-code.constant";
 export class LocalStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly authService: AuthService) { super({ usernameField: 'email' }) }
     async validate(usernameField: string, password: string): Promise<Credential> {
-        const user = await this.authService.credentialByPassword(usernameField, password)
-        if (!user || user.userInfo.status !== UserStatus.ACTIVE) {
+        const { userInfo, access_token } = await this.authService.credentialByPassword(usernameField, password)
+        if (!userInfo || userInfo.status !== UserStatus.ACTIVE) {
             throw new BusinessException(ErrorEnum.USER_INVALID);
         }
-        return user;
+        return { userInfo, access_token };
     }
 }

@@ -2,63 +2,66 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { UserStatus } from "./../user.constant";
+import { UserRole, UserStatus } from "./../user.constant";
 
 export class UpdateUserDto {
 
     @ApiProperty({ default: "" })
-    @Expose()
+    @Validate(IsValidString)
     @IsNotEmpty()
     @IsString()
-    @Validate(IsValidString)
+    @Expose()
     firstName: string;
     @ApiProperty({ default: "" })
-    @Expose()
+    @Validate(IsValidString)
     @IsNotEmpty()
     @IsString()
-    @Validate(IsValidString)
+    @Expose()
     lastName: string;
     @ApiProperty({ default: "" })
-    @Expose()
-    @IsNotEmpty()
     @IsPhoneNumber('VN')
+    @IsNotEmpty()
+    @Expose()
     phone: string;
     @ApiProperty({ default: "" })
-    @Expose()
+    @Validate(IsValidString)
     @IsNotEmpty()
     @IsString()
-    @Validate(IsValidString)
+    @Expose()
     address: string;
     @ApiProperty({ default: null })
-    @Expose()
+    @Validate(IsValidString)
     @IsString()
+    @Expose()
     photo: string;
 }
 
 export class UpdateAdminDto extends UpdateUserDto {
 
     @ApiProperty({ default: "" })
-    @Expose()
     @IsEnum(UserStatus)
+    @IsNotEmpty()
+    @Expose()
     status: UserStatus
 }
 
 export class UpdatePermissionDto {
     @ApiProperty({ default: "" })
-    @Expose()
-    @IsNumber()
+    @IsEnum(UserRole)
     @IsNotEmpty()
-    oldRid: number;
+    @Expose()
+    oldRid: UserRole;
     @ApiProperty({ default: "" })
-    @Expose()
-    @IsNumber()
+    @IsEnum(UserRole)
     @IsNotEmpty()
-    newRid: number;
+    @Expose()
+    newRid: UserRole;
 }
 
 export class UpdateStatusDto {
+    @ApiProperty({ default: "" })
+    @IsEnum(UserStatus)
     @IsNotEmpty()
     @Expose()
-    @IsEnum(UserStatus)
     status: UserStatus
 }
