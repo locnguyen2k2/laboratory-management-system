@@ -9,10 +9,9 @@ import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 import { RegisterAdminDto } from "./../user/dtos/register.dto";
 import { RegisterManagerDto } from "./../user/dtos/register.dto";
-import { Body, Controller, HttpException, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, Post, UseGuards } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { Credential } from "./interfaces/credential.interface";
-import { UserEntity } from "../user/user.entity";
 import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
 
 @Controller('auths')

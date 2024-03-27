@@ -1,5 +1,5 @@
 import { CommonEntity } from "src/common/entity/common.entity";
-import { CategoryStatusEnum } from "src/common/enums/category-status.enum";
+import { CategoryStatusEnum } from "./category-status.enum";
 import { Column, Entity, OneToMany } from "typeorm";
 import { EquipmentEntity } from "../equipment/equipment.entity";
 import { ToolsEntity } from "../tools/tools.entity";

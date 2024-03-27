@@ -67,10 +67,7 @@ export class AuthService {
         try {
             const isVerifyToken = await this.ggAccessTokenVerify(data.accessToken).then((res: any) => res)
             if (isVerifyToken && isVerifyToken.email == data.email) {
-                const newUser = await this.userService.createWithGoogle(data);
-                if (newUser) {
-                   
-                }
+                return await this.userService.createWithGoogle(data);
             }
             throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         } catch (error) {

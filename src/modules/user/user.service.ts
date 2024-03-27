@@ -92,7 +92,7 @@ export class UserService {
             };
             if (user?.status == UserStatus.UNACTIVE) {
                 await this.updateStatus(user.id, UserStatus.ACTIVE)
-            } else {
+            } else if (!user) {
                 let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 try {
                     delete newData.accessToken;
