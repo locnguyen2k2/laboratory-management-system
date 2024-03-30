@@ -3,9 +3,11 @@ import { ToolsController } from "./tools.controller";
 import { ToolsService } from "./tools.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ToolsEntity } from "./tools.entity";
+import { RoleModule } from "../role/role.module";
+import { UserModule } from "../user/user.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ToolsEntity])],
+    imports: [TypeOrmModule.forFeature([ToolsEntity]), RoleModule, UserModule],
     controllers: [ToolsController],
     providers: [ToolsService],
     exports: [ToolsService],

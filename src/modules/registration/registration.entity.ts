@@ -34,8 +34,5 @@ export class RegistrationEntity extends ExtendedEntity {
         joinColumn: { name: 'registration_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'room_id', referencedColumnName: 'id' },
     })
-    rooms: Relation<RoomEntity[]>;
-
-    // @Column()
-    // from: 
+    rooms: Relation<RoomEntity[]>; 
 }

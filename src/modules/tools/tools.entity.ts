@@ -1,6 +1,5 @@
-import { CommonEntity, ExtendedEntity } from "src/common/entity/common.entity";
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, Relation } from "typeorm";
-// import { CategoryEntity } from "../categories/category.entity";
+import { ExtendedEntity } from "src/common/entity/common.entity";
+import { Column, Entity, ManyToMany, Relation } from "typeorm";
 import { ToolStatus } from "./dtos/ToolStatus";
 import { RegistrationEntity } from "../registration/registration.entity";
 
@@ -21,10 +20,6 @@ export class ToolsEntity extends ExtendedEntity {
 
     @ManyToMany(() => RegistrationEntity, registration => registration.tools)
     registration: Relation<RegistrationEntity[]>
-
-    // @ManyToOne(() => CategoryEntity, { onDelete: 'CASCADE' })
-    // @JoinColumn({ name: "category_id" })
-    // category: CategoryEntity;
 
     constructor(toolsEntity: Partial<ToolsEntity>) {
         super();

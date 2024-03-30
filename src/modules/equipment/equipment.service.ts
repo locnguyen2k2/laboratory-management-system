@@ -57,6 +57,4 @@ export class EquipmentService {
         throw new HttpException(`The equipment not found`, HttpStatus.NOT_FOUND);
     }
 
-
-
 }
