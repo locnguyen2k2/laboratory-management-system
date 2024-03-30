@@ -8,11 +8,23 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './configs/database.config';
 import { MailModule } from './modules/email/mail.module';
-import { CategoryModule } from './modules/categories/category.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
-import { ImageModule } from './modules/images/image.module';
-import { SystemModule } from './modules/system/system.module';
+import { RoleModule } from './modules/role/role.module';
+import { RegistrationModule } from './modules/registration/registration.module';
+import { ToolsModule } from './modules/tools/tools.module';
+import { ChemicalsModule } from './modules/chemicals/chemicals.module';
 
+const modules = [
+  DatabaseModule,
+  UserModule,
+  MailModule,
+  AuthModule,
+  RoleModule,
+  EquipmentModule,
+  ToolsModule,
+  ChemicalsModule,
+  RegistrationModule,
+]
 
 @Module({
   imports: [
@@ -27,14 +39,7 @@ import { SystemModule } from './modules/system/system.module';
       property: 'user',
       session: true,
     }),
-    DatabaseModule,
-    SystemModule,
-    UserModule,
-    AuthModule,
-    MailModule,
-    CategoryModule,
-    EquipmentModule,
-    ImageModule,
+    ...modules
   ],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
 })

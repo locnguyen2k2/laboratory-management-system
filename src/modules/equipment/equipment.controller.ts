@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards, Get } from "@nestjs/common";
+import { Body, Controller, Patch, Post, UseGuards, Get, Request } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
@@ -26,8 +26,9 @@ export class EquipmentController {
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
-    async add(@Body() dto: AddEquipmentDto) {
+    async add(@Body() dto: AddEquipmentDto, @Request() req: any) {
         const data = plainToClass(AddEquipmentDto, dto, { excludeExtraneousValues: true });
+        data.createBy = data.updateBy = req.user.id;
         return await this.equipmentService.add(data);
     }
 
@@ -35,8 +36,9 @@ export class EquipmentController {
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
-    async update(@IdParam() id: number, @Body() dto: UpdateEquipmentDto) {
+    async update(@IdParam() id: number, @Body() dto: UpdateEquipmentDto, @Request() req: any) {
         const data = plainToClass(UpdateEquipmentDto, dto, { excludeExtraneousValues: true });
+        data.updateBy = req.user.id
         return await this.equipmentService.update(id, data);
     }
 

@@ -24,5 +24,5 @@ export class UpdateEquipmentDto {
 
     @ApiProperty({ default: null })
     @Expose()
-    categoryId: number;
+    updateBy: number;
 }

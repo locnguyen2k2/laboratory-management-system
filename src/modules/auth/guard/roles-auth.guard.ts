@@ -4,7 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { UserRole } from "./../../user/user.constant";
 import { ROLES_KEY } from "./../../../common/decorators/roles.decorator";
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { RoleService } from "src/modules/system/role/role.service";
+import { RoleService } from "src/modules/role/role.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 

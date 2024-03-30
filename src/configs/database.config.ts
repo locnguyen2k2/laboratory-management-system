@@ -2,14 +2,24 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserEntity } from "./../modules/user/user.entity";
 import { ConfigModule } from "@nestjs/config";
-import { CategoryEntity } from "src/modules/categories/category.entity";
 import { EquipmentEntity } from "src/modules/equipment/equipment.entity";
-import { ImageEntity } from "src/modules/images/image.entity";
+import { RoleEntity } from "src/modules/role/role.entity";
 import { ToolsEntity } from "src/modules/tools/tools.entity";
 import { ChemicalsEntity } from "src/modules/chemicals/chemicals.entity";
-import { RoleEntity } from "src/modules/system/role/role.entity";
+import { RegistrationEntity } from "src/modules/registration/registration.entity";
+import { RoomEntity } from "src/modules/rooms/room.entity";
 
-@Module({ 
+const entities = [
+    UserEntity,
+    RoleEntity,
+    EquipmentEntity,
+    ToolsEntity,
+    ChemicalsEntity,
+    RoomEntity,
+    RegistrationEntity
+]
+
+@Module({
     imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot({
@@ -19,7 +29,7 @@ import { RoleEntity } from "src/modules/system/role/role.entity";
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            entities: [UserEntity, CategoryEntity, EquipmentEntity, ImageEntity, ToolsEntity, ChemicalsEntity, RoleEntity],
+            entities: [...entities],
             synchronize: true,
         })
     ],

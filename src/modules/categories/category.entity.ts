@@ -14,14 +14,14 @@ export class CategoryEntity extends CommonEntity {
     @Column({ type: 'enum', enum: CategoryStatusEnum, default: CategoryStatusEnum.ACTIVE, nullable: false })
     status: CategoryStatusEnum
 
-    @OneToMany(() => EquipmentEntity, equipment => equipment.category)
-    equipment: EquipmentEntity[];
+    // @OneToMany(() => EquipmentEntity, equipment => equipment.category)
+    // equipment: EquipmentEntity[];
 
-    @OneToMany(() => ToolsEntity, tools => tools.category)
-    tools: ToolsEntity[];
+    // @OneToMany(() => ToolsEntity, tools => tools.category)
+    // tools: ToolsEntity[];
 
-    @OneToMany(() => ChemicalsEntity, chemicals => chemicals.category)
-    chemicals: ChemicalsEntity[];
+    // @OneToMany(() => ChemicalsEntity, chemicals => chemicals.category)
+    // chemicals: ChemicalsEntity[];
 
     constructor(categoryEntity: Partial<CategoryEntity>) {
         super();

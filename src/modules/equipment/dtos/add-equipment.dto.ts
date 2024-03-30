@@ -25,8 +25,15 @@ export class AddEquipmentDto {
     @IsEnum(EquipmentStatusEnum)
     status: number;
 
-    @ApiProperty({ nullable: false })
+    @ApiProperty({ default: null })
     @Expose()
-    @IsNotEmpty()
-    categoryId: number;
+    remark: string;
+
+    @ApiProperty({ default: null })
+    @Expose()
+    createBy: number;
+
+    @ApiProperty({ default: null })
+    @Expose()
+    updateBy: number;
 }

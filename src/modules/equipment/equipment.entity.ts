@@ -1,22 +1,25 @@
-import { CommonEntity } from "src/common/entity/common.entity";
+import { ExtendedEntity } from "src/common/entity/common.entity";
 import { EquipmentStatusEnum } from "./equipment-status.enum";
-import { Column, Entity, ManyToOne } from "typeorm";
-import { CategoryEntity } from "../categories/category.entity";
+import { Column, Entity, ManyToMany, Relation } from "typeorm";
+import { RegistrationEntity } from "../registration/registration.entity";
 
 @Entity('equipment_entity')
-export class EquipmentEntity extends CommonEntity {
+export class EquipmentEntity extends ExtendedEntity {
 
     @Column()
     name: string;
 
-    @Column({ type: 'enum', enum: EquipmentStatusEnum, default: EquipmentStatusEnum.AVAILABLE, nullable: false })
-    status: number;
-
     @Column()
     quantity: number;
 
-    @ManyToOne(() => CategoryEntity, category => category.equipment)
-    category: CategoryEntity;
+    @Column({ type: 'varchar', nullable: true })
+    remark: string;
+
+    @Column({ type: 'enum', enum: EquipmentStatusEnum, default: EquipmentStatusEnum.AVAILABLE, nullable: false })
+    status: number;
+
+    @ManyToMany(() => RegistrationEntity, registration => registration.equipment)
+    registration: Relation<RegistrationEntity[]>;
 
     constructor(equipmentEntity: Partial<EquipmentEntity>) {
         super();

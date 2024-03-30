@@ -14,17 +14,17 @@ export abstract class CommonEntity extends BaseEntity {
 
 export abstract class ExtendedEntity extends CommonEntity {
     @Exclude()
-    @Column({ name: 'created_by', update: false })
-    createdBy: number
+    @Column({ name: 'create_by', update: false })
+    createBy: number
 
     @Exclude()
-    @Column({ name: 'updated_by' })
-    updatedBy: number
+    @Column({ name: 'update_by' })
+    updateBy: number
 
-    @VirtualColumn({ query: alias => `SELECT email FROM user_entity WHERE id = ${alias}.created_by` })
+    @VirtualColumn({ query: alias => `SELECT email FROM user_entity WHERE id = ${alias}.create_by` })
     creator: string
 
-    @VirtualColumn({ query: alias => `SELECT email FROM user_entity WHERE id = ${alias}.updated_by` })
+    @VirtualColumn({ query: alias => `SELECT email FROM user_entity WHERE id = ${alias}.update_by` })
     updater: string
 
 }

@@ -7,7 +7,7 @@ import { MailModule } from "./../email/mail.module";
 import { JwtStrategy } from "./strategy/jwt.strategy";
 import { SessionSerializer } from "./utils/Serializer";
 import { LocalStrategy } from "./strategy/local.strategy";
-import { RoleModule } from "../system/role/role.module";
+import { RoleModule } from "../role/role.module";
 
 
 @Module({

@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { EquipmentEntity } from "./equipment.entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CategoryService } from "../categories/category.service";
 import { AddEquipmentDto } from "./dtos/add-equipment.dto";
 import { UpdateEquipmentDto } from "./dtos/update-equipment.dto";
 
@@ -10,13 +9,11 @@ import { UpdateEquipmentDto } from "./dtos/update-equipment.dto";
 export class EquipmentService {
     constructor(
         @InjectRepository(EquipmentEntity) private readonly equipmentRepository: Repository<EquipmentEntity>,
-        private readonly categoryService: CategoryService
     ) { }
 
     async findAll() {
         return this.equipmentRepository
             .createQueryBuilder("item")
-            .leftJoinAndSelect("item.category", "category")
             .getMany();
     }
 
@@ -24,7 +21,6 @@ export class EquipmentService {
         const item = await this.equipmentRepository
             .createQueryBuilder("item")
             .where({ id: id })
-            .leftJoinAndSelect("item.category", "category")
             .getOne()
         return item ? item : new HttpException("The equipment not found", HttpStatus.NOT_FOUND);
     }
@@ -35,40 +31,30 @@ export class EquipmentService {
                 .createQueryBuilder("item")
                 .where('replace(item.name, \' \', \'\') LIKE :name',
                     { name: name.replace(/\s/g, "") })
-                .leftJoinAndSelect("item.category", "category")
                 .getOne()
         )
     }
 
     async add(data: AddEquipmentDto) {
-        const category = await this.categoryService.findById(data.categoryId);
-        if (category) {
-            const equipment = await this.findByName(data.name);
-            if (equipment) {
-                throw new HttpException(`The equipment: ${equipment.name} is existed`, HttpStatus.BAD_REQUEST);
-            }
-            delete data.categoryId;
-            const newEquipment = new EquipmentEntity({ ...data, category: category });
-            await this.equipmentRepository.save(newEquipment);
-            return newEquipment;
+        const equipment = await this.findByName(data.name);
+        if (equipment) {
+            throw new HttpException(`The equipment is existed`, HttpStatus.BAD_REQUEST);
         }
-        throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
+        const newItem = await this.equipmentRepository.save(new EquipmentEntity({ ...data }));
+        return newItem;
     }
 
     async update(id: number, data: UpdateEquipmentDto) {
         const equipment = await this.findById(id);
-        const category = await this.categoryService.findById(data.categoryId);
-        if (equipment && category) {
+        if (equipment) {
             const isExisted = await this.findByName(data.name);
             if (isExisted && isExisted.id !== id) {
-                throw new HttpException(`The equipment: ${data.name} is existed`, HttpStatus.BAD_REQUEST);
+                throw new HttpException(`The equipment is existed`, HttpStatus.BAD_REQUEST);
             }
-            delete data.categoryId;
-            const updateEquipment = new EquipmentEntity({ ...data, category: category });
-            await this.equipmentRepository.update({ id: id }, updateEquipment)
-            return updateEquipment;
+            await this.equipmentRepository.update({ id: id }, new EquipmentEntity({ ...data }))
+            return await this.findById(id);
         }
-        throw new HttpException(`The equipment id or category not found`, HttpStatus.NOT_FOUND);
+        throw new HttpException(`The equipment not found`, HttpStatus.NOT_FOUND);
     }
 
 

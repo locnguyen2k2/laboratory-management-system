@@ -8,7 +8,7 @@ import { UpdateAdminDto } from "./dtos/update.dto";
 import { MailService } from '../email/mail.service';
 import { UserRole, UserStatus } from "./user.constant";
 import { ForgotPasswordDto } from './dtos/password.dto';
-import { RoleService } from '../system/role/role.service';
+import { RoleService } from '../role/role.service';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";

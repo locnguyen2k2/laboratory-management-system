@@ -2,7 +2,7 @@ import { CommonEntity } from "src/common/entity/common.entity";
 import { UserRole } from "./user.constant";
 import { UserStatus } from "./user.constant";
 import { Column, Entity, JoinTable, ManyToMany, Relation } from "typeorm";
-import { RoleEntity } from "../system/role/role.entity";
+import { RoleEntity } from "../role/role.entity";
 
 @Entity({ name: 'user_entity' })
 export class UserEntity extends CommonEntity {
