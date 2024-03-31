@@ -33,8 +33,11 @@ export class AuthService {
             if (!user || !user?.password || !(await bcrypt.compareSync(password, user?.password))) {
                 throw new BusinessException(ErrorEnum.INVALID_LOGIN);
             };
-            if (user.status !== UserStatus.ACTIVE) {
-                throw new BusinessException(ErrorEnum.USER_INVALID);
+            if (user.status == UserStatus.DISABLE) {
+                throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
+            };
+            if (user.status == UserStatus.UNACTIVE) {
+                throw new BusinessException(ErrorEnum.USER_UNCONFIRMED)
             };
             const userInfo = await this.userService.getAccountInfo(email);
             try {

@@ -281,8 +281,11 @@ export class UserService {
     }
     async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
-        if (!user || user.status !== UserStatus.ACTIVE) {
-            throw new BusinessException(ErrorEnum.USER_INVALID)
+        if (!user || user.status == UserStatus.DISABLE) {
+            throw new BusinessException(ErrorEnum.USER_IS_BLOCKED)
+        }
+        if (user.status == UserStatus.UNACTIVE) {
+            throw new BusinessException(ErrorEnum.USER_UNCONFIRMED)
         }
         delete user.token;
         delete user.refresh_token;
