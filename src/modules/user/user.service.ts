@@ -78,8 +78,12 @@ export class UserService {
                 await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
                 return await this.getAccountInfo(newUser.email);
             } catch (error: any) {
-                await this.userRepository.delete({ email: user.email })
-                throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
+                if (error.message == (ErrorEnum.USER_UNCONFIRMED.split(':'))[1]) {
+                    throw new BusinessException(error.message);
+                } else {
+                    await this.userRepository.delete({ email: user.email })
+                    throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
+                }
             }
         }
     }

@@ -31,7 +31,7 @@ export class MailService {
     }
 
     async sendEmail(options: Mail.Options): Promise<any> {
-        return this.nodeMailerTransport.sendMail(options, (err, info) => { console.log(err, info) });
+        return this.nodeMailerTransport.sendMail(options);
     }
 
     async confirmEmail(dto: ConfirmationEmailDto) {
