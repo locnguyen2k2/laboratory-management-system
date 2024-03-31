@@ -31,6 +31,7 @@ export class AddChemicalDto {
     @Expose()
     updateBy: number;
 
+    @Expose()
     @Transform(() => CategoryEnum.CHEMICALS)
     categoryId: number;
 }

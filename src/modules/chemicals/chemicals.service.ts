@@ -43,6 +43,7 @@ export class ChemicalsService {
             throw new HttpException(`The chemical is existed`, HttpStatus.BAD_REQUEST);
         }
         const category = await this.categoryService.findById(data.categoryId);
+        console.log(category)
         delete data.categoryId;
         const newItem = await this.chemicalRepository.save(new ChemicalsEntity({ ...data, category: category }));
         return newItem;

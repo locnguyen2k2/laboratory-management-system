@@ -8,6 +8,7 @@ import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { UserRole } from "../user/user.constant";
 import { AddChemicalDto } from "./dtos/add-chemicals.dto";
 import { UpdateChemicalDto } from "./dtos/update-chemicals.dto";
+import { plainToClass } from "class-transformer";
 
 @Controller('chemicals')
 export class ChemicalsController {
@@ -26,8 +27,9 @@ export class ChemicalsController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async add(@Body() dto: AddChemicalDto, @Request() req: any) {
-        dto.createBy = dto.updateBy = req.user.id
-        return await this.chemicalService.add(dto);
+        const data = plainToClass(AddChemicalDto, dto, { excludeExtraneousValues: true });
+        data.createBy = data.updateBy = req.user.id
+        return await this.chemicalService.add(data);
     }
 
     @ApiBearerAuth()
