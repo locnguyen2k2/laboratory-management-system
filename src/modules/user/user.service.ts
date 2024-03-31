@@ -76,7 +76,7 @@ export class UserService {
                     .of(newUser)
                     .add(roles);
                 await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-                return this.getAccountInfo(newUser.email);
+                return await this.getAccountInfo(newUser.email);
             } catch (error: any) {
                 await this.userRepository.delete({ email: user.email })
                 throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);

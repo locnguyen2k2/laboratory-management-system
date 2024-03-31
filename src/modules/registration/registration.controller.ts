@@ -13,8 +13,8 @@ export class RegistrationController {
     @ApiBearerAuth()
     @Roles(UserRole.ADMIN)
     @UseGuards(JwtGuard, RolesGuard)
-    @Post('equipment')
-    async createEquipmentRegistration(@Body() dto: AddRegistrationDto, @Request() req: any) {
+    @Post('')
+    async createRegistration(@Body() dto: AddRegistrationDto, @Request() req: any) {
         dto.createBy = dto.updateBy = req.user.id;
         return await this.registrationService.createRegistration(dto)
     }
