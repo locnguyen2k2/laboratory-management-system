@@ -1,8 +1,9 @@
 import { CommonEntity } from "src/common/entity/common.entity";
 import { UserRole } from "./user.constant";
 import { UserStatus } from "./user.constant";
-import { Column, Entity, JoinTable, ManyToMany, Relation } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, Relation } from "typeorm";
 import { RoleEntity } from "../role/role.entity";
+import { RegistrationEntity } from "../registration/registration.entity";
 
 @Entity({ name: 'user_entity' })
 export class UserEntity extends CommonEntity {
@@ -47,6 +48,9 @@ export class UserEntity extends CommonEntity {
         inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
     })
     roles: Relation<RoleEntity[]>;
+
+    @OneToMany(() => RegistrationEntity, registration => registration.user)
+    registration: Relation<RegistrationEntity>;
 
     constructor(userEntity: Partial<UserEntity>) {
         super();

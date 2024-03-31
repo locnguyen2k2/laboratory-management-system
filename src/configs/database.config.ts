@@ -8,15 +8,25 @@ import { ToolsEntity } from "src/modules/tools/tools.entity";
 import { ChemicalsEntity } from "src/modules/chemicals/chemicals.entity";
 import { RegistrationEntity } from "src/modules/registration/registration.entity";
 import { RoomEntity } from "src/modules/rooms/room.entity";
+import { RoomRegistrationEntity } from "src/modules/registration/room_registration/room_registration.entity";
+import { ToolRegistrationEntity } from "src/modules/registration/tools_registration/tool_registration.entity";
+import { ChemicalRegistrationEntity } from "src/modules/registration/chemicals_registration/chemical_registration.entity";
+import { EquipmentRegistrationEntity } from "src/modules/registration/equipment_registration/equipment_registration.entity";
+import { CategoryEntity } from "src/modules/categories/category.entity";
 
 const entities = [
     UserEntity,
     RoleEntity,
+    CategoryEntity,
     EquipmentEntity,
     ToolsEntity,
     ChemicalsEntity,
     RoomEntity,
-    RegistrationEntity
+    RegistrationEntity,
+    RoomRegistrationEntity,
+    ToolRegistrationEntity,
+    ChemicalRegistrationEntity,
+    EquipmentRegistrationEntity
 ]
 
 @Module({

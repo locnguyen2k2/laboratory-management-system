@@ -4,11 +4,13 @@ import { ChemicalsEntity } from "./chemicals.entity";
 import { Repository } from "typeorm";
 import { UpdateChemicalDto } from "./dtos/update-chemicals.dto";
 import { AddChemicalDto } from "./dtos/add-chemicals.dto";
+import { CategoryService } from "../categories/category.service";
 
 @Injectable()
 export class ChemicalsService {
     constructor(
-        @InjectRepository(ChemicalsEntity) private readonly chemicalRepository: Repository<ChemicalsEntity>
+        @InjectRepository(ChemicalsEntity) private readonly chemicalRepository: Repository<ChemicalsEntity>,
+        private readonly categoryService: CategoryService,
     ) { }
 
     async findAll() {
@@ -40,7 +42,9 @@ export class ChemicalsService {
         if (chemical) {
             throw new HttpException(`The chemical is existed`, HttpStatus.BAD_REQUEST);
         }
-        const newItem = await this.chemicalRepository.save(new ChemicalsEntity({ ...data }));
+        const category = await this.categoryService.findById(data.categoryId);
+        delete data.categoryId;
+        const newItem = await this.chemicalRepository.save(new ChemicalsEntity({ ...data, category: category }));
         return newItem;
     }
 

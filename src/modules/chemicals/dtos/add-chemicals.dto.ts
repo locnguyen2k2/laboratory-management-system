@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
+import { Expose, Transform } from "class-transformer";
 import { IsString, IsNotEmpty, Validate, IsNumber, Min, IsEnum, IsEmail } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { ChemicalStatus } from "./chemical-status.enum";
+import { CategoryEnum } from "src/modules/categories/category-enum";
 
 export class AddChemicalDto {
     @ApiProperty({ default: "" })
@@ -12,23 +13,24 @@ export class AddChemicalDto {
     @Validate(IsValidString)
     name: string;
 
-    @ApiProperty({ default: null })
+    @ApiProperty({ default: 1 })
     @Expose()
     @IsNumber()
     @Min(0)
     @IsNotEmpty()
     quantity: number;
 
-    @ApiProperty({ default: null })
+    @ApiProperty({ default: ChemicalStatus.AVAILABLE })
     @Expose()
     @IsNotEmpty()
     @IsEnum(ChemicalStatus)
     status: number;
 
-    @ApiProperty({ default: "" })
     @Expose()
     createBy: number;
-    @ApiProperty({ default: "" })
     @Expose()
     updateBy: number;
+
+    @Transform(() => CategoryEnum.CHEMICALS)
+    categoryId: number;
 }

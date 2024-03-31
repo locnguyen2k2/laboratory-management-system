@@ -4,11 +4,13 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AddEquipmentDto } from "./dtos/add-equipment.dto";
 import { UpdateEquipmentDto } from "./dtos/update-equipment.dto";
+import { CategoryService } from "../categories/category.service";
 
 @Injectable()
 export class EquipmentService {
     constructor(
         @InjectRepository(EquipmentEntity) private readonly equipmentRepository: Repository<EquipmentEntity>,
+        private readonly categoryService: CategoryService,
     ) { }
 
     async findAll() {
@@ -40,7 +42,9 @@ export class EquipmentService {
         if (equipment) {
             throw new HttpException(`The equipment is existed`, HttpStatus.BAD_REQUEST);
         }
-        const newItem = await this.equipmentRepository.save(new EquipmentEntity({ ...data }));
+        const category = await this.categoryService.findById(data.categoryId);
+        delete data.categoryId
+        const newItem = await this.equipmentRepository.save(new EquipmentEntity({ ...data, category: category }));
         return newItem;
     }
 

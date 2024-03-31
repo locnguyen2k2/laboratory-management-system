@@ -1,7 +1,8 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
-import { Column, Entity, ManyToMany, Relation } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
 import { ToolStatus } from "./dtos/ToolStatus";
-import { RegistrationEntity } from "../registration/registration.entity";
+import { ToolRegistrationEntity } from "./../registration/tools_registration/tool_registration.entity";
+import { CategoryEntity } from "../categories/category.entity";
 
 @Entity({ name: "tools_entity" })
 export class ToolsEntity extends ExtendedEntity {
@@ -18,8 +19,12 @@ export class ToolsEntity extends ExtendedEntity {
     @Column({ type: 'enum', enum: ToolStatus, default: ToolStatus.AVAILABLE, nullable: false })
     status: number;
 
-    @ManyToMany(() => RegistrationEntity, registration => registration.tools)
-    registration: Relation<RegistrationEntity[]>
+    @OneToMany(() => ToolRegistrationEntity, toolRegistration => toolRegistration.tool)
+    toolRegistration: Relation<ToolRegistrationEntity[]>
+
+    @ManyToOne(() => CategoryEntity, category => category.tools)
+    @JoinColumn({ name: 'category_id' })
+    category: Relation<CategoryEntity>
 
     constructor(toolsEntity: Partial<ToolsEntity>) {
         super();

@@ -13,6 +13,8 @@ import { RoleModule } from './modules/role/role.module';
 import { RegistrationModule } from './modules/registration/registration.module';
 import { ToolsModule } from './modules/tools/tools.module';
 import { ChemicalsModule } from './modules/chemicals/chemicals.module';
+import { RoomModule } from './modules/rooms/room.module';
+import { CategoryModule } from './modules/categories/category.module';
 
 const modules = [
   DatabaseModule,
@@ -20,9 +22,11 @@ const modules = [
   MailModule,
   AuthModule,
   RoleModule,
+  CategoryModule,
   EquipmentModule,
   ToolsModule,
   ChemicalsModule,
+  RoomModule,
   RegistrationModule,
 ]
 

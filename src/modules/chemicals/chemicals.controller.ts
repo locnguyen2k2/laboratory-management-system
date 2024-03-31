@@ -14,6 +14,7 @@ export class ChemicalsController {
     constructor(
         private readonly chemicalService: ChemicalsService
     ) { }
+
     @ApiBearerAuth()
     @Get()
     async get() {

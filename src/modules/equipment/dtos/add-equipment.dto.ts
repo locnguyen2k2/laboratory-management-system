@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
+import { Expose, Transform } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { EquipmentStatusEnum } from "./../equipment-status.enum";
+import { CategoryEnum } from "src/modules/categories/category-enum";
 
 export class AddEquipmentDto {
     @ApiProperty({ default: "" })
@@ -12,14 +13,14 @@ export class AddEquipmentDto {
     @Validate(IsValidString)
     name: string;
 
-    @ApiProperty({ default: null })
+    @ApiProperty({ default: 1 })
     @Expose()
     @IsNumber()
     @Min(0)
     @IsNotEmpty()
     quantity: number;
 
-    @ApiProperty({ default: null })
+    @ApiProperty({ default: EquipmentStatusEnum.AVAILABLE })
     @Expose()
     @IsNotEmpty()
     @IsEnum(EquipmentStatusEnum)
@@ -29,11 +30,12 @@ export class AddEquipmentDto {
     @Expose()
     remark: string;
 
-    @ApiProperty({ default: null })
     @Expose()
     createBy: number;
 
-    @ApiProperty({ default: null })
     @Expose()
     updateBy: number;
+
+    @Transform(() => CategoryEnum.EQUIPMENT)
+    categoryId: number;
 }

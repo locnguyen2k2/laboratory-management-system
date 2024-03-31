@@ -1,7 +1,8 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
 import { EquipmentStatusEnum } from "./equipment-status.enum";
-import { Column, Entity, ManyToMany, Relation } from "typeorm";
-import { RegistrationEntity } from "../registration/registration.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
+import { EquipmentRegistrationEntity } from "./../registration/equipment_registration/equipment_registration.entity";
+import { CategoryEntity } from "../categories/category.entity";
 
 @Entity('equipment_entity')
 export class EquipmentEntity extends ExtendedEntity {
@@ -18,8 +19,12 @@ export class EquipmentEntity extends ExtendedEntity {
     @Column({ type: 'enum', enum: EquipmentStatusEnum, default: EquipmentStatusEnum.AVAILABLE, nullable: false })
     status: number;
 
-    @ManyToMany(() => RegistrationEntity, registration => registration.equipment)
-    registration: Relation<RegistrationEntity[]>;
+    @OneToMany(() => EquipmentRegistrationEntity, equipmentRegistration => equipmentRegistration.equipment)
+    equipmentRegistration: Relation<EquipmentRegistrationEntity[]>;
+
+    @ManyToOne(() => CategoryEntity, category => category.equipment)
+    @JoinColumn({ name: 'category_id' })
+    category: Relation<CategoryEntity>
 
     constructor(equipmentEntity: Partial<EquipmentEntity>) {
         super();

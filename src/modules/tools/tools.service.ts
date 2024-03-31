@@ -4,10 +4,13 @@ import { ToolsEntity } from "./tools.entity";
 import { Repository } from "typeorm";
 import { AddToolDto } from "./dtos/add-tool.enum";
 import { UpdateToolDto } from "./dtos/update-tool.enum";
+import { CategoryService } from "../categories/category.service";
 
 @Injectable()
 export class ToolsService {
-    constructor(@InjectRepository(ToolsEntity) private readonly toolsRepository: Repository<ToolsEntity>) { }
+    constructor(@InjectRepository(ToolsEntity) private readonly toolsRepository: Repository<ToolsEntity>,
+        private readonly categoryService: CategoryService
+    ) { }
 
     async findAll() {
         return this.toolsRepository
@@ -38,7 +41,9 @@ export class ToolsService {
         if (tool) {
             throw new HttpException(`The tool is existed`, HttpStatus.BAD_REQUEST);
         }
-        const newItem = await this.toolsRepository.save(new ToolsEntity({ ...data }));
+        const category = await this.categoryService.findById(data.categoryId);
+        delete data.categoryId;
+        const newItem = await this.toolsRepository.save(new ToolsEntity({ ...data, category: category }));
         return newItem;
     }
 

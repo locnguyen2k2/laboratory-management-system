@@ -1,38 +1,37 @@
-import { Column, Entity, JoinTable, ManyToMany, Relation } from "typeorm";
-import { EquipmentEntity } from "../equipment/equipment.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
 import { ExtendedEntity } from "src/common/entity/common.entity";
-import { ToolsEntity } from "../tools/tools.entity";
-import { ChemicalsEntity } from "../chemicals/chemicals.entity";
-import { RoomEntity } from "../rooms/room.entity";
+import { UserEntity } from "../user/user.entity";
+import { EquipmentRegistrationEntity } from "./equipment_registration/equipment_registration.entity";
+import { ToolRegistrationEntity } from "./tools_registration/tool_registration.entity";
+import { ChemicalRegistrationEntity } from "./chemicals_registration/chemical_registration.entity";
+import { RoomRegistrationEntity } from "./room_registration/room_registration.entity";
 
 @Entity('registration_entity')
 export class RegistrationEntity extends ExtendedEntity {
-    @ManyToMany(() => EquipmentEntity, equipment => equipment.registration)
-    @JoinTable({
-        name: 'equipment_registration',
-        joinColumn: { name: 'registration_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'equipment_id', referencedColumnName: 'id' },
-    })
-    equipment: Relation<EquipmentEntity[]>
-    @ManyToMany(() => ToolsEntity, tool => tool.registration)
-    @JoinTable({
-        name: 'tool_registration',
-        joinColumn: { name: 'registration_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'tool_id', referencedColumnName: 'id' },
-    })
-    tools: Relation<ToolsEntity[]>;
-    @ManyToMany(() => ChemicalsEntity, chemical => chemical.registration)
-    @JoinTable({
-        name: 'chemical_registration',
-        joinColumn: { name: 'registration_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'chemical_id', referencedColumnName: 'id' },
-    })
-    chemicals: Relation<ChemicalsEntity[]>;
-    @ManyToMany(() => RoomEntity, room => room.registration)
-    @JoinTable({
-        name: 'room_registration',
-        joinColumn: { name: 'registration_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'room_id', referencedColumnName: 'id' },
-    })
-    rooms: Relation<RoomEntity[]>; 
+    @OneToMany(() => EquipmentRegistrationEntity, equipmentRegistration => equipmentRegistration.registration)
+    equipmentRegistration: Relation<EquipmentRegistrationEntity[]>
+
+    @OneToMany(() => ToolRegistrationEntity, toolRegistration => toolRegistration.registration)
+    toolRegistration: Relation<ToolRegistrationEntity[]>
+
+    @OneToMany(() => ChemicalRegistrationEntity, chemicalRegistration => chemicalRegistration.registration)
+    chemicalRegistration: Relation<ChemicalRegistrationEntity[]>
+
+    @OneToMany(() => RoomRegistrationEntity, roomRegistration => roomRegistration.registration)
+    roomRegistration: Relation<RoomRegistrationEntity[]>
+
+    @Column({ type: 'datetime' })
+    from: Date
+
+    @Column({ type: 'datetime' })
+    to: Date
+
+    @ManyToOne(() => UserEntity, user => user.registration)
+    @JoinColumn({ name: 'user_id' })
+    user: Relation<UserEntity>;
+
+    constructor(registrationEntity: Partial<RegistrationEntity>) {
+        super();
+        Object.assign(this, registrationEntity)
+    }
 }

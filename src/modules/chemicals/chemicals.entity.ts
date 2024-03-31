@@ -1,8 +1,8 @@
-import { CommonEntity, ExtendedEntity } from "src/common/entity/common.entity";
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, Relation } from "typeorm";
-// import { CategoryEntity } from "../categories/category.entity";
+import { ExtendedEntity } from "src/common/entity/common.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
 import { ChemicalStatus } from "./dtos/chemical-status.enum";
-import { RegistrationEntity } from "../registration/registration.entity";
+import { ChemicalRegistrationEntity } from "./../registration/chemicals_registration/chemical_registration.entity";
+import { CategoryEntity } from "../categories/category.entity";
 
 @Entity({ name: "chemicals_entity" })
 export class ChemicalsEntity extends ExtendedEntity {
@@ -19,11 +19,12 @@ export class ChemicalsEntity extends ExtendedEntity {
     @Column({ type: 'enum', enum: ChemicalStatus, default: ChemicalStatus.AVAILABLE, nullable: false })
     status: number;
 
-    @ManyToMany(() => RegistrationEntity, registration => registration.chemicals)
-    registration: Relation<RegistrationEntity[]>
-    // @ManyToOne(() => CategoryEntity, { onDelete: 'CASCADE' })
-    // @JoinColumn({ name: "category_id" })
-    // category: CategoryEntity;
+    @OneToMany(() => ChemicalRegistrationEntity, chemicalRegistration => chemicalRegistration.chemical)
+    chemicalRegistration: Relation<ChemicalRegistrationEntity[]>
+
+    @ManyToOne(() => CategoryEntity, category => category.chemicals)
+    @JoinColumn({ name: 'category_id' })
+    category: Relation<CategoryEntity>
 
     constructor(chemicalsEntity: Partial<ChemicalsEntity>) {
         super();
