@@ -109,7 +109,7 @@ export class RegistrationService {
                                     return;
                                 }
                             } else {
-                                handleAddList['tools'] = [{ item: { ...item2 }, quantity: item.quantity }];
+                                handleAddList['chemicals'] = [{ item: { ...item2 }, quantity: item.quantity }];
                                 return;
                             }
                         }
