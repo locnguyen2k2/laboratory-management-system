@@ -1,5 +1,6 @@
 export enum CategoryEnum {
     EQUIPMENT = 0,
     TOOLS = 1,
-    CHEMICALS = 2
+    CHEMICALS = 2,
+    ROOM = 3,
 }

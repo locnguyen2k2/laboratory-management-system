@@ -49,7 +49,7 @@ export class RegistrationService {
         const registration = await this.registrationRepository
             .createQueryBuilder('registration')
             .leftJoinAndSelect('registration.user', 'user')
-            .select(['registration', 'user.id', 'eqreg'])
+            .select(['registration', 'user.id'])
             .where({ id })
             .getOne()
         if (registration)
