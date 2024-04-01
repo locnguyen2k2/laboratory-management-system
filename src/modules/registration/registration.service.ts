@@ -5,13 +5,17 @@ import { Repository } from "typeorm";
 import { AddRegistrationDto } from "./dtos/add-registration.dto";
 import { UserService } from "../user/user.service";
 import { EquipmentService } from "../equipment/equipment.service";
-import { EquipmentEntity } from "../equipment/equipment.entity";
 import { ToolsService } from "../tools/tools.service";
 import { CategoryEnum } from "../categories/category-enum";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { ChemicalsService } from "../chemicals/chemicals.service";
 import { RoomService } from "../rooms/room.service";
+import { EquipmentRegistrationService } from "./equipment_registration/equipment_registration.service";
+import { ToolRegistrationService } from "./tools_registration/tool_registration.service";
+import { ChemicalRegistrationService } from "./chemicals_registration/chemical_registration.service";
+import { EquipmentRegistrationEntity } from "./equipment_registration/equipment_registration.entity";
+import { ChemicalRegistrationEntity } from "./chemicals_registration/chemical_registration.entity";
 
 @Injectable()
 export class RegistrationService {
@@ -21,24 +25,43 @@ export class RegistrationService {
         private readonly equipmentService: EquipmentService,
         private readonly toolService: ToolsService,
         private readonly chemicalService: ChemicalsService,
-        private readonly roomService: RoomService
+        private readonly roomService: RoomService,
+        private readonly equipmentRegService: EquipmentRegistrationService,
+        private readonly toolRegService: ToolRegistrationService,
+        private readonly chemicalRegService: ChemicalRegistrationService
     ) { }
 
     async findAll() { }
 
-    async findById() { }
+    async findById(id: number) {
+        const registration = await this.registrationRepository
+            .createQueryBuilder('registration')
+            .leftJoinAndSelect('registration.user', 'user')
+            .select(['registration', 'user.id'])
+            .where({ id })
+            .getOne()
+        if (registration)
+            return registration
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+    }
 
-    async findByUserId(uid: number) {
+    async getDetailById(id: number) {
+        const registration = await this.registrationRepository
+            .createQueryBuilder('registration')
+            .leftJoinAndSelect('registration.user', 'user')
+            .select(['registration', 'user.id', 'eqreg'])
+            .where({ id })
+            .getOne()
+        if (registration)
+            return registration
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+    }
+
+    async findByUserId(id: number) {
 
     }
 
-    // async createRegistration(data: AddRegistrationDto) {
-    //     const user = await this.userService.findById(data.user)
-    //     delete data.user;
-    //     return await this.registrationRepository.save(new RegistrationEntity({ ...data, user: user }))
-    // }
-
-    async handleAddEquipment(data: AddRegistrationDto) {
+    async handleAddListItem(data: AddRegistrationDto) {
         const addList = data.items;
         const listTool = await this.toolService.findAll();
         const listEquipment = await this.equipmentService.findAll();
@@ -124,10 +147,20 @@ export class RegistrationService {
     }
 
     async createRegistration(data: AddRegistrationDto) {
-        const handleAddList = await this.handleAddEquipment(data);
+        const handleAddList = await this.handleAddListItem(data);
+        const user = await this.userService.findById(data.user)
+        delete data.user;
         delete data.items;
-        // const registrationDto = data;
-        // const newRegistration = await this.createRegistration(registrationDto);
-        return { data, handleAddList };
+        const registration = await this.registrationRepository.save(new RegistrationEntity({ ...data, user: user }));
+        handleAddList?.['equipment']?.map(async ({ item, quantity }): Promise<any> => {
+            await this.equipmentRegService.addEquipmentReg(item, quantity, registration, registration.createBy)
+        })
+        handleAddList?.['tools']?.map(async ({ item, quantity }): Promise<any> => {
+            await this.toolRegService.addToolReg(item, quantity, registration, registration.createBy)
+        })
+        handleAddList?.['chemicals']?.map(async ({ item, quantity }): Promise<any> => {
+            await this.chemicalRegService.addChemicalReg(item, quantity, registration, registration.createBy)
+        })
+        throw new BusinessException("Registration is successfull");
     }
 }
