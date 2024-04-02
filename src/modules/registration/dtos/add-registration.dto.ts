@@ -1,29 +1,36 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsDate, IsDateString, IsNotEmpty, IsNumber } from "class-validator";
+import { IsDateGreaterThanOrEqualToday } from "src/common/decorators/date-validation.decorate";
+import { ItemRegistration } from "../registration.constant";
 
 export class AddRegistrationDto {
+    @Expose()
     createBy: number;
+    @Expose()
     updateBy: number;
     @ApiProperty({ default: null })
     @Expose()
     @IsNumber()
     @IsNotEmpty()
     user: number;
-    @ApiProperty({ default: "2024-01-30" })
+
+    @ApiProperty({ default: "YY-MM-DD" })
     @Expose()
+    @IsDateString({}, { each: true })
     @IsNotEmpty()
-    from: Date;
-    @ApiProperty({ default: "2024-01-30" })
+    @IsDateGreaterThanOrEqualToday()
+    from: string;
+
+    @ApiProperty({ default: "YY-MM-DD" })
     @Expose()
+    @IsDateString({}, { each: true })
     @IsNotEmpty()
-    to: Date;
+    @IsDateGreaterThanOrEqualToday()
+    to: string;
+
     @ApiProperty({ default: [{ itemId: null, quantity: null, categoryId: null }] })
     @Expose()
     @IsNotEmpty()
-    items: {
-        categoryId: number,
-        itemId: number,
-        quantity: number
-    }[];
+    items: ItemRegistration[];
 }

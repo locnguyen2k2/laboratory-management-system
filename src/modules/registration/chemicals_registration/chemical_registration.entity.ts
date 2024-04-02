@@ -16,6 +16,12 @@ export class ChemicalRegistrationEntity extends ExtendedEntity {
     @Column()
     quantity: number;
 
+    @Column({ type: 'date' })
+    start_day: string
+
+    @Column({ type: 'date' })
+    end_day: string;
+
     constructor(chemicalEntity: Partial<ChemicalRegistrationEntity>) {
         super();
         Object.assign(this, chemicalEntity)

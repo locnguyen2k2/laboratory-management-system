@@ -7,6 +7,7 @@ import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { AddRegistrationDto } from "./dtos/add-registration.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
+import { plainToClass } from "class-transformer";
 
 @Controller("registration")
 export class RegistrationController {
@@ -17,7 +18,8 @@ export class RegistrationController {
     @Post('')
     async createRegistration(@Body() dto: AddRegistrationDto, @Request() req: any) {
         dto.createBy = dto.updateBy = req.user.id;
-        return await this.registrationService.createRegistration(dto)
+        const data = plainToClass(AddRegistrationDto, dto, { excludeExtraneousValues: true });
+        return await this.registrationService.createRegistration(data)
     }
 
     @ApiBearerAuth()

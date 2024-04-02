@@ -10,7 +10,6 @@ import { CategoryEnum } from "../categories/category-enum";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { ChemicalsService } from "../chemicals/chemicals.service";
-import { RoomService } from "../rooms/room.service";
 import { EquipmentRegistrationService } from "./equipment_registration/equipment_registration.service";
 import { ToolRegistrationService } from "./tools_registration/tool_registration.service";
 import { ChemicalRegistrationService } from "./chemicals_registration/chemical_registration.service";
@@ -166,20 +165,23 @@ export class RegistrationService {
                 throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
             }
         })
+        const { from, to } = data;
         const handleAddList = await this.handleAddListItem(data.items);
         const user = await this.userService.findById(data.user)
         delete data.user;
         delete data.items;
+        delete data.from;
+        delete data.to;
         const registration = await this.registrationRepository.save(new RegistrationEntity({ ...data, user: user }));
 
         handleAddList?.['equipment']?.map(async ({ item, quantity }): Promise<any> => {
-            await this.equipmentRegService.addEquipmentReg(item, quantity, registration, registration.createBy)
+            await this.equipmentRegService.addEquipmentReg(item, quantity, from, to, registration, registration.createBy)
         })
         handleAddList?.['tools']?.map(async ({ item, quantity }): Promise<any> => {
-            await this.toolRegService.addToolReg(item, quantity, registration, registration.createBy)
+            await this.toolRegService.addToolReg(item, quantity, from, to, registration, registration.createBy)
         })
         handleAddList?.['chemicals']?.map(async ({ item, quantity }): Promise<any> => {
-            await this.chemicalRegService.addChemicalReg(item, quantity, registration, registration.createBy)
+            await this.chemicalRegService.addChemicalReg(item, quantity, from, to, registration, registration.createBy)
         })
 
         throw new BusinessException("Registration is successfull");

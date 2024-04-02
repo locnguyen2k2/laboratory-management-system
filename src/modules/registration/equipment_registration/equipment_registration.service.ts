@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EquipmentRegistrationEntity } from "./equipment_registration.entity";
 import { Repository } from "typeorm";
-import { AddEquipmentRegDto } from "./dtos/add-equipment-registration.dto";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 
@@ -16,7 +15,7 @@ export class EquipmentRegistrationService {
         const registration = await this.equipmentRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.equipment', 'equipment')
-            .select(['item.id', 'item.quantity', 'equipment.id', 'equipment.name', 'equipment.quantity'])
+            .select(['item.start_day', 'item.end_day', 'item.id', 'item.quantity', 'equipment.id', 'equipment.name', 'equipment.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -24,7 +23,7 @@ export class EquipmentRegistrationService {
 
     }
 
-    async addEquipmentReg(equipment: any, quantity: number, registration: any, user: number) {
+    async addEquipmentReg(equipment: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
         const listEquipmentReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
         listEquipmentReg.map(async (equipmentReg) => {
@@ -42,7 +41,7 @@ export class EquipmentRegistrationService {
             }
         })
         if (isReplace === false) {
-            const newItem = new EquipmentRegistrationEntity({ equipment: equipment, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new EquipmentRegistrationEntity({ equipment: equipment, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
             await this.equipmentRegRepo.save(newItem);
             return;
         }

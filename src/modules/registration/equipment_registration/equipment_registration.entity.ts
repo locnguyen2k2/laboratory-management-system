@@ -14,7 +14,14 @@ export class EquipmentRegistrationEntity extends ExtendedEntity {
     equipment: Relation<EquipmentEntity>;
 
     @Column()
-    quantity: number;
+    quantity: number
+
+    @Column({ type: 'date' })
+    start_day: string
+
+    @Column({ type: 'date' })
+    end_day: string
+
     constructor(equipmentRegistrationEntity: Partial<EquipmentRegistrationEntity>) {
         super();
         Object.assign(this, equipmentRegistrationEntity)

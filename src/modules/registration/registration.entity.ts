@@ -20,12 +20,6 @@ export class RegistrationEntity extends ExtendedEntity {
     @OneToMany(() => RoomRegistrationEntity, roomRegistration => roomRegistration.registration)
     roomRegistration: Relation<RoomRegistrationEntity[]>
 
-    @Column({ type: 'datetime' })
-    from: Date
-
-    @Column({ type: 'datetime' })
-    to: Date
-
     @ManyToOne(() => UserEntity, user => user.registration)
     @JoinColumn({ name: 'user_id' })
     user: Relation<UserEntity>;

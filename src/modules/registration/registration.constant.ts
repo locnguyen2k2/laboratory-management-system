@@ -4,7 +4,11 @@ export interface AddRegistration {
     updatedAt: Date;
     createBy: number;
     updateBy: number;
-    from: Date;
-    to: Date;
     user_id: number;
+}
+
+export interface ItemRegistration {
+    itemId: number,
+    quantity: number
+    categoryId: number,
 }

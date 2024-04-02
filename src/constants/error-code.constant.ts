@@ -7,6 +7,7 @@ export enum ErrorEnum {
     USER_UNCONFIRMED = "401:Confirmation your email before!",
     INVALID_LOGIN = "404:Invalid login, please log in again",
     NO_PERMISSION = "403:Access was denied",
+    INVALID_DATE = "404:Date invalid",
     RECORD_NOT_FOUND = "404:This record does not exist",
     RECORD_IS_EXISTED = "404:This record already exist",
     REQUEST_INVALIDATED = "408:The current request has expired",

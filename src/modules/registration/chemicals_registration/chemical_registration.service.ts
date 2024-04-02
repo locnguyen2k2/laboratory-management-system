@@ -15,7 +15,7 @@ export class ChemicalRegistrationService {
         const registration = await this.chemicalRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.chemical', 'chemical')
-            .select(['item.id', 'item.quantity', 'chemical.id', 'chemical.name', 'chemical.quantity'])
+            .select(['item.start_day', 'item.end_day', 'item.id', 'item.quantity', 'chemical.id', 'chemical.name', 'chemical.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -23,7 +23,7 @@ export class ChemicalRegistrationService {
 
     }
 
-    async addChemicalReg(chemical: any, quantity: number, registration: any, user: number) {
+    async addChemicalReg(chemical: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
         const listChemicalReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
         listChemicalReg.map(async (chemicalReg) => {
@@ -41,7 +41,7 @@ export class ChemicalRegistrationService {
             }
         })
         if (isReplace === false) {
-            const newItem = new ChemicalRegistrationEntity({ chemical: chemical, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new ChemicalRegistrationEntity({ chemical: chemical, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
             await this.chemicalRegRepo.save(newItem);
             return;
         }

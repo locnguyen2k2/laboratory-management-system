@@ -13,7 +13,7 @@ export class ToolRegistrationService {
         const registration = await this.toolRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.tool', 'tool')
-            .select(['item.id', 'item.quantity', 'tool.id', 'tool.name', 'tool.quantity'])
+            .select(['item.start_day', 'item.end_day', 'item.id', 'item.quantity', 'tool.id', 'tool.name', 'tool.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -21,7 +21,7 @@ export class ToolRegistrationService {
 
     }
 
-    async addToolReg(tool: any, quantity: number, registration: any, user: number) {
+    async addToolReg(tool: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
         const listToolReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
         listToolReg.map(async (toolReg) => {
@@ -39,7 +39,7 @@ export class ToolRegistrationService {
             }
         })
         if (isReplace === false) {
-            const newItem = new ToolRegistrationEntity({ tool: tool, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new ToolRegistrationEntity({ tool: tool, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
             await this.toolRegRepo.save(newItem);
             return;
         }

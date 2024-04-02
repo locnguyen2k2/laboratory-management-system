@@ -16,6 +16,12 @@ export class ToolRegistrationEntity extends ExtendedEntity {
     @Column()
     quantity: number;
 
+    @Column({ type: 'date' })
+    start_day: string
+
+    @Column({ type: 'date' })
+    end_day: string
+
     constructor(toolRegistrationEntity: Partial<ToolRegistrationEntity>) {
         super();
         Object.assign(this, toolRegistrationEntity)

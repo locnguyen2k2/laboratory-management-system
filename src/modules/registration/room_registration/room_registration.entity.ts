@@ -13,8 +13,11 @@ export class RoomRegistrationEntity extends ExtendedEntity {
     @JoinColumn({ name: 'room_id' })
     room: Relation<RoomEntity>;
 
-    @Column()
-    quantity: number;
+    @Column({ type: 'date' })
+    start_day: string
+
+    @Column({ type: 'date' })
+    end_day: string
 
     constructor(roomRegistrationEntity: Partial<RoomRegistrationEntity>) {
         super();

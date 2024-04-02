@@ -9,7 +9,6 @@ import { ChemicalRegistrationModule } from "./chemicals_registration/chemical_re
 import { EquipmentRegistrationModule } from "./equipment_registration/equipment_registration.module";
 import { RoomRegistrationModule } from "./room_registration/room_registration.module";
 import { EquipmentModule } from "../equipment/equipment.module";
-import { RouterModule } from "@nestjs/core";
 import { RegistrationController } from "./registration.controller";
 import { ToolsModule } from "../tools/tools.module";
 import { ChemicalsModule } from "../chemicals/chemicals.module";
