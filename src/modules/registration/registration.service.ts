@@ -14,8 +14,6 @@ import { RoomService } from "../rooms/room.service";
 import { EquipmentRegistrationService } from "./equipment_registration/equipment_registration.service";
 import { ToolRegistrationService } from "./tools_registration/tool_registration.service";
 import { ChemicalRegistrationService } from "./chemicals_registration/chemical_registration.service";
-import { EquipmentRegistrationEntity } from "./equipment_registration/equipment_registration.entity";
-import { ChemicalRegistrationEntity } from "./chemicals_registration/chemical_registration.entity";
 
 @Injectable()
 export class RegistrationService {
@@ -25,7 +23,6 @@ export class RegistrationService {
         private readonly equipmentService: EquipmentService,
         private readonly toolService: ToolsService,
         private readonly chemicalService: ChemicalsService,
-        private readonly roomService: RoomService,
         private readonly equipmentRegService: EquipmentRegistrationService,
         private readonly toolRegService: ToolRegistrationService,
         private readonly chemicalRegService: ChemicalRegistrationService
@@ -52,106 +49,129 @@ export class RegistrationService {
             .select(['registration', 'user.id'])
             .where({ id })
             .getOne()
-        if (registration)
-            return registration
+        if (registration) {
+            const equipment = await this.equipmentRegService.findByRegistrationId(id);
+            const tools = await this.toolRegService.findByRegistrationId(id);
+            const chemicals = await this.chemicalRegService.findByRegistrationId(id);
+            return { registration, equipment_registration: equipment, tool_registration: tools, chemical_registration: chemicals };
+        }
         throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
-    async findByUserId(id: number) {
-
-    }
-
-    async handleAddListItem(data: AddRegistrationDto) {
-        const addList = data.items;
-        const listTool = await this.toolService.findAll();
-        const listEquipment = await this.equipmentService.findAll();
-        const listChemical = await this.chemicalService.findAll();
+    async handleAddListItem(items: { categoryId: number, itemId: number, quantity: number }[]) {
+        let listItem = {};
         let handleAddList = {};
-        addList.map(item => {
-            if (item.categoryId in CategoryEnum) {
-                if (item.categoryId == CategoryEnum.EQUIPMENT) {
-                    listEquipment.find(item2 => {
-                        if (item2.id == item.itemId) {
-                            if (handleAddList['equipment']?.length >= 1) {
-                                let isReplace = false;
-                                handleAddList['equipment']?.find(item3 => {
-                                    if (item3.item.id === item.itemId) {
-                                        isReplace = true;
-                                        item3.quantity += item.quantity
-                                        return;
-                                    }
-                                })
-                                if (!isReplace) {
-                                    handleAddList['equipment'].push({ item: { ...item2 }, quantity: item.quantity });
-                                    return;
-                                }
-                            } else {
-                                handleAddList['equipment'] = [{ item: { ...item2 }, quantity: item.quantity }];
-                                return;
-                            }
+
+        items.map(item => {
+            if (item.categoryId == CategoryEnum.EQUIPMENT) {
+                if (listItem['equipment']?.length >= 1) {
+                    let isReplace = false;
+                    listItem['equipment']?.map(({ itemId }: any, index: any) => {
+                        if (itemId === item.itemId) {
+                            isReplace = true;
+                            listItem['equipment'][index].quantity += item.quantity;
+                            return;
                         }
-                        return;
                     })
-                } else if (item.categoryId == CategoryEnum.TOOLS) {
-                    listTool.find(item2 => {
-                        if (item2.id == item.itemId) {
-                            if (handleAddList['tools']?.length >= 1) {
-                                let isReplace = false;
-                                handleAddList['tools']?.find(item3 => {
-                                    if (item3.item.id === item.itemId) {
-                                        isReplace = true;
-                                        item3.quantity += item.quantity
-                                        return;
-                                    }
-                                })
-                                if (!isReplace) {
-                                    handleAddList['tools'].push({ item: { ...item2 }, quantity: item.quantity })
-                                    return;
-                                }
-                            } else {
-                                handleAddList['tools'] = [{ item: { ...item2 }, quantity: item.quantity }];
-                                return;
-                            }
+                    if (!isReplace)
+                        listItem['equipment'].push(item);
+                } else {
+                    listItem['equipment'] = [item];
+                }
+            } else if (item.categoryId == CategoryEnum.TOOLS) {
+                if (listItem['tools']?.length >= 1) {
+                    let isReplace = false;
+                    listItem['tools']?.map(({ itemId }: any, index: any) => {
+                        if (itemId === item.itemId) {
+                            isReplace = true;
+                            listItem['tools'][index].quantity += item.quantity;
+                            return;
                         }
-                        return;
                     })
-                } else if (item.categoryId == CategoryEnum.CHEMICALS) {
-                    listChemical.find(item2 => {
-                        if (item2.id == item.itemId) {
-                            if (handleAddList['chemicals']?.length >= 1) {
-                                let isReplace = false;
-                                handleAddList['chemicals']?.find(item3 => {
-                                    if (item3?.item.id === item.itemId) {
-                                        isReplace = true;
-                                        item3.quantity += item.quantity
-                                        return;
-                                    }
-                                })
-                                if (!isReplace) {
-                                    handleAddList['chemicals'].push({ item: { ...item2 }, quantity: item.quantity })
-                                    return;
-                                }
-                            } else {
-                                handleAddList['chemicals'] = [{ item: { ...item2 }, quantity: item.quantity }];
-                                return;
-                            }
+                    if (!isReplace)
+                        listItem['tools'].push(item);
+                } else {
+                    listItem['tools'] = [item];
+                }
+            } else if (item.categoryId == CategoryEnum.CHEMICALS) {
+                if (listItem['chemicals']?.length >= 1) {
+                    let isReplace = false;
+                    listItem['chemicals']?.map(({ itemId }: any, index: any) => {
+                        if (itemId === item.itemId) {
+                            isReplace = true;
+                            listItem['chemicals'][index].quantity += item.quantity;
+                            return;
                         }
-                        return;
                     })
+                    if (!isReplace)
+                        listItem['chemicals'].push(item);
+                } else {
+                    listItem['chemicals'] = [item];
+                }
+            }
+        })
+
+        if (listItem['equipment']) {
+            await Promise.all(listItem['equipment']?.map(async (item) => {
+                const equipment = await this.equipmentService.findById(item.itemId)
+                if (equipment) {
+                    if (handleAddList['equipment']?.length >= 1) {
+                        handleAddList['equipment'].push({ item: { ...equipment }, quantity: item.quantity });
+                        return;
+                    } else {
+                        handleAddList['equipment'] = [{ item: { ...equipment }, quantity: item.quantity }];
+                        return;
+                    }
                 }
                 return;
-            }
-            throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
-        })
+            }))
+        }
+        if (listItem['tools']) {
+            await Promise.all(listItem['tools']?.map(async (item) => {
+                const tool = await this.toolService.findById(item.itemId)
+                if (tool) {
+                    if (handleAddList['tools']?.length >= 1) {
+                        handleAddList['tools'].push({ item: { ...tool }, quantity: item.quantity });
+                        return;
+                    } else {
+                        handleAddList['tools'] = [{ item: { ...tool }, quantity: item.quantity }];
+                        return;
+                    }
+                }
+                return;
+            }))
+        }
+        if (listItem['chemicals']) {
+            await Promise.all(listItem['chemicals']?.map(async (item) => {
+                const chemical = await this.chemicalService.findById(item.itemId)
+                if (chemical) {
+                    if (handleAddList['chemicals']?.length >= 1) {
+                        handleAddList['chemicals'].push({ item: { ...chemical }, quantity: item.quantity });
+                        return;
+                    } else {
+                        handleAddList['chemicals'] = [{ item: { ...chemical }, quantity: item.quantity }];
+                        return;
+                    }
+                }
+                return;
+            }))
+        }
+
         return handleAddList;
     }
 
     async createRegistration(data: AddRegistrationDto) {
-        const handleAddList = await this.handleAddListItem(data);
+        data.items.some(item => {
+            if (!(item.categoryId in CategoryEnum)) {
+                throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+            }
+        })
+        const handleAddList = await this.handleAddListItem(data.items);
         const user = await this.userService.findById(data.user)
         delete data.user;
         delete data.items;
         const registration = await this.registrationRepository.save(new RegistrationEntity({ ...data, user: user }));
+
         handleAddList?.['equipment']?.map(async ({ item, quantity }): Promise<any> => {
             await this.equipmentRegService.addEquipmentReg(item, quantity, registration, registration.createBy)
         })
@@ -161,6 +181,7 @@ export class RegistrationService {
         handleAddList?.['chemicals']?.map(async ({ item, quantity }): Promise<any> => {
             await this.chemicalRegService.addChemicalReg(item, quantity, registration, registration.createBy)
         })
+
         throw new BusinessException("Registration is successfull");
     }
 }

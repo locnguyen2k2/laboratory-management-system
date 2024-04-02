@@ -15,6 +15,7 @@ export class ChemicalRegistrationService {
         const registration = await this.chemicalRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.chemical', 'chemical')
+            .select(['item.id', 'item.quantity', 'chemical.id', 'chemical.name', 'chemical.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -22,25 +23,25 @@ export class ChemicalRegistrationService {
 
     }
 
-    async addChemicalReg(item: any, quantity: number, registration: any, user: number) {
-        const chemicalReg = await this.findByRegistrationId(registration.id)
+    async addChemicalReg(chemical: any, quantity: number, registration: any, user: number) {
+        const listChemicalReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
-        chemicalReg.map(async (chemical) => {
-            if (item.id === chemical.chemical.id) {
+        listChemicalReg.map(async (chemicalReg) => {
+            if (chemical.id === chemicalReg.chemical.id) {
                 isReplace = true;
-                chemical.quantity += quantity;
+                chemicalReg.quantity += quantity;
                 await this.chemicalRegRepo.createQueryBuilder()
                     .update(ChemicalRegistrationEntity)
                     .set({
-                        quantity: chemical.quantity
+                        quantity: chemicalReg.quantity
                     })
-                    .where('id = :id', { id: chemical.id })
+                    .where('id = :id', { id: chemicalReg.id })
                     .execute();
                 return;
             }
         })
         if (isReplace === false) {
-            const newItem = new ChemicalRegistrationEntity({ chemical: item, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new ChemicalRegistrationEntity({ chemical: chemical, quantity: quantity, registration: registration, createBy: user, updateBy: user });
             await this.chemicalRegRepo.save(newItem);
             return;
         }

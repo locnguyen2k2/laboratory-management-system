@@ -13,6 +13,7 @@ export class ToolRegistrationService {
         const registration = await this.toolRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.tool', 'tool')
+            .select(['item.id', 'item.quantity', 'tool.id', 'tool.name', 'tool.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -20,25 +21,25 @@ export class ToolRegistrationService {
 
     }
 
-    async addToolReg(item: any, quantity: number, registration: any, user: number) {
-        const toolReg = await this.findByRegistrationId(registration.id)
+    async addToolReg(tool: any, quantity: number, registration: any, user: number) {
+        const listToolReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
-        toolReg.map(async (tool) => {
-            if (item.id === tool.tool.id) {
+        listToolReg.map(async (toolReg) => {
+            if (tool.id === toolReg.tool.id) {
                 isReplace = true;
-                tool.quantity += quantity;
+                toolReg.quantity += quantity;
                 await this.toolRegRepo.createQueryBuilder()
                     .update(ToolRegistrationEntity)
                     .set({
-                        quantity: tool.quantity
+                        quantity: toolReg.quantity
                     })
-                    .where('id = :id', { id: tool.id })
+                    .where('id = :id', { id: toolReg.id })
                     .execute();
                 return;
             }
         })
         if (isReplace === false) {
-            const newItem = new ToolRegistrationEntity({ tool: item, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new ToolRegistrationEntity({ tool: tool, quantity: quantity, registration: registration, createBy: user, updateBy: user });
             await this.toolRegRepo.save(newItem);
             return;
         }

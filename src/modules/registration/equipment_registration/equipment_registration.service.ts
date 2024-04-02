@@ -16,6 +16,7 @@ export class EquipmentRegistrationService {
         const registration = await this.equipmentRegRepo.createQueryBuilder('item')
             .where('item.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('item.equipment', 'equipment')
+            .select(['item.id', 'item.quantity', 'equipment.id', 'equipment.name', 'equipment.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -23,25 +24,25 @@ export class EquipmentRegistrationService {
 
     }
 
-    async addEquipmentReg(item: any, quantity: number, registration: any, user: number) {
-        const equipmentReg = await this.findByRegistrationId(registration.id)
+    async addEquipmentReg(equipment: any, quantity: number, registration: any, user: number) {
+        const listEquipmentReg = await this.findByRegistrationId(registration.id)
         let isReplace = false;
-        equipmentReg.map(async (equipment) => {
-            if (item.id === equipment.equipment.id) {
+        listEquipmentReg.map(async (equipmentReg) => {
+            if (equipment.id === equipmentReg.equipment.id) {
                 isReplace = true;
-                equipment.quantity += quantity;
+                equipmentReg.quantity += quantity;
                 await this.equipmentRegRepo.createQueryBuilder()
                     .update(EquipmentRegistrationEntity)
                     .set({
-                        quantity: equipment.quantity
+                        quantity: equipmentReg.quantity
                     })
-                    .where('id = :id', { id: equipment.id })
+                    .where('id = :id', { id: equipmentReg.id })
                     .execute();
                 return;
             }
         })
         if (isReplace === false) {
-            const newItem = new EquipmentRegistrationEntity({ equipment: item, quantity: quantity, registration: registration, createBy: user, updateBy: user });
+            const newItem = new EquipmentRegistrationEntity({ equipment: equipment, quantity: quantity, registration: registration, createBy: user, updateBy: user });
             await this.equipmentRegRepo.save(newItem);
             return;
         }

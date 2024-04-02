@@ -15,6 +15,8 @@ export class ToolsService {
     async findAll() {
         return this.toolsRepository
             .createQueryBuilder("item")
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getMany();
     }
 
@@ -22,8 +24,11 @@ export class ToolsService {
         const item = await this.toolsRepository
             .createQueryBuilder("item")
             .where({ id: id })
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getOne()
-        return item ? item : new HttpException("The tool not found", HttpStatus.NOT_FOUND);
+        if (item)
+            return item;
     }
 
     async findByName(name: string) {

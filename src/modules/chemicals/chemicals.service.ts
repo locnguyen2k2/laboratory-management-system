@@ -16,6 +16,8 @@ export class ChemicalsService {
     async findAll() {
         return this.chemicalRepository
             .createQueryBuilder("item")
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getMany();
     }
 
@@ -23,8 +25,11 @@ export class ChemicalsService {
         const item = await this.chemicalRepository
             .createQueryBuilder("item")
             .where({ id: id })
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getOne()
-        return item ? item : new HttpException("The chemical not found", HttpStatus.NOT_FOUND);
+        if (item)
+            return item;
     }
 
     async findByName(name: string) {

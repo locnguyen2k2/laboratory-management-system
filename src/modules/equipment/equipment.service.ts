@@ -16,6 +16,8 @@ export class EquipmentService {
     async findAll() {
         return this.equipmentRepository
             .createQueryBuilder("item")
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getMany();
     }
 
@@ -23,8 +25,11 @@ export class EquipmentService {
         const item = await this.equipmentRepository
             .createQueryBuilder("item")
             .where({ id: id })
+            .leftJoinAndSelect('item.category', 'category')
+            .select(['item', 'category.id', 'category.name'])
             .getOne()
-        return item ? item : new HttpException("The equipment not found", HttpStatus.NOT_FOUND);
+        if (item)
+            return item
     }
 
     async findByName(name: string) {
