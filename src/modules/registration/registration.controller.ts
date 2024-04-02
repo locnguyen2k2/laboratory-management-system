@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards, Request, Get } from "@nestjs/common";
 import { RegistrationService } from "./registration.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { UserRole } from "../user/user.constant";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
@@ -10,6 +10,7 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { plainToClass } from "class-transformer";
 
 @Controller("registration")
+@ApiTags('Registration')
 export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
     @ApiBearerAuth()

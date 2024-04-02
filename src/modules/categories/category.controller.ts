@@ -4,12 +4,13 @@ import { JwtGuard } from "./../auth/guard/jwt-auth.guard";
 import { UserRole } from "./../user/user.constant";
 import { Roles } from "./../../common/decorators/roles.decorator";
 import { RolesGuard } from "./../auth/guard/roles-auth.guard";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AddCategoryDto } from "./dtos/add-category.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateDto } from "./dtos/update.dto";
 
 @Controller('categories')
+@ApiTags('Categories')
 export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService,

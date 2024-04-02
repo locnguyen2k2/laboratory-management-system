@@ -1,5 +1,5 @@
 import { Body, Controller, Patch, Post, UseGuards, Get, Request } from "@nestjs/common";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
@@ -11,6 +11,7 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateEquipmentDto } from "./dtos/update-equipment.dto";
 
 @Controller('equipment')
+@ApiTags('Equipment')
 export class EquipmentController {
     constructor(
         private readonly equipmentService: EquipmentService

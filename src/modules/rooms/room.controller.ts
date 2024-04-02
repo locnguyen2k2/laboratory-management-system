@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch, Post, UseGuards, Request } from "@nestjs/common";
 import { RoomService } from "./room.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { Roles } from "src/common/decorators/roles.decorator";
@@ -11,6 +11,7 @@ import { AddRoomDto } from "./dtos/add-room.dto";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 
 @Controller('rooms')
+@ApiTags('Rooms')
 export class RoomController {
     constructor(
         private readonly roomService: RoomService

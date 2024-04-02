@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch, Post, UseGuards, Request } from "@nestjs/common";
 import { ChemicalsService } from "./chemicals.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
@@ -11,6 +11,7 @@ import { UpdateChemicalDto } from "./dtos/update-chemicals.dto";
 import { plainToClass } from "class-transformer";
 
 @Controller('chemicals')
+@ApiTags('Chemicals')
 export class ChemicalsController {
     constructor(
         private readonly chemicalService: ChemicalsService

@@ -2,7 +2,7 @@ import { Body, Controller, Get, Patch, Post, UseGuards, Request } from "@nestjs/
 import { ToolsService } from "./tools.service";
 import { AddToolDto } from "./dtos/add-tool.enum";
 import { UpdateToolDto } from "./dtos/update-tool.enum";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { Roles } from "src/common/decorators/roles.decorator";
@@ -11,6 +11,7 @@ import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { UserRole } from "../user/user.constant";
 
 @Controller("tools")
+@ApiTags('Tools')
 export class ToolsController {
     constructor(
         private readonly toolService: ToolsService

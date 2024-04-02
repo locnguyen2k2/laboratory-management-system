@@ -1,5 +1,5 @@
 import { UserService } from "./user.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UpdatePermissionDto, UpdateStatusDto, UpdateUserDto } from "./dtos/update.dto";
 import { UpdateAdminDto } from "./dtos/update.dto";
 import { UserRole, UserStatus } from "./user.constant";
@@ -18,6 +18,7 @@ import { AddPermissionDto } from "./dtos/add-permission.dto";
 import { plainToClass } from "class-transformer";
 
 @Controller('users')
+@ApiTags('Users')
 export class UserController {
     constructor(
         private readonly userService: UserService

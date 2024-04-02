@@ -1,5 +1,5 @@
 import { AuthService } from "./auth.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "./guard/jwt-auth.guard";
 import { Roles } from "./../../common/decorators/roles.decorator";
 import { LoginAuthDto } from "./dtos/login-auth.dto";
@@ -15,6 +15,7 @@ import { Credential } from "./interfaces/credential.interface";
 import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
 
 @Controller('auths')
+@ApiTags('Auths')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
