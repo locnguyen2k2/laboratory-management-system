@@ -220,7 +220,7 @@ export class UserService {
         const user = await this.findByEmail(email);
         if (!user || !user.password || user.status !== UserStatus.ACTIVE)
             throw new BusinessException(ErrorEnum.USER_INVALID)
-        await this.userRepository.update({ email: email }, { password: password })
+        await this.userRepository.update({ email: email }, { password: password, repass_token: null })
         throw new BusinessException("Your password updated!")
     }
     async userConfirmation(dto: ConfirmationEmailDto) {
@@ -255,7 +255,10 @@ export class UserService {
             }
             throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
         } catch (error) {
-            throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
+            if (error.message == 'jwt must be provided') {
+                throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
+            }
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
     }
     async resetPassword(email: string): Promise<any> {
