@@ -212,11 +212,7 @@ export class UserService {
         return true;
     }
     async updatePassword(email: string, password: string) {
-        const user = await this.findByEmail(email);
-        if (!user || !user.password || user.status !== UserStatus.ACTIVE)
-            throw new BusinessException(ErrorEnum.USER_INVALID)
         await this.userRepository.update({ email: email }, { password: password, repass_token: null })
-        throw new BusinessException("Your password updated!")
     }
     async userConfirmation(dto: ConfirmationEmailDto) {
         const email = await this.emailService.confirmEmail(dto);
@@ -244,7 +240,7 @@ export class UserService {
                 if (!isCheckPass) {
                     const password = await bcrypt.hashSync(data.password, 10);
                     await this.updatePassword(data.email, password);
-                    return "Your password is already updated";
+                    return ("Your password is already updated");
                 }
                 throw new HttpException('The password is duplicated', HttpStatus.BAD_REQUEST);
             }
@@ -253,7 +249,7 @@ export class UserService {
             if (error.message == 'jwt must be provided') {
                 throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
             }
-            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+            throw new BusinessException(error.message);
         }
     }
     async resetPassword(email: string): Promise<any> {
