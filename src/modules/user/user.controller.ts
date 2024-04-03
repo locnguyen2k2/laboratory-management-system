@@ -102,6 +102,7 @@ export class UserController {
     @Post('forget-password')
     async resetPassword(@Body() dto: ResetPaswordDto): Promise<any> {
         const data = ResetPaswordDto.plainToClass(dto);
+        console.log(data);
         return await this.userService.resetPassword(data.email);
     }
 
