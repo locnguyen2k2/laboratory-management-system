@@ -10,9 +10,11 @@ export class PasswordUpdateDto extends BaseDto {
     @Matches(/^[a-z0-9A-Z\W_]+$/)
     @MinLength(6)
     @MaxLength(20)
+    @Expose()
     oldPassword: string
 
     @ApiProperty({ description: 'New password' })
+    @Expose()
     @Matches(/^S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Za-z])\S*$/, {
         message: "Password must contain numbers and letters and be 6-16 in length"
     })

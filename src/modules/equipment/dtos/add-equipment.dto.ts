@@ -37,6 +37,7 @@ export class AddEquipmentDto extends BaseDto {
     @Expose()
     updateBy: number;
 
+    @Expose()
     @Transform(() => CategoryEnum.EQUIPMENT)
     categoryId: number;
 }
