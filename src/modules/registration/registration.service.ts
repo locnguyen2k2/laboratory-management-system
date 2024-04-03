@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegistrationEntity } from "./registration.entity";
 import { Repository } from "typeorm";
@@ -6,7 +6,7 @@ import { AddRegistrationDto } from "./dtos/add-registration.dto";
 import { UserService } from "../user/user.service";
 import { EquipmentService } from "../equipment/equipment.service";
 import { ToolsService } from "../tools/tools.service";
-import { CategoryEnum } from "../categories/category-enum";
+import { CategoryEnum } from "../categories/category.constant";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { ChemicalsService } from "../chemicals/chemicals.service";
@@ -27,7 +27,9 @@ export class RegistrationService {
         private readonly chemicalRegService: ChemicalRegistrationService
     ) { }
 
-    async findAll() { }
+    async findAll() {
+        return await this.registrationRepository.find()
+    }
 
     async findById(id: number) {
         const registration = await this.registrationRepository
@@ -160,12 +162,15 @@ export class RegistrationService {
     }
 
     async createRegistration(data: AddRegistrationDto) {
+        const { from, to } = data;
+        if (from > to) {
+            throw new BusinessException(ErrorEnum.INVALID_DATE);
+        }
         data.items.some(item => {
             if (!(item.categoryId in CategoryEnum)) {
                 throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
             }
         })
-        const { from, to } = data;
         const handleAddList = await this.handleAddListItem(data.items);
         const user = await this.userService.findById(data.user)
         delete data.user;

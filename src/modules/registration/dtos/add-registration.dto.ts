@@ -1,10 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsDate, IsDateString, IsNotEmpty, IsNumber } from "class-validator";
+import { IsDate, IsDateString, IsNotEmpty, IsNumber, IsTimeZone, MinDate } from "class-validator";
 import { IsDateGreaterThanOrEqualToday } from "src/common/decorators/date-validation.decorate";
 import { ItemRegistration } from "../registration.constant";
+import { BaseDto } from "src/common/dtos/base.dto";
 
-export class AddRegistrationDto {
+export class AddRegistrationDto extends BaseDto {
     @Expose()
     createBy: number;
     @Expose()

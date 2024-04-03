@@ -10,22 +10,23 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { plainToClass } from "class-transformer";
 
 @Controller("registration")
+@ApiBearerAuth()
 @ApiTags('Registration')
 export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
-    @ApiBearerAuth()
     @Roles(UserRole.ADMIN)
     @UseGuards(JwtGuard, RolesGuard)
     @Post('')
     async createRegistration(@Body() dto: AddRegistrationDto, @Request() req: any) {
         dto.createBy = dto.updateBy = req.user.id;
-        const data = plainToClass(AddRegistrationDto, dto, { excludeExtraneousValues: true });
-        return await this.registrationService.createRegistration(data)
+        const data = AddRegistrationDto.plainToClass(dto);
+        return data;
+        // return await this.registrationService.createRegistration(data)
     }
 
-    @ApiBearerAuth()
     @Get(':id')
     async getDetail(@IdParam() id: number, @Request() req: any) {
         return await this.registrationService.getDetailById(id)
     }
+
 }

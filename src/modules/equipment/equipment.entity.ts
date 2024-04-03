@@ -1,5 +1,5 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
-import { EquipmentStatusEnum } from "./equipment-status.enum";
+import { EquipmentStatusEnum } from "./equipment.constant";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
 import { EquipmentRegistrationEntity } from "./../registration/equipment_registration/equipment_registration.entity";
 import { CategoryEntity } from "../categories/category.entity";

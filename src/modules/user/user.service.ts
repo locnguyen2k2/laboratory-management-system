@@ -2,7 +2,6 @@ import * as bcrypt from 'bcryptjs'
 import { Repository } from "typeorm";
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from "./user.entity";
-import { plainToClass } from "class-transformer";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UpdateAdminDto } from "./dtos/update.dto";
 import { MailService } from '../email/mail.service';
@@ -97,10 +96,9 @@ export class UserService {
             if (user?.status == UserStatus.UNACTIVE) {
                 await this.updateStatus(user.id, UserStatus.ACTIVE)
             } else if (!user) {
-                let newData = plainToClass(GoogleRedirectDto, data, { excludeExtraneousValues: true });
                 try {
-                    delete newData.accessToken;
-                    const newUser = new UserEntity(newData);
+                    delete data.accessToken;
+                    const newUser = new UserEntity(data);
                     await this.userRepository.save(newUser);
                     await this.userRepository.createQueryBuilder()
                         .relation(UserEntity, "roles")
@@ -148,8 +146,7 @@ export class UserService {
         if (await this.findById(id)) {
             const user = await this.findById(id);
             if (user.status == UserStatus.ACTIVE) {
-                const updateInfo = plainToClass(UpdateUserDto, data, { excludeExtraneousValues: true });
-                await this.userRepository.update({ id: id }, updateInfo)
+                await this.userRepository.update({ id: id }, data)
                 return await this.getAccountInfo(user.email);
             }
             throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
@@ -157,14 +154,13 @@ export class UserService {
     }
     async update(id: number, data: UpdateAdminDto): Promise<UserEntity> {
         if (await this.findById(id)) {
-            const updateInfo = plainToClass(UpdateAdminDto, data, { excludeExtraneousValues: true })
             await this.userRepository.update({ id: id },
                 {
-                    firstName: updateInfo.firstName,
-                    lastName: updateInfo.lastName,
-                    phone: updateInfo.phone,
-                    address: updateInfo.address,
-                    status: updateInfo.status,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    phone: data.phone,
+                    address: data.address,
+                    status: data.status,
                 })
             return await this.findById(id);
         }
@@ -189,15 +185,14 @@ export class UserService {
     async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
         if (await this.findById(uid)) {
             const user = await this.findById(uid);
-            const updateInfo = plainToClass(UpdatePermissionDto, data, { excludeExtraneousValues: true });
-            const newRole = await this.roleService.findById(updateInfo.newRid);
-            if (!(await this.roleService.checkUserHasRoleById(uid, updateInfo.oldRid)))
+            const newRole = await this.roleService.findById(data.newRid);
+            if (!(await this.roleService.checkUserHasRoleById(uid, data.oldRid)))
                 throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
-            if (await this.roleService.checkUserHasRoleById(uid, updateInfo.newRid))
+            if (await this.roleService.checkUserHasRoleById(uid, data.newRid))
                 throw new BusinessException("User has this role!")
             const userRoles = await this.roleService.getRolesByUser(uid);
             try {
-                const updatedRoles = userRoles.map(role => role.id === updateInfo.oldRid ? newRole : role);
+                const updatedRoles = userRoles.map(role => role.id === data.oldRid ? newRole : role);
                 await this.userRepository.createQueryBuilder()
                     .relation(UserEntity, "roles")
                     .of(user)

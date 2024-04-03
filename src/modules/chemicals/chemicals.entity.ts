@@ -1,6 +1,6 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
-import { ChemicalStatus } from "./dtos/chemical-status.enum";
+import { ChemicalStatus } from "./chemicals.constant";
 import { ChemicalRegistrationEntity } from "./../registration/chemicals_registration/chemical_registration.entity";
 import { CategoryEntity } from "../categories/category.entity";
 

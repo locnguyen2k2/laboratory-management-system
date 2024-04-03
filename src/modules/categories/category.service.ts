@@ -30,8 +30,7 @@ export class CategoryService {
         )
     }
 
-    async add(dto: AddCategoryDto) {
-        const data = plainToClass(AddCategoryDto, dto, { excludeExtraneousValues: true });
+    async add(data: AddCategoryDto) {
         const isExisted = await this.findByName(data.name);
         if (isExisted) {
             throw new HttpException("The category is existed", HttpStatus.BAD_REQUEST);
@@ -41,8 +40,7 @@ export class CategoryService {
         return await this.findByName(data.name);
     }
 
-    async update(id: number, dto: UpdateDto) {
-        const data = plainToClass(UpdateDto, dto, { excludeExtraneousValues: true });
+    async update(id: number, data: UpdateDto) {
         const category = await this.findById(id);
         if (category) {
             await this.categoryRepository.update({ id: id }, { name: data.name })
@@ -51,11 +49,11 @@ export class CategoryService {
         throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
     }
 
-    async delete(id: number) {
-        if (await this.findById(id)) {
-            await this.categoryRepository.delete({ id: id })
-            return "Delete is successful"
-        }
-        throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
-    }
+    // async delete(id: number) {
+    //     if (await this.findById(id)) {
+    //         await this.categoryRepository.delete({ id: id })
+    //         return "Delete is successful"
+    //     }
+    //     throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
+    // }
 }

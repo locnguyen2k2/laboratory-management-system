@@ -11,35 +11,34 @@ import { AddRoomDto } from "./dtos/add-room.dto";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 
 @Controller('rooms')
+@ApiBearerAuth()
 @ApiTags('Rooms')
 export class RoomController {
     constructor(
         private readonly roomService: RoomService
     ) { }
 
-    @ApiBearerAuth()
     @Get()
     async get() {
         return await this.roomService.findAll();
     }
 
-    @ApiBearerAuth()
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async add(@Body() dto: AddRoomDto, @Request() req: any) {
-        const data = plainToClass(AddRoomDto, dto, { excludeExtraneousValues: true });
+        const data = AddRoomDto.plainToClass(dto);
         data.createBy = data.updateBy = req.user.id
         return await this.roomService.add(data);
     }
 
-    @ApiBearerAuth()
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateRoomDto, @Request() req: any) {
         dto.updateBy = req.user.id;
-        return await this.roomService.update(id, dto);
+        const data = UpdateRoomDto.plainToClass(dto);
+        return await this.roomService.update(id, data);
     }
 
     @Get('/:id')

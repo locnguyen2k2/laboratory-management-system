@@ -2,10 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import { IsString, IsNotEmpty, Validate, IsNumber, Min, IsEnum, IsEmail } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { ChemicalStatus } from "./chemical-status.enum";
-import { CategoryEnum } from "src/modules/categories/category-enum";
+import { ChemicalStatus } from "./../chemicals.constant";
+import { CategoryEnum } from "src/modules/categories/category.constant";
+import { BaseDto } from "src/common/dtos/base.dto";
 
-export class AddChemicalDto {
+export class AddChemicalDto extends BaseDto {
     @ApiProperty({ default: "" })
     @Expose()
     @IsString()

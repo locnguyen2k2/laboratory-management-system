@@ -1,3 +1,8 @@
+export enum CategoryStatusEnum {
+    ACTIVE = 0,
+    DISABLE = 1
+}
+
 export enum CategoryEnum {
     EQUIPMENT = 0,
     TOOLS = 1,

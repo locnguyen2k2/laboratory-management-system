@@ -15,6 +15,7 @@ import { ToolsModule } from './modules/tools/tools.module';
 import { ChemicalsModule } from './modules/chemicals/chemicals.module';
 import { RoomModule } from './modules/rooms/room.module';
 import { CategoryModule } from './modules/categories/category.module';
+import { ScheduleModule } from './modules/schedules/schedule.module';
 
 const modules = [
   DatabaseModule,
@@ -22,6 +23,7 @@ const modules = [
   MailModule,
   AuthModule,
   RoleModule,
+  ScheduleModule,
   CategoryModule,
   EquipmentModule,
   ToolsModule,

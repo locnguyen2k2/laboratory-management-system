@@ -1,6 +1,6 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
-import { ToolStatus } from "./dtos/ToolStatus";
+import { ToolStatus } from "./tools.constant";
 import { ToolRegistrationEntity } from "./../registration/tools_registration/tool_registration.entity";
 import { CategoryEntity } from "../categories/category.entity";
 

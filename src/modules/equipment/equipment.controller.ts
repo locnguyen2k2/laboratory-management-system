@@ -11,34 +11,32 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateEquipmentDto } from "./dtos/update-equipment.dto";
 
 @Controller('equipment')
+@ApiBearerAuth()
 @ApiTags('Equipment')
 export class EquipmentController {
     constructor(
         private readonly equipmentService: EquipmentService
     ) { }
 
-    @ApiBearerAuth()
     @Get()
     async get() {
         return await this.equipmentService.findAll();
     }
 
-    @ApiBearerAuth()
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async add(@Body() dto: AddEquipmentDto, @Request() req: any) {
-        const data = plainToClass(AddEquipmentDto, dto, { excludeExtraneousValues: true });
+        const data = AddEquipmentDto.plainToClass(dto);
         data.createBy = data.updateBy = req.user.id;
         return await this.equipmentService.add(data);
     }
 
-    @ApiBearerAuth()
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateEquipmentDto, @Request() req: any) {
-        const data = plainToClass(UpdateEquipmentDto, dto, { excludeExtraneousValues: true });
+        const data = UpdateEquipmentDto.plainToClass(dto);
         data.updateBy = req.user.id
         return await this.equipmentService.update(id, data);
     }

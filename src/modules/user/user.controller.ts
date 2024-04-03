@@ -2,7 +2,7 @@ import { UserService } from "./user.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UpdatePermissionDto, UpdateStatusDto, UpdateUserDto } from "./dtos/update.dto";
 import { UpdateAdminDto } from "./dtos/update.dto";
-import { UserRole, UserStatus } from "./user.constant";
+import { UserRole } from "./user.constant";
 import { ResetPaswordDto } from "../auth/dtos/reset-password.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { JwtGuard } from "./../../modules/auth/guard/jwt-auth.guard";
@@ -15,16 +15,15 @@ import { ForgotPasswordDto } from "./dtos/password.dto";
 import { UserEntity } from "./user.entity";
 import { AccountInfo } from "./interfaces/AccountInfo.interface";
 import { AddPermissionDto } from "./dtos/add-permission.dto";
-import { plainToClass } from "class-transformer";
 
 @Controller('users')
+@ApiBearerAuth()
 @ApiTags('Users')
 export class UserController {
     constructor(
         private readonly userService: UserService
     ) { }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get('get')
@@ -32,7 +31,6 @@ export class UserController {
         return await this.userService.findAll();
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get('get/:id')
@@ -40,79 +38,76 @@ export class UserController {
         return this.userService.findById(id);
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Put('update')
     async updateAccountInfo(@Request() req: any,
         @Body() dto: UpdateUserDto): Promise<AccountInfo> {
-        return await this.userService.updateAccountInfo(req.user.id, dto);
+        const data = UpdateUserDto.plainToClass(dto);
+        return await this.userService.updateAccountInfo(req.user.id, data);
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Put('update/:id')
     async update(@IdParam() id: number,
         @Body() dto: UpdateAdminDto): Promise<UserEntity> {
-        return await this.userService.update(id, dto);
+        const data = UpdateAdminDto.plainToClass(dto);
+        return await this.userService.update(id, data);
     }
 
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.MANAGER)
     @Patch('status/:id')
     async updateStatus(@IdParam() id: number,
         @Body() dto: UpdateStatusDto): Promise<UserEntity> {
-        const data = plainToClass(UpdateStatusDto, dto, { excludeExtraneousValues: true });
+        const data = UpdateStatusDto.plainToClass(dto);
         return await this.userService.updateStatus(id, data.status);
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard)
     @Get('info')
     async info(@Request() req: any): Promise<AccountInfo> {
         return await this.userService.getAccountInfo(req.user.email)
     }
 
-    @ApiBearerAuth()
     @Patch('email/resent-confirm-links')
     async resendConfirmationLink(@Body() dto: EmailLinkConfirmDto) {
         return await this.userService.resendConfirmationLink(dto);
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Post('permission')
     async addPermission(@Body() dto: AddPermissionDto) {
-        const data = plainToClass(AddPermissionDto, dto, { excludeExtraneousValues: true })
+        const data = AddPermissionDto.plainToClass(dto);
         return await this.userService.addPermission(data);
     }
 
-    @ApiBearerAuth()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Patch('permision/:id')
     async updatePermission(@IdParam() uid: number,
         @Body() dto: UpdatePermissionDto): Promise<UserEntity> {
-        return await this.userService.updateUserPermission(uid, dto);
+        const data = UpdatePermissionDto.plainToClass(dto);
+        return await this.userService.updateUserPermission(uid, data);
     }
 
     @Get('email/confirm')
     async confirmRegister(@Query() dto: ConfirmationEmailDto) {
-        return await this.userService.userConfirmation(dto);
+        const data = ConfirmationEmailDto.plainToClass(dto);
+        return await this.userService.userConfirmation(data);
     }
 
-    @ApiBearerAuth()
     @Post('forget-password')
-    async resetPassword(@Body() data: ResetPaswordDto): Promise<any> {
+    async resetPassword(@Body() dto: ResetPaswordDto): Promise<any> {
+        const data = ResetPaswordDto.plainToClass(dto);
         return await this.userService.resetPassword(data.email);
     }
 
-    @ApiBearerAuth()
     @Patch('update-password')
     async updatePassword(@Body() dto: ForgotPasswordDto) {
-        return await this.userService.confirmRePassword(dto)
+        const data = ForgotPasswordDto.plainToClass(dto);
+        return await this.userService.confirmRePassword(data)
     }
 }  

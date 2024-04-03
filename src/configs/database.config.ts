@@ -13,6 +13,7 @@ import { ToolRegistrationEntity } from "src/modules/registration/tools_registrat
 import { ChemicalRegistrationEntity } from "src/modules/registration/chemicals_registration/chemical_registration.entity";
 import { EquipmentRegistrationEntity } from "src/modules/registration/equipment_registration/equipment_registration.entity";
 import { CategoryEntity } from "src/modules/categories/category.entity";
+import { ScheduleEntity } from "src/modules/schedules/schedule.entity";
 
 const entities = [
     UserEntity,
@@ -26,7 +27,8 @@ const entities = [
     RoomRegistrationEntity,
     ToolRegistrationEntity,
     ChemicalRegistrationEntity,
-    EquipmentRegistrationEntity
+    EquipmentRegistrationEntity,
+    ScheduleEntity
 ]
 
 @Module({

@@ -3,8 +3,9 @@ import { Expose } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { UserRole, UserStatus } from "./../user.constant";
+import { BaseDto } from "src/common/dtos/base.dto";
 
-export class UpdateUserDto {
+export class UpdateUserDto extends BaseDto {
 
     @ApiProperty({ default: "" })
     @Validate(IsValidString)
@@ -45,7 +46,7 @@ export class UpdateAdminDto extends UpdateUserDto {
     status: UserStatus
 }
 
-export class UpdatePermissionDto {
+export class UpdatePermissionDto extends BaseDto {
     @ApiProperty({ default: "" })
     @IsEnum(UserRole)
     @IsNotEmpty()
@@ -58,7 +59,7 @@ export class UpdatePermissionDto {
     newRid: UserRole;
 }
 
-export class UpdateStatusDto {
+export class UpdateStatusDto extends BaseDto {
     @ApiProperty({ default: "" })
     @IsEnum(UserStatus)
     @IsNotEmpty()

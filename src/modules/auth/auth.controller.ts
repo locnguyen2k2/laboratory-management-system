@@ -15,6 +15,7 @@ import { Credential } from "./interfaces/credential.interface";
 import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
 
 @Controller('auths')
+@ApiBearerAuth()
 @ApiTags('Auths')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
@@ -37,7 +38,6 @@ export class AuthController {
         return this.authService.register(user);
     }
 
-    @ApiBearerAuth()
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
@@ -46,7 +46,6 @@ export class AuthController {
         return await this.authService.register(manager);
     }
 
-    @ApiBearerAuth()
     @Post('admin-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)

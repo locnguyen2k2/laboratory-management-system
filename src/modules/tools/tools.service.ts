@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ToolsEntity } from "./tools.entity";
 import { Repository } from "typeorm";
-import { AddToolDto } from "./dtos/add-tool.enum";
-import { UpdateToolDto } from "./dtos/update-tool.enum";
+import { AddToolDto } from "./dtos/add-tool.dto";
+import { UpdateToolDto } from "./dtos/update-tool.dto";
 import { CategoryService } from "../categories/category.service";
 
 @Injectable()

@@ -11,35 +11,34 @@ import { UpdateChemicalDto } from "./dtos/update-chemicals.dto";
 import { plainToClass } from "class-transformer";
 
 @Controller('chemicals')
+@ApiBearerAuth()
 @ApiTags('Chemicals')
 export class ChemicalsController {
     constructor(
         private readonly chemicalService: ChemicalsService
     ) { }
 
-    @ApiBearerAuth()
     @Get()
     async get() {
         return await this.chemicalService.findAll();
     }
 
-    @ApiBearerAuth()
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async add(@Body() dto: AddChemicalDto, @Request() req: any) {
-        const data = plainToClass(AddChemicalDto, dto, { excludeExtraneousValues: true });
+        const data = AddChemicalDto.plainToClass(dto)
         data.createBy = data.updateBy = req.user.id
         return await this.chemicalService.add(data);
     }
 
-    @ApiBearerAuth()
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateChemicalDto, @Request() req: any) {
         dto.updateBy = req.user.id;
-        return await this.chemicalService.update(id, dto);
+        const data = UpdateChemicalDto.plainToClass(dto)
+        return await this.chemicalService.update(id, data);
     }
 
     @Get('/:id')

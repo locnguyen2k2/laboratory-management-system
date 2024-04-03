@@ -2,10 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { EquipmentStatusEnum } from "./../equipment-status.enum";
-import { CategoryEnum } from "src/modules/categories/category-enum";
+import { EquipmentStatusEnum } from "./../equipment.constant";
+import { CategoryEnum } from "src/modules/categories/category.constant";
+import { BaseDto } from "src/common/dtos/base.dto";
 
-export class AddEquipmentDto {
+export class AddEquipmentDto extends BaseDto {
     @ApiProperty({ default: "" })
     @Expose()
     @IsString()

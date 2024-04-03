@@ -2,9 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEnum, IsNumber, IsString, Min, Validate } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
-import { EquipmentStatusEnum } from "./../equipment-status.enum";
+import { EquipmentStatusEnum } from "./../equipment.constant";
+import { BaseDto } from "src/common/dtos/base.dto";
 
-export class UpdateEquipmentDto {
+export class UpdateEquipmentDto extends BaseDto {
     @ApiProperty({ default: "null" })
     @Expose()
     @IsString()
@@ -17,7 +18,7 @@ export class UpdateEquipmentDto {
     @Min(0)
     quantity: number;
 
-    @ApiProperty({ default: null })
+    @ApiProperty({ default: EquipmentStatusEnum.AVAILABLE })
     @Expose()
     @IsEnum(EquipmentStatusEnum)
     status: number;

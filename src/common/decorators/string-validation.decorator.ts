@@ -3,10 +3,10 @@ import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments 
 @ValidatorConstraint({ name: 'customText', async: false })
 export class IsValidString implements ValidatorConstraintInterface {
   validate(text: string, args: ValidationArguments) {
-    if (text.startsWith(' ') || text.endsWith(' ')) {
+    if (text?.startsWith(' ') || text?.endsWith(' ')) {
       return false;
     }
-    if (text.includes('  ')) {
+    if (text?.includes('  ')) {
       return false;
     }
     return true;
