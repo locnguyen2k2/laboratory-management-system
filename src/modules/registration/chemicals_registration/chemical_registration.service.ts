@@ -4,11 +4,14 @@ import { ChemicalRegistrationEntity } from "./chemical_registration.entity";
 import { Repository } from "typeorm";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { AddItemRegistrationDto } from "../dtos/add-registration.dto";
+import { ChemicalsService } from "src/modules/chemicals/chemicals.service";
 
 @Injectable()
 export class ChemicalRegistrationService {
     constructor(
         @InjectRepository(ChemicalRegistrationEntity) private readonly chemicalRegRepo: Repository<ChemicalRegistrationEntity>,
+        private readonly chemicalService: ChemicalsService
     ) { }
 
     async findByRegistrationId(regid: number) {
@@ -23,25 +26,29 @@ export class ChemicalRegistrationService {
 
     }
 
-    async addChemicalReg(chemical: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
-        const listChemicalReg = await this.findByRegistrationId(registration.id)
+    async addChemicalReg(data: AddItemRegistrationDto) {
         let isReplace = false;
-        listChemicalReg.map(async (chemicalReg) => {
-            if (chemical.id === chemicalReg.chemical.id) {
+        const listChemicalReg = await this.findByRegistrationId(data.registration.id)
+        const chemical = await this.chemicalService.findById(data.itemId)
+        listChemicalReg?.map(async (chemicalReg) => {
+            if (data.itemId === chemicalReg.chemical.id) {
                 isReplace = true;
-                chemicalReg.quantity += quantity;
+                data.quantity += chemicalReg.quantity;
                 await this.chemicalRegRepo.createQueryBuilder()
                     .update(ChemicalRegistrationEntity)
                     .set({
-                        quantity: chemicalReg.quantity
+                        quantity: data.quantity
                     })
                     .where('id = :id', { id: chemicalReg.id })
                     .execute();
                 return;
             }
         })
-        if (isReplace === false) {
-            const newItem = new ChemicalRegistrationEntity({ chemical: chemical, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
+
+        if (!isReplace) {
+            delete data.itemId;
+            delete data.user;
+            const newItem = new ChemicalRegistrationEntity({ ...data, chemical });
             await this.chemicalRegRepo.save(newItem);
             return;
         }

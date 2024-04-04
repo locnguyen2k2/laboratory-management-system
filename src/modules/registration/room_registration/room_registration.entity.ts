@@ -1,5 +1,5 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
-import { Column, Entity, JoinColumn, ManyToOne, Relation } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, Relation } from "typeorm";
 import { RegistrationEntity } from "./../registration.entity";
 import { RoomEntity } from "./../../rooms/room.entity";
 import { ScheduleEntity } from "src/modules/schedules/schedule.entity";
@@ -19,14 +19,14 @@ export class RoomRegistrationEntity extends ExtendedEntity {
 
     @Column({ type: 'date' })
     end_day: string
- 
-    @ManyToOne(() => ScheduleEntity, schedule => schedule.startRoomReg)
-    @JoinColumn({ name: 'start_time_id' })
-    start_time: string
 
-    @ManyToOne(() => ScheduleEntity, schedule => schedule.endRoomReg)
-    @JoinColumn({ name: 'end_time_id' })
-    end_time: string
+    @ManyToMany(() => ScheduleEntity, schedule => schedule.roomRegistration)
+    @JoinTable({
+        name: 'room_registration_schedules',
+        joinColumn: { name: 'room_registration_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'schedule_id', referencedColumnName: 'id' },
+    })
+    times: Relation<ScheduleEntity[]>;
 
     constructor(roomRegistrationEntity: Partial<RoomRegistrationEntity>) {
         super();

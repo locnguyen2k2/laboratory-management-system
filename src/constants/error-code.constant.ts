@@ -16,4 +16,6 @@ export enum ErrorEnum {
     ROLE_NOT_FOUND = "404:Role not found",
     MISSION_EXECUTION_FAILED = "404:Task execution failed",
     CTUET_EMAIL = "400:This email must have the extension 'ctuet.edu.vn'!",
+
+    ROOM_IS_USED = "400:Room is registrated"
 }

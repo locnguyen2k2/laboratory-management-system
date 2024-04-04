@@ -12,6 +12,14 @@ export class ScheduleService {
         @InjectRepository(ScheduleEntity) private readonly scheduleRepository: Repository<ScheduleEntity>
     ) { }
 
+    async findById(id: number) {
+        return (await this.scheduleRepository.find({ where: { id } }))[0];
+    }
+
+    async findAll() {
+        return await this.scheduleRepository.find();
+    }
+
     async findByStart(start: string) {
         const schedule = (await this.scheduleRepository.find({ where: { start } }))[0];
         if (schedule)

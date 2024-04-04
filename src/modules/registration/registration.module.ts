@@ -13,6 +13,7 @@ import { RegistrationController } from "./registration.controller";
 import { ToolsModule } from "../tools/tools.module";
 import { ChemicalsModule } from "../chemicals/chemicals.module";
 import { RoomModule } from "../rooms/room.module";
+import { ScheduleModule } from "../schedules/schedule.module";
 
 const modules = [
     ToolRegistrationModule,
@@ -30,7 +31,8 @@ const modules = [
         EquipmentModule,
         ToolsModule,
         ChemicalsModule,
-        RoomModule
+        RoomModule,
+        ScheduleModule
     ],
     controllers: [RegistrationController],
     providers: [RegistrationService],

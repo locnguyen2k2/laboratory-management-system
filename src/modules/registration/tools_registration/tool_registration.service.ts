@@ -4,10 +4,15 @@ import { ToolRegistrationEntity } from "./tool_registration.entity";
 import { Repository } from "typeorm";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { AddItemRegistrationDto } from "../dtos/add-registration.dto";
+import { ToolsService } from "src/modules/tools/tools.service";
 
 @Injectable()
 export class ToolRegistrationService {
-    constructor(@InjectRepository(ToolRegistrationEntity) private readonly toolRegRepo: Repository<ToolRegistrationEntity>) { }
+    constructor(
+        @InjectRepository(ToolRegistrationEntity) private readonly toolRegRepo: Repository<ToolRegistrationEntity>,
+        private readonly toolService: ToolsService
+    ) { }
 
     async findByRegistrationId(regid: number) {
         const registration = await this.toolRegRepo.createQueryBuilder('item')
@@ -21,25 +26,29 @@ export class ToolRegistrationService {
 
     }
 
-    async addToolReg(tool: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
-        const listToolReg = await this.findByRegistrationId(registration.id)
+    async addToolReg(data: AddItemRegistrationDto) {
         let isReplace = false;
-        listToolReg.map(async (toolReg) => {
-            if (tool.id === toolReg.tool.id) {
+        const listToolReg = await this.findByRegistrationId(data.registration.id)
+        const tool = await this.toolService.findById(data.itemId)
+        listToolReg?.map(async (toolReg) => {
+            if (data.itemId === toolReg.tool.id) {
                 isReplace = true;
-                toolReg.quantity += quantity;
+                data.quantity += toolReg.quantity;
                 await this.toolRegRepo.createQueryBuilder()
                     .update(ToolRegistrationEntity)
                     .set({
-                        quantity: toolReg.quantity
+                        quantity: data.quantity
                     })
                     .where('id = :id', { id: toolReg.id })
                     .execute();
                 return;
             }
         })
-        if (isReplace === false) {
-            const newItem = new ToolRegistrationEntity({ tool: tool, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
+
+        if (!isReplace) {
+            delete data.itemId;
+            delete data.user;
+            const newItem = new ToolRegistrationEntity({ ...data, tool });
             await this.toolRegRepo.save(newItem);
             return;
         }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Get } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
@@ -12,6 +12,11 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 @ApiTags('Schedules')
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
+
+    @Get()
+    async getAll() {
+        return await this.scheduleService.findAll()
+    }
 
     @Post()
     @UseGuards(JwtGuard, RolesGuard)

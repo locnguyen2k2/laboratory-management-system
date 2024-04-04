@@ -4,11 +4,14 @@ import { EquipmentRegistrationEntity } from "./equipment_registration.entity";
 import { Repository } from "typeorm";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { AddItemRegistrationDto } from "../dtos/add-registration.dto";
+import { EquipmentService } from "src/modules/equipment/equipment.service";
 
 @Injectable()
 export class EquipmentRegistrationService {
     constructor(
-        @InjectRepository(EquipmentRegistrationEntity) private readonly equipmentRegRepo: Repository<EquipmentRegistrationEntity>
+        @InjectRepository(EquipmentRegistrationEntity) private readonly equipmentRegRepo: Repository<EquipmentRegistrationEntity>,
+        private readonly equipmentService: EquipmentService
     ) { }
 
     async findByRegistrationId(regid: number) {
@@ -23,25 +26,29 @@ export class EquipmentRegistrationService {
 
     }
 
-    async addEquipmentReg(equipment: any, quantity: number, start_day: string, end_day: string, registration: any, user: number) {
-        const listEquipmentReg = await this.findByRegistrationId(registration.id)
+    async addEquipmentReg(data: AddItemRegistrationDto) {
         let isReplace = false;
-        listEquipmentReg.map(async (equipmentReg) => {
-            if (equipment.id === equipmentReg.equipment.id) {
+        const listEquipmentReg = await this.findByRegistrationId(data.registration.id)
+        const equipment = await this.equipmentService.findById(data.itemId)
+        listEquipmentReg?.map(async (equipmentReg) => {
+            if (data.itemId === equipmentReg.equipment.id) {
                 isReplace = true;
-                equipmentReg.quantity += quantity;
+                data.quantity += equipmentReg.quantity;
                 await this.equipmentRegRepo.createQueryBuilder()
                     .update(EquipmentRegistrationEntity)
                     .set({
-                        quantity: equipmentReg.quantity
+                        quantity: data.quantity
                     })
                     .where('id = :id', { id: equipmentReg.id })
                     .execute();
                 return;
             }
         })
-        if (isReplace === false) {
-            const newItem = new EquipmentRegistrationEntity({ equipment: equipment, quantity: quantity, start_day, end_day, registration: registration, createBy: user, updateBy: user });
+
+        if (!isReplace) {
+            delete data.itemId;
+            delete data.user;
+            const newItem = new EquipmentRegistrationEntity({ ...data, equipment });
             await this.equipmentRegRepo.save(newItem);
             return;
         }
