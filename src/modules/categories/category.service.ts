@@ -5,6 +5,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AddCategoryDto } from "./dtos/add-category.dto";
 import { plainToClass } from "class-transformer";
 import { UpdateDto } from "./dtos/update.dto";
+import { BusinessException } from "src/common/exceptions/biz.exception";
+import { ErrorEnum } from "src/constants/error-code.constant";
 
 @Injectable()
 export class CategoryService {
@@ -42,6 +44,10 @@ export class CategoryService {
 
     async update(id: number, data: UpdateDto) {
         const category = await this.findById(id);
+        const isExisted = await this.findByName(data.name)
+        if (isExisted && isExisted.id !== id) {
+            throw new BusinessException(ErrorEnum.RECORD_IS_EXISTED)
+        }
         if (category) {
             await this.categoryRepository.update({ id: id }, { name: data.name })
             return "The category is updated successfully!";

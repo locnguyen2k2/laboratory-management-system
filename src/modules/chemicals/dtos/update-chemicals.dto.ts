@@ -26,7 +26,6 @@ export class UpdateChemicalDto extends BaseDto {
     @IsEnum(ChemicalStatus)
     status: number;
 
-    @ApiProperty({ default: "" })
     @Expose()
     updateBy: number;
 }

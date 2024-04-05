@@ -23,7 +23,6 @@ export class UpdateToolDto extends BaseDto {
     @IsEnum(ToolStatus)
     status: number;
 
-    @ApiProperty({ default: null })
     @Expose()
     updateBy: number;
 }

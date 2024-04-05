@@ -23,7 +23,6 @@ export class UpdateEquipmentDto extends BaseDto {
     @IsEnum(EquipmentStatusEnum)
     status: number;
 
-    @ApiProperty({ default: null })
     @Expose()
     updateBy: number;
 }
