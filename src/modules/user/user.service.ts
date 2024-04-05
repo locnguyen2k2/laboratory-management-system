@@ -53,7 +53,7 @@ export class UserService {
             return user
         throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
     }
-    async create(user: any): Promise<AccountInfo> {
+    async create(user: any): Promise<any> {
         const { email, password, confirmPassword } = user;
         if (await this.emailService.isCtuetEmail(email)) {
             const isExisted = await this.findByEmail(email);
@@ -67,24 +67,15 @@ export class UserService {
             user.password = await bcrypt.hashSync(user.password, 10);
             const roles = user.roles != undefined ? user.roles : 2;
             delete user.roles;
-            try {
-                const newUser = new UserEntity(user);
-                await this.userRepository.save(newUser);
-                await this.userRepository.createQueryBuilder()
-                    .relation(UserEntity, "roles")
-                    .of(newUser)
-                    .add(roles);
-                const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-                await this.userRepository.update({ email: email }, { refresh_token })
-                return await this.getAccountInfo(newUser.email);
-            } catch (error: any) {
-                if (error.message == (ErrorEnum.USER_UNCONFIRMED.split(':'))[1]) {
-                    throw new BusinessException(error.message);
-                } else {
-                    await this.userRepository.delete({ email: user.email })
-                    throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
-                }
-            }
+            const newUser = new UserEntity(user);
+            await this.userRepository.save(newUser);
+            await this.userRepository.createQueryBuilder()
+                .relation(UserEntity, "roles")
+                .of(newUser)
+                .add(roles);
+            const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
+            await this.userRepository.update({ email: email }, { refresh_token })
+            throw new BusinessException("Confirm your account by the link was send to your email!");
         }
     }
     async createWithGoogle(data: GoogleRedirectDto): Promise<Credential> {

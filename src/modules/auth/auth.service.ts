@@ -9,14 +9,12 @@ import { UserStatus } from "./../user/user.constant";
 import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 import { RegisterAdminDto } from "./../user/dtos/register.dto";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { RegisterManagerDto } from "./../user/dtos/register.dto";
 import { JwtService } from '@nestjs/jwt';
-import { UserEntity } from '../user/user.entity';
 import { Credential } from './interfaces/credential.interface';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
-import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
 
 @Injectable()
 export class AuthService {
@@ -78,7 +76,7 @@ export class AuthService {
         }
     }
 
-    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<AccountInfo> {
+    async register(user: (RegisterAdminDto | RegisterManagerDto | RegisterUserDto)): Promise<any> {
         return await this.userService.create(user)
     }
 
