@@ -33,15 +33,18 @@ export class RoomRegistrationService {
     }
 
     async findByDay(startDay: string, endDay: string, id: number) {
-        const registration = await this.roomRegRepo.createQueryBuilder('item')
-            .where('(item.start_day >= :startDay AND item.start_day <= :endDay)', { startDay, endDay })
-            .orWhere('(item.end_day >= :startDay AND item.end_day <= :endDay)', { startDay, endDay })
-            .andWhere('item.room_id = :id', { id })
+        const roomRegistration = await this.roomRegRepo.createQueryBuilder('item')
+            .where('(item.start_day >= :startDay AND item.start_day <= :endDay AND item.room_id = :id)', { startDay, endDay, id })
+            .orWhere('(item.end_day >= :startDay AND item.end_day <= :endDay AND item.room_id = :id)', { startDay, endDay, id })
             .leftJoinAndSelect('item.room', 'room')
             .select(['item.start_day', 'item.end_day', 'item.id', 'room.id', 'room.name'])
             .getMany()
-        if (registration)
-            return registration
+        if (roomRegistration) {
+            await Promise.all(roomRegistration.map(async (roomReg) => {
+                roomReg['schedules'] = await this.scheduleService.findDetailByRegistrationId(roomReg.id);
+            }))
+            return roomRegistration
+        }
     }
 
     async addRoomReg(data: AddRoomItemRegistrationDto): Promise<boolean> {
