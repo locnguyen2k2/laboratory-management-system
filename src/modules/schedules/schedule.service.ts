@@ -16,6 +16,35 @@ export class ScheduleService {
         return (await this.scheduleRepository.find({ where: { id } }))[0];
     }
 
+    async findDetailByRegistrationId(roomRegId: number) {
+        const schedules = await this.scheduleRepository.find({
+            where: {
+                roomRegistration: { id: roomRegId }
+            },
+            select: {
+
+            }
+        })
+
+        if (schedules) {
+            const result = [];
+            schedules.map(schedule => result.push({ id: schedule.id, start: schedule.start, end: schedule.end }))
+            return result
+        }
+    }
+
+    async findByRoomRegistrationId(roomRegId: number): Promise<number[]> {
+        const schedules = await this.scheduleRepository.find({
+            where: {
+                roomRegistration: { id: roomRegId }
+            }
+        })
+
+        if (schedules)
+            return schedules.map(roomRegistration => roomRegistration.id)
+        return []
+    }
+
     async findAll() {
         return await this.scheduleRepository.find();
     }

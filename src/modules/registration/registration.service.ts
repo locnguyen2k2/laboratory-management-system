@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegistrationEntity } from "./registration.entity";
 import { Repository } from "typeorm";
@@ -61,7 +61,8 @@ export class RegistrationService {
             const equipment = await this.equipmentRegService.findByRegistrationId(id);
             const tools = await this.toolRegService.findByRegistrationId(id);
             const chemicals = await this.chemicalRegService.findByRegistrationId(id);
-            return { registration, equipment_registration: equipment, tool_registration: tools, chemical_registration: chemicals };
+            const rooms = await this.roomRegService.findByRegistrationId(id)
+            return { registration, equipment, tools, chemicals, rooms };
         }
         throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
@@ -193,14 +194,19 @@ export class RegistrationService {
         // Check: Equipment, tools, chemicals, rooms
         const handleAddList = await this.handleAddRoom(data.items);
         const user = await this.userService.findById(data.user)
-        // const registration = new RegistrationEntity({ createBy: data.createBy, updateBy: data.updateBy, user });
-        // await this.registrationRepository.save(registration);
-        const registration = await this.findById(19)
+        const registration = new RegistrationEntity({ createBy: data.createBy, updateBy: data.updateBy, user });
+        await this.registrationRepository.save(registration);
         delete data.items;
+        let add = true;
         if (handleAddList?.['rooms']?.length >= 1) {
-            handleAddList?.['rooms']?.map(async ({ itemId, schedules }): Promise<any> => {
-                await this.roomRegService.addRoomReg({ itemId, schedules, registration, ...data })
-            })
+            await Promise.all(handleAddList?.['rooms']?.map(async ({ itemId, schedules }): Promise<any> => {
+                add = await this.roomRegService.addRoomReg({ itemId, schedules, registration, ...data })
+                if (!add)
+                    return;
+            }))
+            if (!add) {
+                throw new BadRequestException('Room is registrated!')
+            }
             throw new BusinessException("Registration is successfull");
         }
         throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
