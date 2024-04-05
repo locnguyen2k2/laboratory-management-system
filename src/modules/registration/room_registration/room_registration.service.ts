@@ -47,7 +47,7 @@ export class RoomRegistrationService {
         }
     }
 
-    async addRoomReg(data: AddRoomItemRegistrationDto): Promise<boolean> {
+    async addRoomRegstration(data: AddRoomItemRegistrationDto): Promise<boolean> {
         const roomRegistration = await this.findByDay(data.start_day, data.end_day, data.itemId);
         const regScheculdes = [];
         let isNotExisted = true;

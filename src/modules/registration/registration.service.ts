@@ -200,7 +200,7 @@ export class RegistrationService {
         let add = true;
         if (handleAddList?.['rooms']?.length >= 1) {
             await Promise.all(handleAddList?.['rooms']?.map(async ({ itemId, schedules }): Promise<any> => {
-                add = await this.roomRegService.addRoomReg({ itemId, schedules, registration, ...data })
+                add = await this.roomRegService.addRoomRegstration({ itemId, schedules, registration, ...data })
                 if (!add)
                     return;
             }))

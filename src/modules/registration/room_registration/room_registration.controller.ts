@@ -2,7 +2,7 @@ import { Body, Controller, Post } from "@nestjs/common";
 import { RoomRegistrationService } from "./room_registration.service";
 import { CheckRoomDto } from "./dtos/check-room.dto";
 
-@Controller('room_registration')
+@Controller('room-registration')
 export class RoomRegistrationController {
     constructor(private readonly roomRegService: RoomRegistrationService) { }
 

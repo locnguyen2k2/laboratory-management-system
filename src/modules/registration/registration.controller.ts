@@ -22,6 +22,11 @@ export class RegistrationController {
         return await this.registrationService.createRegistration(data)
     }
 
+    @Get()
+    async getAll() {
+        return await this.registrationService.findAll()
+    }
+
     @Roles(UserRole.ADMIN)
     @UseGuards(JwtGuard, RolesGuard)
     @Post('/rooms')
