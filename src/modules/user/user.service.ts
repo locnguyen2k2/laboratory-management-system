@@ -74,7 +74,8 @@ export class UserService {
                     .relation(UserEntity, "roles")
                     .of(newUser)
                     .add(roles);
-                await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
+                const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
+                await this.userRepository.update({ email: email }, { refresh_token })
                 return await this.getAccountInfo(newUser.email);
             } catch (error: any) {
                 if (error.message == (ErrorEnum.USER_UNCONFIRMED.split(':'))[1]) {
