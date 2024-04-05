@@ -235,23 +235,21 @@ export class UserService {
             throw new BusinessException(ErrorEnum.USER_INVALID);
         }
         try {
-            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
-            if (data.digitalNumbs === decoded.digitalNumbs) {
-                const isCheckPass = await bcrypt.compareSync(data.password, isExisted.password);
-                if (!isCheckPass) {
-                    const password = await bcrypt.hashSync(data.password, 10);
-                    await this.updatePassword(data.email, password);
-                    return ("Your password is already updated");
-                }
-                throw new HttpException('The password is duplicated', HttpStatus.BAD_REQUEST);
-            }
-            throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
+            await this.jwtService.verifyAsync(isExisted.repass_token)
         } catch (error) {
-            if (error.message == 'jwt must be provided') {
-                throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
-            }
-            throw new BusinessException(error.message);
+            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
         }
+        const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
+        if (data.digitalNumbs === decoded.digitalNumbs) {
+            const isCheckPass = await bcrypt.compareSync(data.password, isExisted.password);
+            if (!isCheckPass) {
+                const password = await bcrypt.hashSync(data.password, 10);
+                await this.updatePassword(data.email, password);
+                return ("Your password is already updated");
+            }
+            throw new HttpException('The password is duplicated', HttpStatus.BAD_REQUEST);
+        }
+        throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
     }
     async resetPassword(email: string): Promise<any> {
         const isExisted = await this.findByEmail(email);
@@ -259,10 +257,7 @@ export class UserService {
             throw new BusinessException(ErrorEnum.USER_INVALID)
         };
         try {
-            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
-            if (decoded) {
-                throw new BusinessException("Please, check your digital numbers in your email before!");
-            };
+            await this.jwtService.verifyAsync(isExisted.repass_token);
         } catch (error) {
             const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
             const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
@@ -270,6 +265,10 @@ export class UserService {
             await this.updateRepassToken(email, repassToken);
             throw new BusinessException("The new digital numbers was send to your Email!");
         }
+        const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
+        if (decoded) {
+            throw new BusinessException("Please, check your digital numbers in your email before!");
+        };
     }
     async updateStatus(id: number, status: number): Promise<UserEntity> {
         if (await this.findById(id)) {
