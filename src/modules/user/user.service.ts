@@ -297,14 +297,15 @@ export class UserService {
         if (user && user.status !== UserStatus.DISABLE) {
             if (user.status == UserStatus.UNACTIVE) {
                 try {
-                    const decode = await this.emailService.decodeConfirmationToken(user.refresh_token);
-                    if (decode) {
-                        throw new BusinessException("Please, click the link was send to your account before!")
-                    }
+                    await this.emailService.decodeConfirmationToken(user.refresh_token);
                 } catch (error: any) {
                     const token = await this.emailService.sendConfirmationEmail(user.id, user.email);
                     await this.userRepository.update({ email: dto.email }, { refresh_token: token })
                     throw new BusinessException("The confirmation email link already send");
+                }
+                const decode = await this.emailService.decodeConfirmationToken(user.refresh_token);
+                if (decode) {
+                    throw new BusinessException("Please, click the link was send to your account before!")
                 }
             }
             throw new BusinessException("Your account is confirmed!");
