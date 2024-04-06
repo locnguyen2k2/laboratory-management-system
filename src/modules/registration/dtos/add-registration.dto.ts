@@ -6,7 +6,7 @@ import { IsDateGreaterThanOrEqualToday } from "src/common/decorators/date-valida
 import { ItemRegistration, RoomRegistration } from "../registration.constant";
 import { RegistrationEntity } from "../registration.entity";
 
-export class BaseRegistrationDto extends BaseDto {
+class BaseRegistrationDto extends BaseDto {
     @Expose()
     createBy: number;
 
@@ -49,8 +49,6 @@ export class AddRoomRegistrationDto extends BaseRegistrationDto {
     @IsNotEmpty()
     items: RoomRegistration[];
 }
-
-
 
 export class AddRoomItemRegistrationDto extends BaseRegistrationDto {
     @Expose()

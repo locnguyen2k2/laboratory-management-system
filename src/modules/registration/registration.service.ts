@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegistrationEntity } from "./registration.entity";
 import { Repository } from "typeorm";
-import { AddRegistrationDto, AddRoomItemRegistrationDto, AddRoomRegistrationDto } from "./dtos/add-registration.dto";
+import { AddRegistrationDto, AddRoomRegistrationDto } from "./dtos/add-registration.dto";
 import { UserService } from "../user/user.service";
 import { EquipmentService } from "../equipment/equipment.service";
 import { ToolsService } from "../tools/tools.service";
@@ -17,6 +17,8 @@ import { ItemRegistration, RoomRegistration } from "./registration.constant";
 import { RoomService } from "../rooms/room.service";
 import { RoomRegistrationService } from "./room_registration/room_registration.service";
 import { ScheduleService } from "../schedules/schedule.service";
+import { isEmpty } from "lodash";
+import { UserEntity } from "../user/user.entity";
 
 @Injectable()
 export class RegistrationService {
@@ -36,6 +38,12 @@ export class RegistrationService {
 
     async findAll() {
         return await this.registrationRepository.find()
+    }
+
+    async addRegistration(createBy: number, updateBy: number, uid: number) {
+        const user = await this.userService.findById(uid)
+        const registration = new RegistrationEntity({ createBy: createBy, updateBy: updateBy, user });
+        return await this.registrationRepository.save(registration);
     }
 
     async findById(id: number) {
@@ -67,148 +75,151 @@ export class RegistrationService {
         throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
-    async handleAddListItem(items: ItemRegistration[]) {
-        let listItem = {};
-        await Promise.all(items.map(async (item) => {
-            if (item.categoryId == CategoryEnum.EQUIPMENT && await this.equipmentService.findById(item.itemId)) {
-                if (listItem['equipment']?.length >= 1) {
-                    let isReplace = false;
-                    listItem['equipment']?.map(({ itemId }: any, index: any) => {
-                        if (itemId === item.itemId) {
-                            isReplace = true;
-                            listItem['equipment'][index].quantity += item.quantity;
-                            return;
-                        }
-                    })
-                    if (!isReplace)
-                        listItem = { ...listItem, equipment: [...listItem['equipment'], { itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
+    async handleItems(items: ItemRegistration[]) {
+        let listItem = [];
+        items.map(async (item) => {
+            if (isEmpty(listItem)) {
+                listItem = [{ ...item }];
+            } else {
+                const index = listItem.findIndex(value => value.itemId === item.itemId);
+                if (index !== -1 && item?.quantity) {
+                    listItem[index].quantity += item.quantity;
                 } else {
-                    listItem = { ...listItem, equipment: [{ itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
-                }
-            } else if (item.categoryId == CategoryEnum.TOOLS && await this.toolService.findById(item.itemId)) {
-                if (listItem['tools']?.length >= 1) {
-                    let isReplace = false;
-                    listItem['tools']?.map(({ itemId }: any, index: any) => {
-                        if (itemId === item.itemId) {
-                            isReplace = true;
-                            listItem['tools'][index].quantity += item.quantity;
-                            return;
-                        }
-                    })
-                    if (!isReplace)
-                        listItem = { ...listItem, tools: [...listItem['tools'], { itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
-                } else {
-                    listItem = { ...listItem, tools: [{ itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
-                }
-            } else if (item.categoryId == CategoryEnum.CHEMICALS && await this.chemicalService.findById(item.itemId)) {
-                if (listItem['chemicals']?.length >= 1) {
-                    let isReplace = false;
-                    listItem['chemicals']?.map(({ itemId }: any, index: any) => {
-                        if (itemId === item.itemId) {
-                            isReplace = true;
-                            listItem['chemicals'][index].quantity += item.quantity;
-                            return;
-                        }
-                    })
-                    if (!isReplace)
-                        listItem = { ...listItem, chemicals: [...listItem['chemicals'], { itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
-                } else {
-                    listItem = { ...listItem, chemicals: [{ itemId: item.itemId, categoryId: item.categoryId, quantity: item.quantity }] }
+                    listItem.push({ ...item });
                 }
             }
-        }))
-        return listItem;
+        })
+        if (listItem.length >= 1)
+            return listItem;
     }
 
-    async handleAddRoom(items: RoomRegistration[]) {
-        let listItem = {};
-        await Promise.all(items.map(async (item) => {
-            if (await this.roomService.findById(item.itemId) && item?.schedules.length >= 1) {
-                let checkSchedule = true;
-                await Promise.all(item.schedules.map(async (id: number) => {
-                    if (!(await this.scheduleService.findById(id))) {
-                        checkSchedule = false;
-                        return;
-                    }
-                }))
-                if (checkSchedule) {
-                    if (listItem['rooms']?.length >= 1) {
-                        let isReplace = false;
-                        listItem['rooms']?.map(({ itemId }: any, index: any) => {
-                            if (itemId === item.itemId) {
-                                isReplace = true;
-                                return;
-                            }
-                        })
-                        if (!isReplace)
-                            listItem = { ...listItem, rooms: [...listItem['rooms'], { itemId: item.itemId, schedules: item.schedules }] }
-                    } else {
-                        listItem = { ...listItem, rooms: [{ itemId: item.itemId, schedules: item.schedules }] }
-                    }
+    async handleRooms(items: RoomRegistration[]) {
+        let listItem = [];
+        items.map(async (item) => {
+            if (isEmpty(listItem)) {
+                listItem = [{ ...item }];
+            } else {
+                const index = listItem.findIndex(value => value.itemId === item.itemId);
+                if (index !== -1) {
+                    listItem[index].schedules = [...new Set([...listItem[index].schedules, ...item.schedules])];
+                } else {
+                    listItem.push({ ...item });
                 }
             }
-        }))
-        return listItem;
+        })
+        if (listItem.length >= 1)
+            return listItem;
     }
 
     async createRegistration(data: AddRegistrationDto) {
-        // Check: date
-        const { start_day, end_day } = data;
+
+        const { start_day, end_day, items } = data;
+        delete data.items;
+        let isCategory = true;
+        let isItem = true;
+        // Check: date, categories, equipment, tools, chemicals, rooms
         if (start_day > end_day) {
             throw new BusinessException(ErrorEnum.INVALID_DATE);
         }
-        // Check: categories
-        data.items.some((item: ItemRegistration) => {
+        await Promise.all(items.map(async (item: ItemRegistration) => {
             if (!(item.categoryId in [CategoryEnum.EQUIPMENT, CategoryEnum.CHEMICALS, CategoryEnum.TOOLS])) {
-                throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+                isCategory = false;
+                return;
             }
-        })
-        // Check: Equipment, tools, chemicals, rooms
-        const handleAddList = await this.handleAddListItem(data.items);
-
-        const user = await this.userService.findById(data.user)
-        const registration = new RegistrationEntity({ createBy: data.createBy, updateBy: data.updateBy, user });
-        await this.registrationRepository.save(registration);
-        delete data.items;
-        if (handleAddList?.['equipment']?.length >= 1 || handleAddList?.['tools']?.length >= 1 || handleAddList?.['chemicals']?.length >= 1) {
-            handleAddList?.['equipment']?.map(async ({ itemId, quantity }) => {
-                await this.equipmentRegService.addEquipmentReg({ itemId, quantity, ...data, registration })
-            })
-            handleAddList?.['tools']?.map(async ({ itemId, quantity }): Promise<any> => {
-                await this.toolRegService.addToolReg({ itemId, quantity, ...data, registration })
-            })
-            handleAddList?.['chemicals']?.map(async ({ itemId, quantity }): Promise<any> => {
-                await this.chemicalRegService.addChemicalReg({ itemId, quantity, ...data, registration })
-            })
-            throw new BusinessException("Registration is successfull");
+            if (!(item.quantity >= 1)) {
+                isItem = false;
+                return;
+            }
+            if (item.categoryId === CategoryEnum.EQUIPMENT && !(await this.equipmentService.findById(item.itemId))) {
+                isItem = false;
+                return;
+            }
+            if (item.categoryId === CategoryEnum.TOOLS && !(await this.toolService.findById(item.itemId))) {
+                isItem = false;
+                return;
+            }
+            if (item.categoryId === CategoryEnum.CHEMICALS && !(await this.chemicalService.findById(item.itemId))) {
+                isItem = false;
+                return;
+            }
+        }))
+        if (!isCategory) {
+            throw new BusinessException('404:The category should be (0, 1, 2)!');
         }
-        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+        if (!isItem) {
+            throw new BusinessException("404:Item not found or quantity is less than 1!")
+        }
+
+        let equipment = items.filter(item => item.categoryId === CategoryEnum.EQUIPMENT)
+        let chemicals = items.filter(item => item.categoryId === CategoryEnum.CHEMICALS)
+        let tools = items.filter(item => item.categoryId === CategoryEnum.TOOLS)
+
+        equipment = await this.handleItems(equipment)
+        chemicals = await this.handleItems(chemicals)
+        tools = await this.handleItems(tools)
+
+        if (!equipment && !chemicals && !tools) {
+            throw new BusinessException('404:Nothing changes')
+        }
+
+        const registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
+        equipment?.map(async ({ itemId, quantity }) => {
+            await this.equipmentRegService.addEquipmentReg({ itemId, quantity, ...data, registration })
+        })
+        tools?.map(async ({ itemId, quantity }) => {
+            await this.toolRegService.addToolReg({ itemId, quantity, ...data, registration })
+        })
+        chemicals?.map(async ({ itemId, quantity }) => {
+            await this.chemicalRegService.addChemicalReg({ itemId, quantity, ...data, registration })
+        })
+        throw new BusinessException("Registration is success")
     }
 
     async createRoomRegistration(data: AddRoomRegistrationDto) {
         // Check: date
-        const { start_day, end_day } = data;
+        const { start_day, end_day, items } = data;
+        let isNotExistSchedule = false;
+        let isRoom = true;
+        delete data.items;
         if (start_day > end_day) {
             throw new BusinessException(ErrorEnum.INVALID_DATE);
         }
-        // Check: Equipment, tools, chemicals, rooms
-        const handleAddList = await this.handleAddRoom(data.items);
-        const user = await this.userService.findById(data.user)
-        const registration = new RegistrationEntity({ createBy: data.createBy, updateBy: data.updateBy, user });
-        await this.registrationRepository.save(registration);
-        delete data.items;
-        let add = true;
-        if (handleAddList?.['rooms']?.length >= 1) {
-            await Promise.all(handleAddList?.['rooms']?.map(async ({ itemId, schedules }): Promise<any> => {
+        // Check: rooms
+        await Promise.all(items.map(async (item: RoomRegistration) => {
+            if (!(await this.roomService.findById(item.itemId)) || !(item?.schedules.length >= 1)) {
+                isRoom = false;
+                return;
+            }
+        }))
+        if (!isRoom) {
+            throw new BusinessException("404:Item or schedules is empty!")
+        }
+        // Check: schedules
+        items.map(async ({ schedules }) => {
+            if (isNotExistSchedule) {
+                return;
+            }
+            isNotExistSchedule = schedules.some(scheduleId => (scheduleId > 13 || scheduleId < 1))
+        })
+        if (isNotExistSchedule) {
+            throw new BusinessException("404:Schedule does not exist!");
+        }
+        const rooms = await this.handleRooms(items);
+
+        if (rooms.length >= 1) {
+            let add = false;
+            const registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
+            await Promise.all(rooms?.map(async ({ itemId, schedules }): Promise<any> => {
                 add = await this.roomRegService.addRoomRegstration({ itemId, schedules, registration, ...data })
                 if (!add)
                     return;
             }))
             if (!add) {
-                throw new BadRequestException('Room is registrated!')
+                await this.registrationRepository.delete({ id: registration.id })
+                throw new BusinessException('404:Room is registrated!')
             }
-            throw new BusinessException("Registration is successfull");
+            throw new BusinessException("Registration is success")
         }
-        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+        throw new BusinessException('404:Nothing changes')
     }
 }

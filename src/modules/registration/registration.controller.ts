@@ -13,6 +13,12 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 @ApiTags('Registration')
 export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
+
+    @Get()
+    async getAll() {
+        return await this.registrationService.findAll()
+    }
+
     @Roles(UserRole.ADMIN)
     @UseGuards(JwtGuard, RolesGuard)
     @Post('')
@@ -20,11 +26,6 @@ export class RegistrationController {
         dto.createBy = dto.updateBy = req.user.id;
         const data = AddRegistrationDto.plainToClass(dto);
         return await this.registrationService.createRegistration(data)
-    }
-
-    @Get()
-    async getAll() {
-        return await this.registrationService.findAll()
     }
 
     @Roles(UserRole.ADMIN)

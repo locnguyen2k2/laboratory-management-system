@@ -13,7 +13,9 @@ export class ScheduleService {
     ) { }
 
     async findById(id: number) {
-        return (await this.scheduleRepository.find({ where: { id } }))[0];
+        const schedule = (await this.scheduleRepository.find({ where: { id } }))[0];
+        if (schedule)
+            return schedule;
     }
 
     async findDetailByRegistrationId(roomRegId: number) {
