@@ -19,20 +19,18 @@ export class RegistrationController {
         return await this.registrationService.findAll()
     }
 
-    @Roles(UserRole.ADMIN)
-    @UseGuards(JwtGuard, RolesGuard)
+    @UseGuards(JwtGuard)
     @Post('')
     async createRegistration(@Body() dto: AddRegistrationDto, @Request() req: any) {
-        dto.createBy = dto.updateBy = req.user.id;
+        dto.createBy = dto.updateBy = dto.user = req.user.id;
         const data = AddRegistrationDto.plainToClass(dto);
         return await this.registrationService.createRegistration(data)
     }
 
-    @Roles(UserRole.ADMIN)
-    @UseGuards(JwtGuard, RolesGuard)
+    @UseGuards(JwtGuard)
     @Post('/rooms')
     async createRoomRegistration(@Body() dto: AddRoomRegistrationDto, @Request() req: any) {
-        dto.createBy = dto.updateBy = req.user.id;
+        dto.createBy = dto.updateBy = dto.user = req.user.id;
         const data = AddRoomRegistrationDto.plainToClass(dto);
         return await this.registrationService.createRoomRegistration(data)
     }

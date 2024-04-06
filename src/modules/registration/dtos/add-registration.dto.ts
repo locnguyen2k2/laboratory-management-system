@@ -13,7 +13,6 @@ class BaseRegistrationDto extends BaseDto {
     @Expose()
     updateBy: number;
 
-    @ApiProperty({ default: null })
     @Expose()
     @IsNumber()
     @IsNotEmpty()
