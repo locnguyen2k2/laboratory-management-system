@@ -16,7 +16,7 @@ export class RoomService {
         return this.roomRepository
             .createQueryBuilder("item")
             .leftJoinAndSelect('item.category', 'category')
-            .select(['item', 'category.id', 'category.name'])
+            .select(['item'])
             .getMany();
     }
 
