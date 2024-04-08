@@ -10,7 +10,6 @@ import { CategoryService } from "../categories/category.service";
 export class RoomService {
     constructor(
         @InjectRepository(RoomEntity) private readonly roomRepository: Repository<RoomEntity>,
-        private readonly categoryService: CategoryService,
     ) { }
 
     async findAll() {
@@ -25,8 +24,6 @@ export class RoomService {
         const item = await this.roomRepository
             .createQueryBuilder("item")
             .where({ id: id })
-            .leftJoinAndSelect('item.category', 'category')
-            .select(['item', 'category.id', 'category.name'])
             .getOne()
         if (item)
             return item;
@@ -47,9 +44,7 @@ export class RoomService {
         if (room) {
             throw new HttpException(`The room is existed`, HttpStatus.BAD_REQUEST);
         }
-        const category = await this.categoryService.findById(data.categoryId);
-        delete data.categoryId;
-        const newItem = await this.roomRepository.save(new RoomEntity({ ...data, category: category }));
+        const newItem = await this.roomRepository.save(new RoomEntity({ ...data }));
         return newItem;
     }
 

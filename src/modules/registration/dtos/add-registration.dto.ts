@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { BaseDto } from "src/common/dtos/base.dto";
 import { IsDateString, IsNotEmpty, IsNumber } from "class-validator";
 import { IsDateGreaterThanOrEqualToday } from "src/common/decorators/date-validation.decorate";
-import { ItemRegistration, RoomRegistration } from "../registration.constant";
+import { ItemRegistration } from "../registration.constant";
 import { RegistrationEntity } from "../registration.entity";
 
 class BaseRegistrationDto extends BaseDto {
@@ -14,8 +14,6 @@ class BaseRegistrationDto extends BaseDto {
     updateBy: number;
 
     @Expose()
-    @IsNumber()
-    @IsNotEmpty()
     user: number;
 
     @ApiProperty({ default: "YY-MM-DD" })
@@ -35,31 +33,10 @@ class BaseRegistrationDto extends BaseDto {
 
 export class AddRegistrationDto extends BaseRegistrationDto {
 
-    @ApiProperty({ default: [{ itemId: null, quantity: null, categoryId: null }] })
+    @ApiProperty({ default: [{ itemId: null, quantity: 1 }] })
     @Expose()
     @IsNotEmpty()
     items: ItemRegistration[];
-}
-
-export class AddRoomRegistrationDto extends BaseRegistrationDto {
-
-    @ApiProperty({ default: [{ itemId: null, schedules: [] }] })
-    @Expose()
-    @IsNotEmpty()
-    items: RoomRegistration[];
-}
-
-export class AddRoomItemRegistrationDto extends BaseRegistrationDto {
-    @Expose()
-    @IsNotEmpty()
-    itemId: number;
-
-    @Expose()
-    @IsNotEmpty()
-    schedules: number[];
-
-    @Expose()
-    registration: RegistrationEntity;
 }
 
 export class AddItemRegistrationDto extends BaseRegistrationDto {

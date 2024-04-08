@@ -14,10 +14,6 @@ export class AddRoomDto extends BaseDto {
     @Validate(IsValidString)
     name: string;
 
-    @Expose()
-    @Transform(() => 1)
-    quantity: number;
-
     @ApiProperty({ default: RoomStatus.AVAILABLE })
     @Expose()
     @IsNotEmpty()
@@ -29,7 +25,4 @@ export class AddRoomDto extends BaseDto {
     @Expose()
     updateBy: number;
 
-    @Expose()
-    @Transform(() => CategoryEnum.ROOM)
-    categoryId: number;
 }

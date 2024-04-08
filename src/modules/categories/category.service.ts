@@ -3,7 +3,6 @@ import { Repository } from "typeorm";
 import { CategoryEntity } from "./category.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AddCategoryDto } from "./dtos/add-category.dto";
-import { plainToClass } from "class-transformer";
 import { UpdateDto } from "./dtos/update.dto";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
