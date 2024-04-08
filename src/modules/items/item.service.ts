@@ -38,8 +38,8 @@ export class ItemService {
         return (
             await this.itemRepository
                 .createQueryBuilder("item")
-                .where('(replace(item.name, \' \', \'\') LIKE :name && (replace(item.specification, \' \', \'\') LIKE = :specification)',
-                    { name: name.replace(/\s/g, ""), specification })
+                .where('(replace(item.name, \' \', \'\') LIKE :name && replace(item.specification, \' \', \'\') LIKE :specification)',
+                    { name: name.replace(/\s/g, ""), specification: specification.replace(/\s/g, "") })
                 .getOne()
         )
     }
