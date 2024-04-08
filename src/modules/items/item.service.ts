@@ -34,12 +34,12 @@ export class ItemService {
             return item
     }
 
-    async findByName(name: string) {
+    async findByName(name: string, specification: string) {
         return (
             await this.itemRepository
                 .createQueryBuilder("item")
-                .where('replace(item.name, \' \', \'\') LIKE :name',
-                    { name: name.replace(/\s/g, "") })
+                .where('(replace(item.name, \' \', \'\') LIKE :name && item.specification = :specification)',
+                    { name: name.replace(/\s/g, ""), specification })
                 .getOne()
         )
     }
@@ -56,8 +56,8 @@ export class ItemService {
     }
 
     async add(data: AddItemDto) {
-        const item = await this.findByName(data.name);
-        if (item && item?.specification === data.specification) {
+        const item = await this.findByName(data.name, data.specification);
+        if (item) {
             throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
         }
         const category = await this.categoryService.findById(data.categoryId);
@@ -74,7 +74,7 @@ export class ItemService {
         const category = await this.categoryService.findById(data.categoryId)
         delete data.categoryId
         if (item) {
-            const isExisted = await this.findByName(data.name);
+            const isExisted = await this.findByName(data.name, item.specification);
             if (isExisted && isExisted.id !== id) {
                 throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
             }
