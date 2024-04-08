@@ -57,7 +57,7 @@ export class ItemService {
 
     async add(data: AddItemDto) {
         const item = await this.findByName(data.name);
-        if (item) {
+        if (item && item?.specification === data.specification) {
             throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
         }
         const category = await this.categoryService.findById(data.categoryId);
