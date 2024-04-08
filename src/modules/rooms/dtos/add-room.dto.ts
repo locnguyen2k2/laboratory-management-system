@@ -1,12 +1,16 @@
+import { Expose } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Transform } from "class-transformer";
-import { IsString, IsNotEmpty, Validate, IsNumber, Min, IsEnum, IsEmail } from "class-validator";
-import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { RoomStatus } from "./../room.constant";
-import { CategoryEnum } from "src/modules/categories/category.constant";
 import { BaseDto } from "src/common/dtos/base.dto";
+import { IsString, IsNotEmpty, Validate, IsEnum } from "class-validator";
+import { IsValidString } from "src/common/decorators/string-validation.decorator";
 
 export class AddRoomDto extends BaseDto {
+    @Expose()
+    createBy: number;
+    @Expose()
+    updateBy: number;
+
     @ApiProperty({ default: "" })
     @Expose()
     @IsString()
@@ -19,10 +23,4 @@ export class AddRoomDto extends BaseDto {
     @IsNotEmpty()
     @IsEnum(RoomStatus)
     status: number;
-
-    @Expose()
-    createBy: number;
-    @Expose()
-    updateBy: number;
-
 }

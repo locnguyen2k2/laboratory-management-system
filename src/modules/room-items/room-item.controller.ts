@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Request, UseGuards, Get } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { RoomItemService } from "./room_item.service";
-import { AddRoomItemDto } from "./dtos/add-room_item.dto";
+import { RoomItemService } from "./room-item.service";
+import { AddRoomItemDto } from "./dtos/add-roomItem.dto";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { UserRole } from "../user/user.constant";

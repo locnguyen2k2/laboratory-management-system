@@ -1,7 +1,7 @@
 import { Controller, Post } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ItemRegistrationEntity } from "./item_registration.entity";
+import { ItemRegistrationEntity } from "./item-registration.entity";
 import { Repository } from "typeorm";
 
 @Controller('equipments')

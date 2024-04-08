@@ -2,7 +2,7 @@ import { CommonEntity, ExtendedEntity } from "src/common/entity/common.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToOne, Relation } from "typeorm";
 import { RoomEntity } from "./../rooms/room.entity";
 import { ItemEntity } from "src/modules/items/item.entity";
-import { HandoverStatusEntity } from "src/modules/handover_status/handover_status.entity";
+import { ItemStatusEntity } from "src/modules/item-status/item-status.entity";
 import { Length } from "class-validator";
 
 @Entity('room_item_entity')
@@ -16,9 +16,9 @@ export class RoomItemEntity extends ExtendedEntity {
     @JoinColumn({ name: 'item_id' })
     item: Relation<ItemEntity>
 
-    @ManyToOne(() => HandoverStatusEntity, handoverStatus => handoverStatus.roomItem)
-    @JoinColumn({ name: 'handover_status_id' })
-    handover_status: Relation<HandoverStatusEntity>
+    @ManyToOne(() => ItemStatusEntity, itemStatus => itemStatus.roomItem)
+    @JoinColumn({ name: 'item_status_id' })
+    item_status: Relation<ItemStatusEntity>
 
     @Column()
     quantity: number

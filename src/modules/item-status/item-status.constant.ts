@@ -1,4 +1,4 @@
-export class HandoverStatusEnum {
+export class ItemStatusEnum {
     BOTTLE = 1;
     PEACE = 2;
     SET = 3;

@@ -4,7 +4,6 @@ import { RoomEntity } from "./room.entity";
 import { Repository } from "typeorm";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 import { AddRoomDto } from "./dtos/add-room.dto";
-import { CategoryService } from "../categories/category.service";
 
 @Injectable()
 export class RoomService {

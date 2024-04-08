@@ -1,9 +1,9 @@
 import { ExtendedEntity } from "src/common/entity/common.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
-import { ItemRegistrationEntity } from "./../registration/item_registration/item_registration.entity";
+import { ItemRegistrationEntity } from "./../item-registration/item-registration.entity";
 import { CategoryEntity } from "../categories/category.entity";
 import { UnitEntity } from "../units/unit.entity";
-import { RoomItemEntity } from "./../room_items/room_item.entity";
+import { RoomItemEntity } from "./../room-items/room-item.entity";
 
 @Entity('item_entity')
 export class ItemEntity extends ExtendedEntity {

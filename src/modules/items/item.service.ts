@@ -49,7 +49,7 @@ export class ItemService {
             .createQueryBuilder("item")
             .leftJoinAndSelect('item.category', 'category')
             .where('(category.id = :categoryId)', { categoryId: categoryId })
-            .select(['item', 'category.id', 'category.name'])
+            .select(['item'])
             .getMany()
         if (item)
             return item

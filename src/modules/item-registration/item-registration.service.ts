@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ItemRegistrationEntity } from "./item_registration.entity";
+import { ItemRegistrationEntity } from "./item-registration.entity";
 import { Repository } from "typeorm";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
-import { AddItemRegistrationDto } from "../dtos/add-registration.dto";
+import { IAddItemRegistration } from "./interfaces/add-registration.interface";
 import { ItemService } from "src/modules/items/item.service";
 
 @Injectable()
@@ -26,20 +26,22 @@ export class ItemRegistrationService {
 
     }
 
-    async findByUserDayItem(uid: number, startDay: string, endDay: string, id: number) {
+    async findByUserDayItem(uid: number, startDay: string, endDay: string, id: number, roomid: number) {
         const registration = await this.itemRegistrationRepository.createQueryBuilder('registration')
             .leftJoinAndSelect('registration.item', 'item')
-            .where('(registration.start_day >= :startDay AND registration.start_day <= :endDay AND item.id = :id && registration.createBy = :uid)', { startDay, endDay, id, uid })
-            .orWhere('(registration.end_day >= :startDay AND registration.end_day <= :endDay AND item.id = :id && registration.createBy = :uid)', { startDay, endDay, id, uid })
-            .select(['registration.start_day', 'registration.quantity', 'registration.end_day', 'registration.id', 'item.id', 'item.name'])
+            .leftJoinAndSelect('registration.room', 'room')
+            .where('(registration.start_day >= :startDay AND registration.start_day <= :endDay AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
+            .orWhere('(registration.end_day >= :startDay AND registration.end_day <= :endDay AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
+            .select(['registration.start_day', 'registration.quantity', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'item.id', 'item.name'])
             .getOne()
         if (registration)
             return registration
     }
 
-    async addItemReg(data: AddItemRegistrationDto) {
+    async addItemReg(data: IAddItemRegistration) {
         let isReplace = false;
-        const itemRegistration = await this.findByUserDayItem(data.createBy, data.start_day, data.end_day, data.itemId)
+        const roomid = data.room.id
+        const itemRegistration = await this.findByUserDayItem(data.user, data.start_day, data.end_day, data.itemId, roomid)
         if (itemRegistration) {
             if (data.end_day >= itemRegistration.end_day) {
                 isReplace = true;

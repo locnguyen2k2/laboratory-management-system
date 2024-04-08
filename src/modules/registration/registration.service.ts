@@ -2,23 +2,25 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegistrationEntity } from "./registration.entity";
 import { Repository } from "typeorm";
-import { AddRegistrationDto } from "./dtos/add-registration.dto";
+import { AddItemRegistrationDto } from "./../item-registration/dtos/add-registration.dto";
 import { UserService } from "../user/user.service";
 import { ItemService } from "../items/item.service";
-import { CategoryEnum } from "../categories/category.constant";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
-import { ItemRegistrationService } from "./item_registration/item_registration.service";
+import { ItemRegistrationService } from "./../item-registration/item-registration.service";
 import { ItemRegistration } from "./registration.constant";
 import { isEmpty } from "lodash";
+import { RoomService } from "../rooms/room.service";
+import { RoomItemService } from "../room-items/room-item.service";
 
 @Injectable()
 export class RegistrationService {
     constructor(
         @InjectRepository(RegistrationEntity) private readonly registrationRepository: Repository<RegistrationEntity>,
         private readonly userService: UserService,
-        private readonly itemService: ItemService,
+        private readonly roomService: RoomService,
         private readonly itemRegistrationServce: ItemRegistrationService,
+        private readonly roomItemService: RoomItemService
     ) { }
 
     async findAll() {
@@ -27,8 +29,11 @@ export class RegistrationService {
 
     async addRegistration(createBy: number, updateBy: number, uid: number) {
         const user = await this.userService.findById(uid)
-        const registration = new RegistrationEntity({ createBy: createBy, updateBy: updateBy, user });
-        return await this.registrationRepository.save(registration);
+        if (user) {
+            const registration = new RegistrationEntity({ createBy: createBy, updateBy: updateBy, user });
+            return await this.registrationRepository.save(registration);
+        }
+        throw new BusinessException("404:Room not found!")
     }
 
     async findById(id: number) {
@@ -63,8 +68,8 @@ export class RegistrationService {
             if (isEmpty(listItem)) {
                 listItem = [{ ...item }];
             } else {
-                const index = listItem.findIndex(value => value.itemId === item.itemId);
-                if (index !== -1 && item?.quantity) {
+                const index = listItem.findIndex(value => (value.itemId === item.itemId && value.roomId === item.roomId));
+                if (index !== -1 && item.quantity) {
                     listItem[index].quantity += item.quantity;
                 } else {
                     listItem.push({ ...item });
@@ -75,7 +80,7 @@ export class RegistrationService {
             return listItem;
     }
 
-    async createRegistration(data: AddRegistrationDto) {
+    async createRegistration(data: AddItemRegistrationDto) {
 
         const { start_day, end_day, items } = data;
         delete data.items;
@@ -89,7 +94,7 @@ export class RegistrationService {
                 isItem = false;
                 return;
             }
-            if (!(await this.itemService.findById(item.itemId))) {
+            if (!(await this.roomItemService.isRoomHasItem(item.roomId, item.itemId))) {
                 isItem = false;
                 return;
             }
@@ -102,17 +107,16 @@ export class RegistrationService {
         if (!handleItems) {
             throw new BusinessException('404:Nothing changes')
         }
-        let isCreated = false;
-        const registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
-        await Promise.all(handleItems?.map(async ({ itemId, quantity }) => {
-            await this.itemRegistrationServce.addItemReg({ itemId, quantity, ...data, registration })
+        await Promise.all(handleItems?.map(async ({ itemId, quantity, roomId }) => {
+            const room = await this.roomService.findById(roomId);
+            const registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
+            await this.itemRegistrationServce.addItemReg({ ...data, start_day, end_day, itemId, quantity, registration, room })
             const items = await this.itemRegistrationServce.findByRegistrationId(registration.id)
-            if (!isEmpty(items)) {
-                isCreated = true;
+            if (isEmpty(items)) {
+                await this.registrationRepository.delete({ id: registration.id })
             }
         }))
-        if (!isCreated)
-            await this.registrationRepository.delete({ id: registration.id })
-        throw new BusinessException("Registration is success")
+
+        throw new BusinessException('Create registration item is successful')
     }
 }

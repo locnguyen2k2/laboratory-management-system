@@ -14,8 +14,8 @@ import { RegistrationModule } from './modules/registration/registration.module';
 import { RoomModule } from './modules/rooms/room.module';
 import { CategoryModule } from './modules/categories/category.module';
 import { UnitModule } from './modules/units/unit.module';
-import { HandoverStatusModule } from './modules/handover_status/handover_status.module';
-import { RoomItemModule } from './modules/room_items/room_item.module';
+import { ItemStatusModule } from './modules/item-status/item-status.module';
+import { RoomItemModule } from './modules/room-items/room-item.module';
 
 const modules = [
   DatabaseModule,
@@ -28,7 +28,7 @@ const modules = [
   RoomModule,
   RegistrationModule,
   RoomItemModule,
-  HandoverStatusModule,
+  ItemStatusModule,
   UnitModule,
 ]
 

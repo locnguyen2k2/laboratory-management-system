@@ -35,7 +35,7 @@ export class AddItemDto extends BaseDto {
     @ApiProperty({ default: 1 })
     @Expose()
     @IsNumber()
-    @Min(0)
+    @Min(1)
     @IsNotEmpty()
     quantity: number;
 

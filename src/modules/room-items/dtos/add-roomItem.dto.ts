@@ -9,21 +9,25 @@ export class AddRoomItemDto extends BaseDto {
     @IsNotEmpty()
     @IsNumber()
     roomId: number
+
     @ApiProperty({ default: '' })
     @Expose()
     @IsNotEmpty()
     @IsNumber()
     itemId: number;
+
     @ApiProperty({ default: '' })
     @Expose()
     @IsNotEmpty()
     @IsNumber()
-    handover_statusId: number;
+    item_status: number;
+
     @ApiProperty({ default: '' })
     @Expose()
     @IsNotEmpty()
     @IsNumber()
     quantity: number;
+    
     @ApiProperty({ default: '' })
     @Expose()
     @IsNotEmpty()
