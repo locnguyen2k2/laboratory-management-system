@@ -15,8 +15,6 @@ export class RoomService {
     async findAll() {
         return this.roomRepository
             .createQueryBuilder("item")
-            .leftJoinAndSelect('item.category', 'category')
-            .select(['item'])
             .getMany();
     }
 
