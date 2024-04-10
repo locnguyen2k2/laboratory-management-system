@@ -76,7 +76,7 @@ export class AuthService {
         }
     }
 
-    async register(user: any): Promise<any> {
+    async register(user: (RegisterUserDto | RegisterManagerDto | RegisterAdminDto)): Promise<any> {
         return await this.userService.create(user)
     }
 
