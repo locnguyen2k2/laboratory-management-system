@@ -99,13 +99,13 @@ export class UserService {
             user.password = await bcrypt.hashSync(user.password, 10);
             const newUser = new UserEntity(user);
             await this.userRepository.save(newUser);
-            if (user.role === 2) {
-                const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-                await this.userRepository.update({ email: email }, { refresh_token })
-                throw new BusinessException("Confirm your account by the link was send to your email!");
+            if (user.role !== 2) {
+                await this.update(newUser.id, { ...newUser, status: UserStatus.ACTIVE })
+                return await this.findById(newUser.id)
             }
-            await this.update(newUser.id, { ...newUser, status: UserStatus.ACTIVE })
-            return await this.findById(newUser.id)
+            const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
+            await this.userRepository.update({ email: email }, { refresh_token })
+            throw new BusinessException("Confirm your account by the link was send to your email!");
         }
     }
     async createWithGoogle(data: GoogleRedirectDto): Promise<Credential> {
