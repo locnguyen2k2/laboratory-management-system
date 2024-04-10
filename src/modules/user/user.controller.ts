@@ -11,7 +11,7 @@ import { Roles } from "./../../common/decorators/roles.decorator";
 import { RolesGuard } from "./../../modules/auth/guard/roles-auth.guard";
 import { ConfirmationEmailDto } from "./dtos/confirmationEmail-auth.dto";
 import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query, Post } from "@nestjs/common";
-import { ForgotPasswordDto } from "./dtos/password.dto";
+import { ForgotPasswordDto, PasswordUpdateDto } from "./dtos/password.dto";
 import { UserEntity } from "./user.entity";
 import { AccountInfo } from "./interfaces/AccountInfo.interface";
 
@@ -71,15 +71,22 @@ export class UserController {
         return await this.userService.userConfirmation(data);
     }
 
-    @Post('forget-password')
-    async resetPassword(@Body() dto: ResetPaswordDto): Promise<any> {
+    @Post('forgot-password')
+    async fogotPassword(@Body() dto: ResetPaswordDto): Promise<any> {
         const data = ResetPaswordDto.plainToClass(dto);
-        return await this.userService.resetPassword(data.email);
+        return await this.userService.forgotPassword(data.email);
     }
 
     @Patch('update-password')
     async updatePassword(@Body() dto: ForgotPasswordDto) {
         const data = ForgotPasswordDto.plainToClass(dto);
         return await this.userService.confirmRePassword(data)
+    }
+
+    @Patch('reset-password')
+    @UseGuards(JwtGuard)
+    async resetPassword(@Body() dto: PasswordUpdateDto, @Request() req: any) {
+        const data = PasswordUpdateDto.plainToClass(dto);
+        return await this.userService.resetPassword(req.user.id, data)
     }
 }  

@@ -6,7 +6,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UpdateAdminDto } from "./dtos/update.dto";
 import { MailService } from '../email/mail.service';
 import { UserStatus } from "./user.constant";
-import { ForgotPasswordDto } from './dtos/password.dto';
+import { ForgotPasswordDto, PasswordUpdateDto } from './dtos/password.dto';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 import { UpdateUserDto } from "./dtos/update.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
@@ -17,6 +17,7 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { Credential } from '../auth/interfaces/credential.interface';
 import { JwtPayload } from '../auth/interfaces/jwt.interface';
+import { RoleEnum } from 'src/enums/role-enum.enum';
 
 @Injectable({})
 export class UserService {
@@ -89,14 +90,20 @@ export class UserService {
         const { email, password, confirmPassword } = user;
         if (await this.emailService.isCtuetEmail(email)) {
             const isExisted = await this.findByEmail(email);
-            if (isExisted) {
+            if (isExisted && isExisted.password) {
                 throw new BusinessException(ErrorEnum.USER_EXISTS);
             };
             if (password !== confirmPassword) {
                 throw new BusinessException(ErrorEnum.PASSWORD_VERIFICATION_FAILED);
             };
             delete user.confirmPassword;
-            user.password = await bcrypt.hashSync(user.password, 10);
+            const newPassword = await bcrypt.hashSync(user.password, 10);
+            if (isExisted) {
+                await this.userRepository.update({ id: isExisted.id }, { password: newPassword, status: UserStatus.UNACTIVE })
+                const refresh_token = await this.emailService.sendConfirmationEmail(isExisted.id, isExisted.email);
+                await this.userRepository.update({ email: isExisted.email }, { refresh_token })
+                throw new BusinessException("Confirm your account by the link was send to your email!");
+            }
             const newUser = new UserEntity(user);
             await this.userRepository.save(newUser);
             if (!(user.role)) {
@@ -112,8 +119,8 @@ export class UserService {
         const { email } = data;
         if (await this.emailService.isCtuetEmail(email)) {
             const user = await this.findByEmail(email);
-            if ((user && user.password) || user?.status == UserStatus.DISABLE) {
-                throw new BusinessException(ErrorEnum.USER_EXISTS)
+            if (user?.status == UserStatus.DISABLE) {
+                throw new BusinessException(ErrorEnum.USER_IS_BLOCKED)
             };
             if (user?.status == UserStatus.UNACTIVE) {
                 delete user.status;
@@ -204,7 +211,7 @@ export class UserService {
         }
         throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
     }
-    async resetPassword(email: string): Promise<any> {
+    async forgotPassword(email: string): Promise<any> {
         const isExisted = await this.findByEmail(email);
         if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
             throw new BusinessException(ErrorEnum.USER_INVALID)
@@ -223,7 +230,6 @@ export class UserService {
             throw new BusinessException("Please, check your digital numbers in your email before!");
         };
     }
-
     async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
         if (!user || user.status == UserStatus.DISABLE) {
@@ -257,5 +263,15 @@ export class UserService {
             throw new BusinessException("Your account is confirmed!");
         }
         throw new BusinessException(ErrorEnum.USER_INVALID);
+    }
+    async resetPassword(id: number, data: PasswordUpdateDto) {
+        const user = await this.findById(id);
+        const isTrue = await bcrypt.compareSync(data.oldPassword, user.password)
+        if (isTrue) {
+            const newPassword = await bcrypt.hashSync(data.newPassword, 10);
+            await this.userRepository.update(id, { password: newPassword })
+            throw new BusinessException("The password is changed")
+        }
+        throw new BusinessException("400:Old password is incorrect!")
     }
 }
