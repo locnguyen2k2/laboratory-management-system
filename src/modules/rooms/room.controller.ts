@@ -10,8 +10,8 @@ import { AddRoomDto } from "./dtos/add-room.dto";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 
 @Controller('rooms')
-@ApiBearerAuth()
 @ApiTags('Rooms')
+@ApiBearerAuth()
 export class RoomController {
     constructor(
         private readonly roomService: RoomService

@@ -10,8 +10,8 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateDto } from "./dtos/update.dto";
 
 @Controller('categories')
-@ApiBearerAuth()
 @ApiTags('Categories')
+@ApiBearerAuth()
 export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService,

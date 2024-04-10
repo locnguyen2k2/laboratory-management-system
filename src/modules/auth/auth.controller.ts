@@ -15,8 +15,8 @@ import { Credential } from "./interfaces/credential.interface";
 import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
 
 @Controller('auths')
-@ApiBearerAuth()
 @ApiTags('Auths')
+@ApiBearerAuth()
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 

@@ -9,9 +9,9 @@ import { AddItemStatusDto } from "./dtos/add-itemStatus.dto";
 import { UpdateItemStatusDto } from "./dtos/update-itemStatus.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 
-@Controller('handover-status')
+@Controller('item-status')
 @ApiBearerAuth()
-@ApiTags('Handover Status')
+@ApiTags('Item Status')
 export class ItemStatusController {
     constructor(
         private readonly itemStatusService: ItemStatusService,

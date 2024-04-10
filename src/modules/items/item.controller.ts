@@ -10,8 +10,8 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 
 @Controller('items')
-@ApiBearerAuth()
 @ApiTags('Items')
+@ApiBearerAuth()
 export class ItemController {
     constructor(
         private readonly itemService: ItemService

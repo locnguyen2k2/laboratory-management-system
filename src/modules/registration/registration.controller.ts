@@ -6,8 +6,8 @@ import { AddItemRegistrationDto } from "./../item-registration/dtos/add-registra
 import { IdParam } from "src/common/decorators/id-param.decorator";
 
 @Controller("registration")
-@ApiBearerAuth()
 @ApiTags('Registration')
+@ApiBearerAuth()
 export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
 
@@ -16,8 +16,8 @@ export class RegistrationController {
         return await this.registrationService.findAll()
     }
 
-    @UseGuards(JwtGuard)
     @Post('')
+    @UseGuards(JwtGuard)
     async createRegistration(@Body() dto: AddItemRegistrationDto, @Request() req: any) {
         dto.createBy = dto.updateBy = dto.user = req.user.id;
         const data = AddItemRegistrationDto.plainToClass(dto);

@@ -69,4 +69,8 @@ export class RoomItemService {
             throw new BusinessException('404:Item or room not found!')
         }
     }
+
+    async updateRoomItem(data: any) { 
+        
+    }
 }

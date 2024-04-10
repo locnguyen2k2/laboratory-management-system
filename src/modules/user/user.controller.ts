@@ -17,38 +17,38 @@ import { AccountInfo } from "./interfaces/AccountInfo.interface";
 import { AddPermissionDto } from "./dtos/add-permission.dto";
 
 @Controller('users')
-@ApiBearerAuth()
 @ApiTags('Users')
+@ApiBearerAuth()
 export class UserController {
     constructor(
         private readonly userService: UserService
     ) { }
 
+    @Get('get')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Get('get')
     async findAll(): Promise<UserEntity[]> {
         return await this.userService.findAll();
     }
 
+    @Get('get/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Get('get/:id')
     async findById(@IdParam() id: number): Promise<UserEntity> {
         return this.userService.findById(id);
     }
 
-    @UseGuards(JwtGuard)
     @Put('update')
+    @UseGuards(JwtGuard)
     async updateAccountInfo(@Request() req: any,
         @Body() dto: UpdateUserDto): Promise<AccountInfo> {
         const data = UpdateUserDto.plainToClass(dto);
         return await this.userService.updateAccountInfo(req.user.id, data);
     }
 
+    @Put('update/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Put('update/:id')
     async update(@IdParam() id: number,
         @Body() dto: UpdateAdminDto): Promise<UserEntity> {
         const data = UpdateAdminDto.plainToClass(dto);
@@ -56,17 +56,17 @@ export class UserController {
     }
 
 
+    @Patch('status/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
-    @Patch('status/:id')
     async updateStatus(@IdParam() id: number,
         @Body() dto: UpdateStatusDto): Promise<UserEntity> {
         const data = UpdateStatusDto.plainToClass(dto);
         return await this.userService.updateStatus(id, data.status);
     }
 
-    @UseGuards(JwtGuard)
     @Get('info')
+    @UseGuards(JwtGuard)
     async info(@Request() req: any): Promise<AccountInfo> {
         return await this.userService.getAccountInfo(req.user.email)
     }
@@ -75,18 +75,18 @@ export class UserController {
     async resendConfirmationLink(@Body() dto: EmailLinkConfirmDto) {
         return await this.userService.resendConfirmationLink(dto);
     }
-
+    
+    @Post('permission')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Post('permission')
     async addPermission(@Body() dto: AddPermissionDto) {
         const data = AddPermissionDto.plainToClass(dto);
         return await this.userService.addPermission(data);
     }
 
+    @Patch('permision/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Patch('permision/:id')
     async updatePermission(@IdParam() uid: number,
         @Body() dto: UpdatePermissionDto): Promise<UserEntity> {
         const data = UpdatePermissionDto.plainToClass(dto);

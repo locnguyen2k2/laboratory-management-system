@@ -9,8 +9,8 @@ import { Roles } from "src/common/decorators/roles.decorator";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 
 @Controller('room-items')
-@ApiBearerAuth()
 @ApiTags('Room items')
+@ApiBearerAuth()
 export class RoomItemController {
     constructor(
         private readonly roomItemService: RoomItemService

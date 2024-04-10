@@ -10,8 +10,8 @@ import { UpdateUnitDto } from "./dtos/update.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 
 @Controller('units')
-@ApiBearerAuth()
 @ApiTags('Units')
+@ApiBearerAuth()
 export class UnitController {
     constructor(
         private readonly unitService: UnitService,
