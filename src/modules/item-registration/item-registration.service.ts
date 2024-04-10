@@ -19,7 +19,7 @@ export class ItemRegistrationService {
             .where('registration.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('registration.item', 'item')
             .leftJoinAndSelect('registration.room', 'room')
-            .select(['registration.start_day', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'registration.quantity', 'item.id', 'item.name', 'item.quantity'])
+            .select(['registration.start_day', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'registration.quantity', 'item.id', 'item.name', 'item.specification', 'item.quantity'])
             .getMany()
         if (registration)
             return registration

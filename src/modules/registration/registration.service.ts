@@ -107,15 +107,19 @@ export class RegistrationService {
         if (!handleItems) {
             throw new BusinessException('404:Nothing changes')
         }
+        let isCreated = false;
+        let registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
         await Promise.all(handleItems?.map(async ({ itemId, quantity, roomId }) => {
             const room = await this.roomService.findById(roomId);
-            const registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
             await this.itemRegistrationServce.addItemReg({ ...data, start_day, end_day, itemId, quantity, registration, room })
             const items = await this.itemRegistrationServce.findByRegistrationId(registration.id)
-            if (isEmpty(items)) {
-                await this.registrationRepository.delete({ id: registration.id })
+            if (!isEmpty(items)) {
+                isCreated = true;
             }
         }))
+        if (!isCreated) {
+            await this.registrationRepository.delete({ id: registration.id })
+        }
         throw new BusinessException('Create registration item is successful')
     }
 }
