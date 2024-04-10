@@ -4,7 +4,6 @@ import { RegistrationEntity } from "./registration.entity";
 import { Repository } from "typeorm";
 import { AddItemRegistrationDto } from "./../item-registration/dtos/add-registration.dto";
 import { UserService } from "../user/user.service";
-import { ItemService } from "../items/item.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { ItemRegistrationService } from "./../item-registration/item-registration.service";
@@ -119,7 +118,8 @@ export class RegistrationService {
         }))
         if (!isCreated) {
             await this.registrationRepository.delete({ id: registration.id })
+            throw new BusinessException('The registration is updated!')
         }
-        throw new BusinessException('Create registration item is successful')
+        throw new BusinessException("Loan Item Creation Successful")
     }
 }

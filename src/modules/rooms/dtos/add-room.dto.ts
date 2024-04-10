@@ -18,6 +18,10 @@ export class AddRoomDto extends BaseDto {
     @Validate(IsValidString)
     name: string;
 
+    @ApiProperty({ default: "", nullable: true })
+    @Expose()
+    remark?: string;
+
     @ApiProperty({ default: RoomStatus.AVAILABLE })
     @Expose()
     @IsNotEmpty()

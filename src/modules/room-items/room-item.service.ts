@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { RoomItemEntity } from "./room-item.entity";
 import { Repository } from "typeorm";
 import { AddRoomItemDto } from "./dtos/add-roomItem.dto";
-import { ItemStatusService } from "../item-status/item-status.service";
 import { ItemService } from "../items/item.service";
 import { RoomService } from "../rooms/room.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
@@ -14,7 +13,6 @@ import { UpdateRoomItemDto } from "./dtos/update-roomItem.dto";
 export class RoomItemService {
     constructor(
         @InjectRepository(RoomItemEntity) private readonly roomItemRepository: Repository<RoomItemEntity>,
-        private readonly itemStatusService: ItemStatusService,
         private readonly roomService: RoomService,
         private readonly itemService: ItemService,
     ) { }
@@ -23,11 +21,9 @@ export class RoomItemService {
         const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
             .leftJoinAndSelect('roomItem.item', 'item')
             .leftJoinAndSelect('roomItem.room', 'room')
-            .leftJoinAndSelect('roomItem.item_status', 'itemStatus')
-            .leftJoinAndSelect('item.unit', 'unit')
             .where('(roomItem.id = :id)', { id })
             .select('roomItem')
-            .select(['roomItem', 'item', 'room', 'itemStatus', 'unit'])
+            .select(['roomItem', 'item', 'room'])
             .getOne()
         if (roomItem) {
             return roomItem
@@ -37,10 +33,8 @@ export class RoomItemService {
     async findByRoomId(id: number) {
         const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
             .leftJoinAndSelect('roomItem.item', 'item')
-            .leftJoinAndSelect('roomItem.item_status', 'itemStatus')
-            .leftJoinAndSelect('item.unit', 'unit')
             .where('(roomItem.room_id = :id)', { id })
-            .select(['roomItem.id', 'item.name', 'item.specification', 'unit.name', 'roomItem.quantity', 'item.origin', 'roomItem.year', 'item.id', 'itemStatus.name', 'roomItem.remark'])
+            .select(['roomItem', 'item'])
             .getMany()
         if (roomItem) {
             const room = await this.roomService.findById(id)
@@ -69,16 +63,14 @@ export class RoomItemService {
         const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
         if (roomItem) {
             await this.roomItemRepository.update({ id: roomItem.id }, { quantity: (roomItem.quantity + data.quantity) })
-            return data;
+            return await this.findByItemRoom(data.itemId, data.roomId);
         }
-        const item_status = await this.itemStatusService.findById(data.item_status);
         const item = await this.itemService.findById(data.itemId);
         const room = await this.roomService.findById(data.roomId);
-        delete data.item_status;
         delete data.itemId;
         delete data.roomId;
-        if (item && room && item_status) {
-            const newItem = new RoomItemEntity({ ...data, room, item, item_status })
+        if (item && room) {
+            const newItem = new RoomItemEntity({ ...data, room, item })
             await this.roomItemRepository.save(newItem);
             return newItem;
         } else {
@@ -91,41 +83,43 @@ export class RoomItemService {
         if (!roomItem) {
             throw new BusinessException('404:Room item not found!')
         }
-
-        if (data.roomId) {
-            if (!(await this.roomService.findById(data.roomId))) {
+        if (data.roomId || data.itemId) {
+            const info = {
+                ...(data.quantity ? { quantity: data.quantity } : { quantity: roomItem.quantity }),
+                ...(data.year ? { year: data.year } : { year: roomItem.year }),
+                ...(data.remark ? { remark: data.remark } : { remark: roomItem.remark })
+            }
+            if (data.itemId) {
+                if (!(await this.itemService.findById(data.itemId))) {
+                    throw new BusinessException('404:Item not found!')
+                }
+                const roomId = data.roomId ? data.roomId : roomItem.room.id;
+                if (await this.isRoomHasItem(roomId, data.itemId)) {
+                    await this.roomItemRepository.update({ id }, { ...info })
+                    return await this.findByItemRoom(data.itemId, roomId)
+                }
+            }
+            if (!(await this.roomService.findById(data?.roomId))) {
                 throw new BusinessException('404:Room not found!')
             }
-            const itemId = data.itemId ? data.itemId : roomItem.item.id;
+            const itemId = data?.itemId ? data.itemId : roomItem?.item.id;
             if (await this.isRoomHasItem(data.roomId, itemId)) {
-                throw new BusinessException("400:The room has this item!")
+                await this.roomItemRepository.update({ id }, { ...info })
+                return this.findByItemRoom(itemId, data.roomId)
             }
-        }
-        if (data.itemId) {
-            if (!(await this.itemService.findById(data.itemId))) {
-                throw new BusinessException('404:Item not found!')
-            }
-            const roomId = data.roomId ? data.roomId : roomItem.room.id;
-            if (await this.isRoomHasItem(roomId, data.itemId)) {
-                throw new BusinessException("400:The room has this item!")
-            }
-        }
-        if (data.item_status && !(await this.itemStatusService.findById(data.item_status))) {
-            throw new BusinessException('404:Status not found!')
         }
         let info = {
             ...(data.roomId ? { roomId: data.roomId } : { roomId: roomItem.room.id }),
             ...(data.itemId ? { itemId: data.itemId } : { itemId: roomItem.item.id }),
-            ...(data.item_status ? { item_status: data.item_status } : { item_status: roomItem.item_status.id }),
+            ...(data.status ? { item_status: data.status } : { status: roomItem.status }),
             ...((data.quantity && data.quantity > 0) ? { quantity: data.quantity } : { quantity: roomItem.quantity }),
             ...(data.year ? { year: data.year } : { year: roomItem.year }),
             ...(data.remark ? { remark: data.remark } : { remark: roomItem.remark }),
         }
         const room = await this.roomService.findById(info.roomId)
         const item = await this.itemService.findById(info.itemId)
-        const itemStatus = await this.itemStatusService.findById(info.item_status)
         roomItem.updateBy = data.updateBy
-        await this.roomItemRepository.save({ ...roomItem, room, item, itemStatus })
+        await this.roomItemRepository.save({ ...roomItem, room, item })
         await this.roomItemRepository.update({ id: id }, { year: info.year, quantity: info.quantity, remark: info.remark })
         return await this.findById(id)
     }

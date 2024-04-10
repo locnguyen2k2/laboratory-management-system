@@ -1,3 +1,4 @@
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { UserStatus } from "../user.constant";
 
 export interface AccountInfo {
@@ -5,9 +6,9 @@ export interface AccountInfo {
     firstName: string,
     lastName: string,
     email: string,
-    phone: string,
     address: string,
     photo: string,
+    role: RoleEnum
     status: UserStatus,
     createdAt: Date,
     updatedAt: Date

@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
-import { UserRole } from "./../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { AddItemDto } from "./dtos/add-item.dto";
 import { ItemService } from "./item.service";
 import { IdParam } from "src/common/decorators/id-param.decorator";
@@ -24,7 +24,7 @@ export class ItemController {
 
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async add(@Body() dto: AddItemDto, @Request() req: any) {
         const data = AddItemDto.plainToClass(dto);
         data.createBy = data.updateBy = req.user.id;
@@ -33,7 +33,7 @@ export class ItemController {
 
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateItemDto, @Request() req: any) {
         const data = UpdateItemDto.plainToClass(dto);
         data.updateBy = req.user.id

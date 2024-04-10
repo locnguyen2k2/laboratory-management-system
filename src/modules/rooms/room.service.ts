@@ -52,7 +52,13 @@ export class RoomService {
             if (isExisted && isExisted.id !== id) {
                 throw new HttpException(`The room is existed`, HttpStatus.BAD_REQUEST);
             }
-            await this.roomRepository.update({ id: id }, new RoomEntity({ ...data }))
+            const info = {
+                ...data,
+                ...(data.name ? { name: data.name } : { name: room.name }),
+                ...(data.remark ? { remark: data.remark } : { remark: room.remark }),
+                ...(data.status ? { status: data.status } : { status: room.status })
+            }
+            await this.roomRepository.update({ id: id }, { ...info })
             return await this.findById(id);
         }
         throw new HttpException(`The room not found`, HttpStatus.NOT_FOUND);

@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { RegistrationEntity } from "./registration.entity";
 import { UserModule } from "../user/user.module";
-import { RoleModule } from "../role/role.module";
 import { RegistrationService } from "./registration.service";
 import { ItemRegistrationModule } from "./../item-registration/item-registration.module";
 import { RegistrationController } from "./registration.controller";
@@ -19,7 +18,6 @@ const modules = [
         ...modules,
         TypeOrmModule.forFeature([RegistrationEntity]),
         UserModule,
-        RoleModule,
         ItemModule,
         RoomModule,
         RoomItemModule,

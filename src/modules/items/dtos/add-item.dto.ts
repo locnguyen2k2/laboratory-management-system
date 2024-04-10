@@ -4,7 +4,8 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, Validate } from "class-val
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { CategoryEnum } from "src/modules/categories/category.constant";
 import { BaseDto } from "src/common/dtos/base.dto";
-import { UnitEnum } from "src/modules/units/unit.constant";
+import { UnitEnum } from "./../../../enums/unit-enum.enum";
+import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
 
 export class AddItemDto extends BaseDto {
     @ApiProperty({ default: "" })
@@ -30,7 +31,13 @@ export class AddItemDto extends BaseDto {
     @Expose()
     @IsNotEmpty()
     @IsEnum(UnitEnum)
-    unitId: number;
+    unit: UnitEnum;
+
+    @ApiProperty({ default: null })
+    @Expose()
+    @IsNotEmpty()
+    @IsEnum(ItemStatusEnum)
+    status: ItemStatusEnum;
 
     @ApiProperty({ default: 1 })
     @Expose()
@@ -53,5 +60,5 @@ export class AddItemDto extends BaseDto {
     @Expose()
     @IsNotEmpty()
     @IsEnum(CategoryEnum)
-    categoryId: number;
+    categoryId: CategoryEnum;
 }

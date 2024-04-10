@@ -5,7 +5,7 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
-import { UserRole } from "../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { AddRoomDto } from "./dtos/add-room.dto";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 
@@ -24,7 +24,7 @@ export class RoomController {
 
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async add(@Body() dto: AddRoomDto, @Request() req: any) {
         const data = AddRoomDto.plainToClass(dto);
         data.createBy = data.updateBy = req.user.id
@@ -33,7 +33,7 @@ export class RoomController {
 
     @Patch('/:id')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateRoomDto, @Request() req: any) {
         dto.updateBy = req.user.id;
         const data = UpdateRoomDto.plainToClass(dto);

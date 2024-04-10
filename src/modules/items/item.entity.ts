@@ -2,8 +2,9 @@ import { ExtendedEntity } from "src/common/entity/common.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from "typeorm";
 import { ItemRegistrationEntity } from "./../item-registration/item-registration.entity";
 import { CategoryEntity } from "../categories/category.entity";
-import { UnitEntity } from "../units/unit.entity";
 import { RoomItemEntity } from "./../room-items/room-item.entity";
+import { UnitEnum } from "src/enums/unit-enum.enum";
+import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
 
 @Entity('item_entity')
 export class ItemEntity extends ExtendedEntity {
@@ -23,9 +24,11 @@ export class ItemEntity extends ExtendedEntity {
     @Column({ type: 'varchar', nullable: true })
     remark: string;
 
-    @ManyToOne(() => UnitEntity, unit => unit.items)
-    @JoinColumn({ name: 'unit_id' })
-    unit: Relation<UnitEntity>
+    @Column({ type: 'enum', enum: UnitEnum, nullable: false })
+    unit: UnitEnum
+
+    @Column({ type: 'enum', enum: ItemStatusEnum, nullable: false })
+    status: ItemStatusEnum
 
     @ManyToOne(() => CategoryEntity, category => category.items)
     @JoinColumn({ name: 'category_id' })

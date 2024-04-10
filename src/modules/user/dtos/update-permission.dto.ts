@@ -1,10 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber } from "class-validator";
-import { UserRole } from "../user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { BaseDto } from "src/common/dtos/base.dto";
 
-export class AddPermissionDto extends BaseDto {
+export class UpdatePermissionDto extends BaseDto {
     @ApiProperty({ default: "" })
     @IsNumber()
     @Expose()
@@ -13,6 +13,6 @@ export class AddPermissionDto extends BaseDto {
     @ApiProperty({ default: "" })
     @Expose()
     @IsNotEmpty()
-    @IsEnum(UserRole)
-    rid: UserRole;
+    @IsEnum(RoleEnum)
+    rid: RoleEnum;
 }

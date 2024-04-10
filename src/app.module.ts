@@ -9,12 +9,9 @@ import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './configs/database.config';
 import { MailModule } from './modules/email/mail.module';
 import { ItemModule } from './modules/items/item.module';
-import { RoleModule } from './modules/role/role.module';
 import { RegistrationModule } from './modules/registration/registration.module';
 import { RoomModule } from './modules/rooms/room.module';
 import { CategoryModule } from './modules/categories/category.module';
-import { UnitModule } from './modules/units/unit.module';
-import { ItemStatusModule } from './modules/item-status/item-status.module';
 import { RoomItemModule } from './modules/room-items/room-item.module';
 
 const modules = [
@@ -22,14 +19,11 @@ const modules = [
   UserModule,
   MailModule,
   AuthModule,
-  RoleModule,
   CategoryModule,
   ItemModule,
   RoomModule,
   RegistrationModule,
   RoomItemModule,
-  ItemStatusModule,
-  UnitModule,
 ]
 
 @Module({

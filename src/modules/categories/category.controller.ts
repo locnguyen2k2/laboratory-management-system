@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseGuards, Patch, Get } from "@nestjs/common";
 import { CategoryService } from "./category.service";
 import { JwtGuard } from "./../auth/guard/jwt-auth.guard";
-import { UserRole } from "./../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { Roles } from "./../../common/decorators/roles.decorator";
 import { RolesGuard } from "./../auth/guard/roles-auth.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -19,14 +19,14 @@ export class CategoryController {
 
     @Get()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async getAll() {
         return await this.categoryService.findAll();
     }
 
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async add(@Body() dto: AddCategoryDto) {
         const data = AddCategoryDto.plainToClass(dto)
         return await this.categoryService.add(data);
@@ -34,7 +34,7 @@ export class CategoryController {
 
     @Patch("/:id")
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async update(@IdParam() id: number, @Body() dto: UpdateDto) {
         const data = UpdateDto.plainToClass(dto)
         return await this.categoryService.update(id, data);

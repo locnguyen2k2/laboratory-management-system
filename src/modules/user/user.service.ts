@@ -5,18 +5,16 @@ import { UserEntity } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UpdateAdminDto } from "./dtos/update.dto";
 import { MailService } from '../email/mail.service';
-import { UserRole, UserStatus } from "./user.constant";
+import { UserStatus } from "./user.constant";
 import { ForgotPasswordDto } from './dtos/password.dto';
-import { RoleService } from '../role/role.service';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
-import { UpdatePermissionDto, UpdateUserDto } from "./dtos/update.dto";
+import { UpdateUserDto } from "./dtos/update.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import { GoogleRedirectDto } from "./../auth/dtos/googleRedirect-auth.dto";
 import { AccountInfo } from './interfaces/AccountInfo.interface';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
-import { AddPermissionDto } from './dtos/add-permission.dto';
 import { Credential } from '../auth/interfaces/credential.interface';
 import { JwtPayload } from '../auth/interfaces/jwt.interface';
 
@@ -24,21 +22,17 @@ import { JwtPayload } from '../auth/interfaces/jwt.interface';
 export class UserService {
     constructor(
         private jwtService: JwtService,
-        private readonly roleService: RoleService,
         private readonly emailService: MailService,
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
+
     async findAll(): Promise<UserEntity[]> {
-        return await this.userRepository.
-            createQueryBuilder('user')
-            .leftJoinAndSelect('user.roles', 'roles')
+        return await this.userRepository.createQueryBuilder('user')
             .getMany();
     }
     async findByEmail(email: string): Promise<UserEntity> {
-        const user = await this.userRepository
-            .createQueryBuilder('user')
+        const user = await this.userRepository.createQueryBuilder('user')
             .where({ email: email })
-            .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
         if (user)
             return user
@@ -47,11 +41,49 @@ export class UserService {
         const user = await this.userRepository
             .createQueryBuilder('user')
             .where({ id: id })
-            .leftJoinAndSelect('user.roles', 'roles')
             .getOne()
         if (user)
             return user
         throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
+    }
+    async updateAccountInfo(id: number, data: UpdateUserDto): Promise<AccountInfo> {
+        if (await this.findById(id)) {
+            const user = await this.findById(id);
+            const info = {
+                ...data,
+                ...(data.firstName ? { firstName: data.firstName } : { firstName: user.firstName }),
+                ...(data.lastName ? { lastName: data.lastName } : { lastName: user.lastName }),
+                ...(data.address ? { address: data.address } : { address: user.address }),
+            }
+            if (user.status == UserStatus.ACTIVE) {
+                await this.userRepository.update({ id: id }, info)
+                return await this.getAccountInfo(user.email);
+            }
+            throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
+        }
+    }
+    async update(id: number, dto: UpdateAdminDto): Promise<UserEntity> {
+        const data = UpdateAdminDto.plainToClass(dto);
+        if (await this.findById(id)) {
+            const user = await this.findById(id);
+            const info = {
+                ...data,
+                ...(data.firstName ? { firstName: data.firstName } : { firstName: user.firstName }),
+                ...(data.lastName ? { lastName: data.lastName } : { lastName: user.lastName }),
+                ...(data.address ? { address: data.address } : { address: user.address }),
+                ...(data.status >= 0 ? { status: data.status } : { status: user.status }),
+                ...(data.role ? { role: data.role } : { role: user.role }),
+            }
+            await this.userRepository.update({ id: id },
+                {
+                    firstName: info.firstName,
+                    lastName: info.lastName,
+                    address: info.address,
+                    status: info.status,
+                    role: info.role
+                })
+            return await this.findById(id);
+        }
     }
     async create(user: any): Promise<any> {
         const { email, password, confirmPassword } = user;
@@ -65,17 +97,15 @@ export class UserService {
             };
             delete user.confirmPassword;
             user.password = await bcrypt.hashSync(user.password, 10);
-            const roles = user.roles != undefined ? user.roles : 2;
-            delete user.roles;
             const newUser = new UserEntity(user);
             await this.userRepository.save(newUser);
-            await this.userRepository.createQueryBuilder()
-                .relation(UserEntity, "roles")
-                .of(newUser)
-                .add(roles);
-            const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
-            await this.userRepository.update({ email: email }, { refresh_token })
-            throw new BusinessException("Confirm your account by the link was send to your email!");
+            if (user.role === 2) {
+                const refresh_token = await this.emailService.sendConfirmationEmail(newUser.id, newUser.email);
+                await this.userRepository.update({ email: email }, { refresh_token })
+                throw new BusinessException("Confirm your account by the link was send to your email!");
+            }
+            await this.update(newUser.id, { ...newUser, status: UserStatus.ACTIVE })
+            return await this.findById(newUser.id)
         }
     }
     async createWithGoogle(data: GoogleRedirectDto): Promise<Credential> {
@@ -86,20 +116,13 @@ export class UserService {
                 throw new BusinessException(ErrorEnum.USER_EXISTS)
             };
             if (user?.status == UserStatus.UNACTIVE) {
-                await this.updateStatus(user.id, UserStatus.ACTIVE)
+                delete user.status;
+                await this.update(user.id, { ...user, status: UserStatus.ACTIVE })
             } else if (!user) {
-                try {
-                    delete data.accessToken;
-                    const newUser = new UserEntity(data);
-                    await this.userRepository.save(newUser);
-                    await this.userRepository.createQueryBuilder()
-                        .relation(UserEntity, "roles")
-                        .of(newUser)
-                        .add(UserRole.USER);
-                    await this.updateStatus(newUser.id, UserStatus.ACTIVE)
-                } catch (error: any) {
-                    throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED);
-                }
+                delete data.accessToken;
+                const newUser = new UserEntity(data);
+                await this.userRepository.save(newUser);
+                await this.update(newUser.id, { ...user, status: UserStatus.ACTIVE })
             }
             const userInfo = await this.findByEmail(email);
             const newUser = await this.findByEmail(email);
@@ -134,67 +157,6 @@ export class UserService {
         }
         return false
     }
-    async updateAccountInfo(id: number, data: UpdateUserDto): Promise<AccountInfo> {
-        if (await this.findById(id)) {
-            const user = await this.findById(id);
-            if (user.status == UserStatus.ACTIVE) {
-                await this.userRepository.update({ id: id }, data)
-                return await this.getAccountInfo(user.email);
-            }
-            throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
-        }
-    }
-    async update(id: number, data: UpdateAdminDto): Promise<UserEntity> {
-        if (await this.findById(id)) {
-            await this.userRepository.update({ id: id },
-                {
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    phone: data.phone,
-                    address: data.address,
-                    status: data.status,
-                })
-            return await this.findById(id);
-        }
-    }
-    async addPermission(data: AddPermissionDto) {
-        if (await this.findById(data.uid)) {
-            try {
-                const role = await this.roleService.findById(data.rid);
-                if (await this.roleService.checkUserHasRoleById(data.uid, data.rid))
-                    throw new BusinessException("Permission already exist")
-                const user = await this.findById(data.uid);
-                await this.userRepository.createQueryBuilder()
-                    .relation(UserEntity, "roles")
-                    .of(user)
-                    .add(role);
-                return await this.findById(data.uid);
-            } catch (error) {
-                throw new BusinessException(ErrorEnum.ROLE_NOT_FOUND)
-            }
-        }
-    }
-    async updateUserPermission(uid: number, data: UpdatePermissionDto): Promise<UserEntity> {
-        if (await this.findById(uid)) {
-            const user = await this.findById(uid);
-            const newRole = await this.roleService.findById(data.newRid);
-            if (!(await this.roleService.checkUserHasRoleById(uid, data.oldRid)))
-                throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
-            if (await this.roleService.checkUserHasRoleById(uid, data.newRid))
-                throw new BusinessException("User has this role!")
-            const userRoles = await this.roleService.getRolesByUser(uid);
-            try {
-                const updatedRoles = userRoles.map(role => role.id === data.oldRid ? newRole : role);
-                await this.userRepository.createQueryBuilder()
-                    .relation(UserEntity, "roles")
-                    .of(user)
-                    .addAndRemove(updatedRoles, userRoles);
-                return await this.findById(uid);
-            } catch (error) {
-                throw new BusinessException(ErrorEnum.MISSION_EXECUTION_FAILED)
-            }
-        }
-    }
     async updateRepassToken(email: string, repassToken: string) {
         const user = await this.findByEmail(email);
         if (!user || !user.password || user.status !== UserStatus.ACTIVE) {
@@ -213,7 +175,7 @@ export class UserService {
             if (user.status == UserStatus.DISABLE)
                 throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
             if (user.status == UserStatus.UNACTIVE) {
-                await this.updateStatus(user.id, UserStatus.ACTIVE);
+                await this.update(user.id, { ...user, status: UserStatus.ACTIVE });
                 await this.userRepository.update({ email: email }, { refresh_token: null, })
                 throw new BusinessException("Confirmation email is successful")
             }
@@ -261,13 +223,7 @@ export class UserService {
             throw new BusinessException("Please, check your digital numbers in your email before!");
         };
     }
-    async updateStatus(id: number, status: number): Promise<UserEntity> {
-        if (await this.findById(id)) {
-            const user = await this.findById(id);
-            await this.userRepository.update({ id: user.id }, { status: status })
-            return await this.findById(user.id);
-        }
-    }
+
     async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
         if (!user || user.status == UserStatus.DISABLE) {

@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "./guard/jwt-auth.guard";
 import { Roles } from "./../../common/decorators/roles.decorator";
 import { LoginAuthDto } from "./dtos/login-auth.dto";
-import { UserRole } from "./../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { RolesGuard } from "./guard/roles-auth.guard";
 import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
@@ -40,7 +40,7 @@ export class AuthController {
 
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async registerManager(@Body() dto: RegisterManagerDto): Promise<AccountInfo> {
         const manager = plainToClass(RegisterManagerDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(manager);
@@ -48,7 +48,7 @@ export class AuthController {
 
     @Post('admin-create')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(RoleEnum.ADMIN)
     async registerAdmin(@Body() dto: RegisterAdminDto): Promise<AccountInfo> {
         const admin = plainToClass(RegisterAdminDto, dto, { excludeExtraneousValues: true });
         return await this.authService.register(admin);

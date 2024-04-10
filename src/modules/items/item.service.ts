@@ -5,14 +5,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AddItemDto } from "./dtos/add-item.dto";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
-import { UnitService } from "../units/unit.service";
+import { BusinessException } from "src/common/exceptions/biz.exception";
 
 @Injectable()
 export class ItemService {
     constructor(
         @InjectRepository(ItemEntity) private readonly itemRepository: Repository<ItemEntity>,
         private readonly categoryService: CategoryService,
-        private readonly unitService: UnitService,
     ) { }
 
     async findAll() {
@@ -28,8 +27,7 @@ export class ItemService {
             .createQueryBuilder("item")
             .where({ id: id })
             .leftJoinAndSelect('item.category', 'category')
-            .leftJoinAndSelect('item.unit', 'unit')
-            .select(['item', 'category', 'unit'])
+            .select(['item', 'category'])
             .getOne()
         if (item)
             return item
@@ -62,38 +60,38 @@ export class ItemService {
             throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
         }
         const category = await this.categoryService.findById(data.categoryId);
-        const unit = await this.unitService.findById(data.unitId);
         delete data.categoryId
-        delete data.unitId
 
-        const newItem = await this.itemRepository.save(new ItemEntity({ ...data, category: category, unit: unit }));
+        const newItem = await this.itemRepository.save(new ItemEntity({ ...data, category: category }));
         return newItem;
     }
 
     async update(id: number, data: UpdateItemDto) {
         const item = await this.findById(id);
-        const category = data.categoryId >= 0 ? await this.categoryService.findById(data.categoryId) : item.category
-        const unit = data.unitId >= 0 ? await this.unitService.findById(data.unitId) : item.unit
-        delete data.categoryId
-        delete data.unitId
-        if (item && category && unit) {
-            const isExisted = await this.findByName(data.name, data.specification);
-            if (isExisted && isExisted.id !== id) {
-                throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
+        if (item) {
+            const category = data.categoryId ? await this.categoryService.findById(data.categoryId) : item.category
+            delete data.categoryId
+            if (item && category) {
+                const isExisted = await this.findByName(data.name, data.specification);
+                if (isExisted && isExisted.id !== id) {
+                    throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
+                }
+                const info = {
+                    ...data,
+                    ...(data.name ? { name: data.name } : { name: item.name }),
+                    ...(data.status ? { status: data.status } : { status: item.status }),
+                    ...(data.unit ? { unit: data.unit } : { unit: item.unit }),
+                    ...(data.quantity ? { quantity: data.quantity } : { quantity: item.quantity }),
+                    ...(data.origin ? { origin: data.origin } : { origin: item.origin }),
+                    ...(data.specification ? { specification: data.specification } : { specification: item.specification }),
+                    ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
+                }
+                await this.itemRepository.save({ ...item, category });
+                await this.itemRepository.update({ id: id }, { ...info })
+                return await this.findById(id);
             }
-            const info = {
-                ...data,
-                ...(data.name ? { name: data.name } : { name: item.name }),
-                ...(data.quantity ? { quantity: data.quantity } : { quantity: item.quantity }),
-                ...(data.origin ? { origin: data.origin } : { origin: item.origin }),
-                ...(data.specification ? { specification: data.specification } : { specification: item.specification }),
-                ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
-            }
-            await this.itemRepository.save({ ...item, category, unit });
-            await this.itemRepository.update({ id: id }, { ...info })
-            return await this.findById(id);
         }
-        throw new HttpException(`The item, category or unit not found`, HttpStatus.NOT_FOUND);
+        throw new HttpException(`The item or category not found`, HttpStatus.NOT_FOUND);
     }
 
 }

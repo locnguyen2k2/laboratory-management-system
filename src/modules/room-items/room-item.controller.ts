@@ -4,11 +4,10 @@ import { RoomItemService } from "./room-item.service";
 import { AddRoomItemDto } from "./dtos/add-roomItem.dto";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
-import { UserRole } from "../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateRoomItemDto } from "./dtos/update-roomItem.dto";
-import { waitForDebugger } from "inspector";
 
 @Controller('room-items')
 @ApiTags('Room items')
@@ -20,7 +19,7 @@ export class RoomItemController {
 
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async addRoomItem(@Body() dto: AddRoomItemDto, @Request() req: any) {
         dto.createBy = dto.updateBy = req.user.id
         const data = AddRoomItemDto.plainToClass(dto);
@@ -29,7 +28,7 @@ export class RoomItemController {
 
     @Patch(':id')
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async updateRoomItem(@IdParam() id: number, @Body() dto: UpdateRoomItemDto, @Request() req: any) {
         dto.updateBy = req.user.id;
         const data = UpdateRoomItemDto.plainToClass(dto);

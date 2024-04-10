@@ -50,6 +50,7 @@ export class ItemRegistrationService {
                 end_day: data.end_day,
                 quantity: data.quantity
             })
+            console.log(data.quantity)
             return;
         }
         if (!isReplace) {

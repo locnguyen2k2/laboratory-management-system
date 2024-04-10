@@ -1,22 +1,22 @@
 import { Request } from "express";
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import { UserRole } from "./../../user/user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { ROLES_KEY } from "./../../../common/decorators/roles.decorator";
-import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { RoleService } from "src/modules/role/role.service";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { UserService } from "src/modules/user/user.service";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
         private readonly jwtService: JwtService,
-        private readonly roleService: RoleService
+        private readonly userService: UserService
     ) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+        const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(
             ROLES_KEY,
             [context.getHandler(), context.getClass()]
         );
@@ -30,8 +30,8 @@ export class RolesGuard implements CanActivate {
         }
         const payload = await this.jwtService.decode(token);
         if (payload?.id) {
-            const roles = await this.roleService.getRoleByUserId(payload.id);
-            if (requiredRoles.some(role => roles.includes(role))) {
+            const user = await this.userService.findById(payload.id);
+            if (requiredRoles.some(role => role === user.role)) {
                 request['user'] = payload;
                 return true
             }

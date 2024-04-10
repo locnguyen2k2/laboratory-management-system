@@ -2,7 +2,7 @@ import { Expose, Transform } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { UserPasswordDto } from "./password.dto";
 import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString, Length, Validate } from "class-validator"
-import { UserRole } from "./../user.constant";
+import { RoleEnum } from "src/enums/role-enum.enum";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 
 export class RegisterUserDto extends UserPasswordDto {
@@ -26,12 +26,6 @@ export class RegisterUserDto extends UserPasswordDto {
     @Expose()
     email: string;
 
-    @ApiProperty({ default: "" })
-    @IsPhoneNumber('VN')
-    @IsNotEmpty()
-    @Expose()
-    phone: string;
-
     @ApiProperty({ default: "Tra Vinh" })
     @IsString()
     @IsNotEmpty()
@@ -48,17 +42,15 @@ export class RegisterUserDto extends UserPasswordDto {
 }
 
 export class RegisterAdminDto extends RegisterUserDto {
-    @ApiProperty({ default: "" })
     @Expose()
-    @IsEnum(UserRole)
-    @Transform(() => UserRole.ADMIN)
-    roles: UserRole;
+    @IsEnum(RoleEnum)
+    @Transform(() => RoleEnum.ADMIN)
+    role: RoleEnum;
 }
 
 export class RegisterManagerDto extends RegisterUserDto {
-    @ApiProperty({ default: "" })
     @Expose()
-    @IsEnum(UserRole)
-    @Transform(() => UserRole.MANAGER)
-    roles: UserRole;
+    @IsEnum(RoleEnum)
+    @Transform(() => RoleEnum.MANAGER)
+    role: RoleEnum;
 }

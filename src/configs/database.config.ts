@@ -3,25 +3,19 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserEntity } from "./../modules/user/user.entity";
 import { ConfigModule } from "@nestjs/config";
 import { ItemEntity } from "src/modules/items/item.entity";
-import { RoleEntity } from "src/modules/role/role.entity";
 import { RegistrationEntity } from "src/modules/registration/registration.entity";
 import { RoomEntity } from "src/modules/rooms/room.entity";
 import { ItemRegistrationEntity } from "src/modules/item-registration/item-registration.entity";
 import { CategoryEntity } from "src/modules/categories/category.entity";
-import { UnitEntity } from "src/modules/units/unit.entity";
-import { ItemStatusEntity } from "src/modules/item-status/item-status.entity";
 import { RoomItemEntity } from "src/modules/room-items/room-item.entity";
 
 const entities = [
     UserEntity,
-    RoleEntity,
     CategoryEntity,
     ItemEntity,
     RoomEntity,
     RegistrationEntity,
     ItemRegistrationEntity,
-    UnitEntity,
-    ItemStatusEntity,
     RoomItemEntity
 ]
 

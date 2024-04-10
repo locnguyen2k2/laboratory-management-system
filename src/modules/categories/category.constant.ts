@@ -4,7 +4,7 @@ export enum CategoryStatusEnum {
 }
 
 export enum CategoryEnum {
-    EQUIPMENT = 0,
-    TOOLS = 1,
-    CHEMICALS = 2,
+    EQUIPMENT = 1,
+    TOOLS = 2,
+    CHEMICALS = 3,
 }

@@ -14,7 +14,7 @@ export class RoomEntity extends ExtendedEntity {
     remark: string;
 
     @Column({ type: 'enum', enum: RoomStatus, default: RoomStatus.AVAILABLE, nullable: false })
-    status: number;
+    status: RoomStatus;
 
     @OneToMany(() => RoomItemEntity, roomItem => roomItem.room)
     roomItem: Relation<RoomItemEntity[]>
