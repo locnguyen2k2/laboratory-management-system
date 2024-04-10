@@ -116,7 +116,6 @@ export class RegistrationService {
                 await this.registrationRepository.delete({ id: registration.id })
             }
         }))
-
         throw new BusinessException('Create registration item is successful')
     }
 }

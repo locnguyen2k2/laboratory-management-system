@@ -18,7 +18,8 @@ export class ItemRegistrationService {
         const registration = await this.itemRegistrationRepository.createQueryBuilder('registration')
             .where('registration.registration_id = :registrationId', { registrationId: regid })
             .leftJoinAndSelect('registration.item', 'item')
-            .select(['registration.start_day', 'registration.end_day', 'registration.id', 'registration.quantity', 'item.id', 'item.name', 'item.quantity'])
+            .leftJoinAndSelect('registration.room', 'room')
+            .select(['registration.start_day', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'registration.quantity', 'item.id', 'item.name', 'item.quantity'])
             .getMany()
         if (registration)
             return registration
@@ -30,8 +31,7 @@ export class ItemRegistrationService {
         const registration = await this.itemRegistrationRepository.createQueryBuilder('registration')
             .leftJoinAndSelect('registration.item', 'item')
             .leftJoinAndSelect('registration.room', 'room')
-            .where('(registration.start_day >= :startDay AND registration.start_day <= :endDay AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
-            .orWhere('(registration.end_day >= :startDay AND registration.end_day <= :endDay AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
+            .where('(registration.start_day <= :startDay AND registration.end_day >= :startDay AND registration.start_day <= :endDay AND (registration.end_day >= :endDay OR registration.end_day <= :endDay) AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
             .select(['registration.start_day', 'registration.quantity', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'item.id', 'item.name'])
             .getOne()
         if (registration)
@@ -43,16 +43,14 @@ export class ItemRegistrationService {
         const roomid = data.room.id
         const itemRegistration = await this.findByUserDayItem(data.user, data.start_day, data.end_day, data.itemId, roomid)
         if (itemRegistration) {
-            if (data.end_day >= itemRegistration.end_day) {
-                isReplace = true;
-                data.quantity += itemRegistration.quantity
-                await this.itemRegistrationRepository.update({ id: itemRegistration.id }, {
-                    updatedAt: data.registration.createdAt,
-                    end_day: data.end_day,
-                    quantity: data.quantity
-                })
-                return;
-            }
+            isReplace = true;
+            data.quantity += itemRegistration.quantity
+            await this.itemRegistrationRepository.update({ id: itemRegistration.id }, {
+                updatedAt: data.registration.createdAt,
+                end_day: data.end_day,
+                quantity: data.quantity
+            })
+            return;
         }
         if (!isReplace) {
             const item = await this.itemService.findById(data.itemId)

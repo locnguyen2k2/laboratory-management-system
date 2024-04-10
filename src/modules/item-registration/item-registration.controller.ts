@@ -9,7 +9,4 @@ import { Repository } from "typeorm";
 @ApiBearerAuth()
 export class ItemRegistrationController {
     constructor(@InjectRepository(ItemRegistrationEntity) private readonly itemRegistrationRepo: Repository<ItemRegistrationEntity>) { }
-    
-    @Post()
-    async createEquipmentRegistration() { }
 }
