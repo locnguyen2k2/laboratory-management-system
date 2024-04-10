@@ -28,7 +28,8 @@ export class ItemService {
             .createQueryBuilder("item")
             .where({ id: id })
             .leftJoinAndSelect('item.category', 'category')
-            .select(['item', 'category.id', 'category.name'])
+            .leftJoinAndSelect('item.unit', 'unit')
+            .select(['item', 'category', 'unit'])
             .getOne()
         if (item)
             return item
@@ -71,17 +72,28 @@ export class ItemService {
 
     async update(id: number, data: UpdateItemDto) {
         const item = await this.findById(id);
-        const category = await this.categoryService.findById(data.categoryId)
+        const category = data.categoryId >= 0 ? await this.categoryService.findById(data.categoryId) : item.category
+        const unit = data.unitId >= 0 ? await this.unitService.findById(data.unitId) : item.unit
         delete data.categoryId
-        if (item) {
-            const isExisted = await this.findByName(data.name, item.specification);
+        delete data.unitId
+        if (item && category && unit) {
+            const isExisted = await this.findByName(data.name, data.specification);
             if (isExisted && isExisted.id !== id) {
                 throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
             }
-            await this.itemRepository.update({ id: id }, new ItemEntity({ ...data, category }))
+            const info = {
+                ...data,
+                ...(data.name ? { name: data.name } : { name: item.name }),
+                ...(data.quantity ? { quantity: data.quantity } : { quantity: item.quantity }),
+                ...(data.origin ? { origin: data.origin } : { origin: item.origin }),
+                ...(data.specification ? { specification: data.specification } : { specification: item.specification }),
+                ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
+            }
+            await this.itemRepository.save({ ...item, category, unit });
+            await this.itemRepository.update({ id: id }, { ...info })
             return await this.findById(id);
         }
-        throw new HttpException(`The item not found`, HttpStatus.NOT_FOUND);
+        throw new HttpException(`The item, category or unit not found`, HttpStatus.NOT_FOUND);
     }
 
 }

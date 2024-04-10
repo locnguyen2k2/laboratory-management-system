@@ -18,7 +18,9 @@ export class CategoryService {
     }
 
     async findById(id: number) {
-        return (await this.categoryRepository.find({ where: { id: id } }))[0];
+        const category = (await this.categoryRepository.find({ where: { id: id } }))[0];
+        if (category)
+            return category
     }
 
     async findByName(name: string) {

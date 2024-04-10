@@ -18,7 +18,9 @@ export class UnitService {
     }
 
     async findById(id: number) {
-        return (await this.unitRepository.find({ where: { id: id } }))[0];
+        const unit = (await this.unitRepository.find({ where: { id: id } }))[0];
+        if (unit)
+            return unit
     }
 
     async findByName(name: string) {
