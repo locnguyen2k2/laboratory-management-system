@@ -104,6 +104,7 @@ export class UserService {
                 await this.userRepository.update({ email: isExisted.email }, { refresh_token })
                 throw new BusinessException("Confirm your account by the link was send to your email!");
             }
+            user.password = newPassword;
             const newUser = new UserEntity(user);
             await this.userRepository.save(newUser);
             if (!(user.role)) {
