@@ -5,7 +5,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AddItemDto } from "./dtos/add-item.dto";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
-import { BusinessException } from "src/common/exceptions/biz.exception";
 
 @Injectable()
 export class ItemService {
@@ -80,6 +79,7 @@ export class ItemService {
                     ...data,
                     ...(data.name ? { name: data.name } : { name: item.name }),
                     ...(data.status ? { status: data.status } : { status: item.status }),
+                    ...(data.serial_number ? { serial_number: data.serial_number } : { serial_number: item.serial_number }),
                     ...(data.unit ? { unit: data.unit } : { unit: item.unit }),
                     ...(data.quantity ? { quantity: data.quantity } : { quantity: item.quantity }),
                     ...(data.origin ? { origin: data.origin } : { origin: item.origin }),

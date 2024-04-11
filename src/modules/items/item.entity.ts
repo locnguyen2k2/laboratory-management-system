@@ -15,7 +15,10 @@ export class ItemEntity extends ExtendedEntity {
     @Column()
     origin: string;
 
-    @Column()
+    @Column({ nullable: true })
+    serial_number: string;
+
+    @Column({nullable: true})
     specification: string;
 
     @Column()

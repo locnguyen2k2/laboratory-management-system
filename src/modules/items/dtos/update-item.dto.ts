@@ -27,6 +27,10 @@ export class UpdateItemDto extends BaseDto {
 
     @ApiProperty({ default: "" })
     @Expose()
+    serial_number: string;
+
+    @ApiProperty({ default: "" })
+    @Expose()
     @IsString()
     @Validate(IsValidString)
     specification: string;
