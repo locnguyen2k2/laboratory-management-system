@@ -95,6 +95,10 @@ export class RoomItemService {
                 }
                 const roomId = data.roomId ? data.roomId : roomItem.room.id;
                 if (await this.isRoomHasItem(roomId, data.itemId)) {
+                    const isRoomItem = await this.findByItemRoom(roomId, data.itemId)
+                    if (isRoomItem?.id !== id) {
+                        throw new BusinessException("400:The room has this item!")
+                    }
                     await this.roomItemRepository.update({ id }, { ...info })
                     return await this.findByItemRoom(data.itemId, roomId)
                 }
@@ -104,6 +108,10 @@ export class RoomItemService {
             }
             const itemId = data?.itemId ? data.itemId : roomItem?.item.id;
             if (await this.isRoomHasItem(data.roomId, itemId)) {
+                const isRoomItem = await this.findByItemRoom(data.roomId, itemId)
+                if (isRoomItem?.id !== id) {
+                    throw new BusinessException("400:The room has this item!")
+                }
                 await this.roomItemRepository.update({ id }, { ...info })
                 return this.findByItemRoom(itemId, data.roomId)
             }

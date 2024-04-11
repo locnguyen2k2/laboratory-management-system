@@ -13,7 +13,7 @@ export function IsDateGreaterThanOrEqualToday(validationOptions?: ValidationOpti
                     currentDate.setHours(0, 0, 0, 0);
 
                     const inputValue = new Date(value);
-                    inputValue.setHours(0, 0, 0, 0);
+                    inputValue.setHours(currentDate.getHours());
 
                     return inputValue >= currentDate;
                 },

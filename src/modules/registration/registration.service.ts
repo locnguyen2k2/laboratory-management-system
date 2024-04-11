@@ -99,7 +99,7 @@ export class RegistrationService {
             }
         }))
         if (!isItem) {
-            throw new BusinessException("404:Item not found or quantity is less than 1!")
+            throw new BusinessException("404:Item not found in room or quantity is less than 1!")
         }
 
         const handleItems = await this.handleItems(items)
