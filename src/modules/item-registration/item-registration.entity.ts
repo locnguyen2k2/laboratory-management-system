@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, Relation } from "typeorm";
 import { RegistrationEntity } from "./../registration/registration.entity";
 import { ItemEntity } from "./../items/item.entity";
 import { RoomEntity } from "../rooms/room.entity";
+import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
 
 @Entity('item_registration_entity')
 export class ItemRegistrationEntity extends ExtendedEntity {
@@ -17,6 +18,9 @@ export class ItemRegistrationEntity extends ExtendedEntity {
     @ManyToOne(() => RoomEntity, room => room.itemRegistration)
     @JoinColumn({ name: 'room_id' })
     room: Relation<RoomEntity>;
+
+    @Column({ type: 'enum', enum: ItemStatusEnum, default: ItemStatusEnum.STILLINGOODUSE })
+    status: ItemStatusEnum
 
     @Column()
     quantity: number

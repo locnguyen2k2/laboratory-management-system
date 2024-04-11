@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request, Get } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Request, Get, Patch } from "@nestjs/common";
 import { RegistrationService } from "./registration.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
@@ -23,6 +23,10 @@ export class RegistrationController {
         const data = AddItemRegistrationDto.plainToClass(dto);
         return await this.registrationService.createRegistration(data)
     }
+
+    @Patch('')
+    @UseGuards(JwtGuard)
+    async updateItemRegistrartion() { }
 
     @Get(':id')
     async getDetail(@IdParam() id: number, @Request() req: any) {

@@ -7,7 +7,7 @@ import { UserService } from "../user/user.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { ItemRegistrationService } from "./../item-registration/item-registration.service";
-import { ItemRegistration } from "./registration.constant";
+import { ItemRegistration, RegistrationStatusEnum } from "./registration.constant";
 import { isEmpty } from "lodash";
 import { RoomService } from "../rooms/room.service";
 import { RoomItemService } from "../room-items/room-item.service";
@@ -108,9 +108,9 @@ export class RegistrationService {
         }
         let isCreated = false;
         let registration = await this.addRegistration(data.createBy, data.updateBy, data.user)
-        await Promise.all(handleItems?.map(async ({ itemId, quantity, roomId }) => {
+        await Promise.all(handleItems?.map(async ({ itemId, quantity, roomId, status }) => {
             const room = await this.roomService.findById(roomId);
-            await this.itemRegistrationServce.addItemReg({ ...data, start_day, end_day, itemId, quantity, registration, room })
+            await this.itemRegistrationServce.addItemReg({ ...data, start_day, end_day, status, itemId, quantity, registration, room })
             const items = await this.itemRegistrationServce.findByRegistrationId(registration.id)
             if (!isEmpty(items)) {
                 isCreated = true;
