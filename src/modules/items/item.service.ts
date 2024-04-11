@@ -32,12 +32,12 @@ export class ItemService {
             return item
     }
 
-    async findByName(name: string, specification: string) {
+    async findByName(name: string, specification: string, serial_number: string) {
         return (
             await this.itemRepository
                 .createQueryBuilder("item")
-                .where('(replace(item.name, \' \', \'\') LIKE :name && replace(item.specification, \' \', \'\') LIKE :specification)',
-                    { name: name.replace(/\s/g, ""), specification: specification.replace(/\s/g, "") })
+                .where('(replace(item.name, \' \', \'\') LIKE :name && replace(item.specification, \' \', \'\') LIKE :specification && (replace(item.serial_number, \' \', \'\') LIKE :serial_number)',
+                    { name: name.replace(/\s/g, ""), specification: specification.replace(/\s/g, ""), serial_number: serial_number.replace(/\s/g, "") })
                 .getOne()
         )
     }
@@ -54,7 +54,7 @@ export class ItemService {
     }
 
     async add(data: AddItemDto) {
-        const item = await this.findByName(data.name, data.specification);
+        const item = await this.findByName(data.name, data.specification, data.serial_number);
         if (item) {
             throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
         }
@@ -71,7 +71,7 @@ export class ItemService {
             const category = data.categoryId ? await this.categoryService.findById(data.categoryId) : item.category
             delete data.categoryId
             if (item && category) {
-                const isExisted = await this.findByName(data.name, data.specification);
+                const isExisted = await this.findByName(data.name, data.specification, data.serial_number);
                 if (isExisted && isExisted.id !== id) {
                     throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
                 }
