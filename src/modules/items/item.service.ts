@@ -36,7 +36,7 @@ export class ItemService {
         return (
             await this.itemRepository
                 .createQueryBuilder("item")
-                .where('(replace(item.name, \' \', \'\') LIKE :name && replace(item.specification, \' \', \'\') LIKE :specification && (replace(item.serial_number, \' \', \'\') LIKE :serial_number)',
+                .where('(replace(item.name, \' \', \'\') LIKE :name && replace(item.specification, \' \', \'\') LIKE :specification && replace(item.serial_number, \' \', \'\') LIKE :serial_number)',
                     { name: name.replace(/\s/g, ""), specification: specification.replace(/\s/g, ""), serial_number: serial_number.replace(/\s/g, "") })
                 .getOne()
         )
