@@ -214,7 +214,7 @@ export class UserService {
     }
     async forgotPassword(email: string): Promise<any> {
         const isExisted = await this.findByEmail(email);
-        if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
+        if (!isExisted || isExisted.status !== UserStatus.ACTIVE) {
             throw new BusinessException(ErrorEnum.USER_INVALID)
         };
         try {
