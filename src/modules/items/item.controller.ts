@@ -4,7 +4,7 @@ import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { RoleEnum } from "src/enums/role-enum.enum";
-import { AddItemDto } from "./dtos/add-item.dto";
+import { AddItemDto, AddListItemDto } from "./dtos/add-item.dto";
 import { ItemService } from "./item.service";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateItemDto } from "./dtos/update-item.dto";
@@ -29,6 +29,15 @@ export class ItemController {
         const data = AddItemDto.plainToClass(dto);
         data.createBy = data.updateBy = req.user.id;
         return await this.itemService.add(data);
+    }
+
+    @Post('/add-list-item')
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    async addList(@Body() dto: AddListItemDto, @Request() req: any) {
+        const data = AddListItemDto.plainToClass(dto);
+        data.createBy = data.updateBy = req.user.id
+        return await this.itemService.addListItem(data);
     }
 
     @Patch('/:id')

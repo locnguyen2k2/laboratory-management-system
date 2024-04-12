@@ -1,13 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, Validate } from "class-validator";
+import { Expose, Type } from "class-transformer";
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, Validate, ValidateNested } from "class-validator";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
 import { CategoryEnum } from "src/modules/categories/category.constant";
 import { BaseDto } from "src/common/dtos/base.dto";
 import { UnitEnum } from "./../../../enums/unit-enum.enum";
 import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
 
-export class AddItemDto extends BaseDto {
+class AddItemBaseDto extends BaseDto {
     @ApiProperty({ default: "" })
     @Expose()
     @IsString()
@@ -23,6 +23,7 @@ export class AddItemDto extends BaseDto {
 
     @ApiProperty({ default: "" })
     @Expose()
+    @Validate(IsValidString)
     serial_number: string;
 
     @ApiProperty({ default: "" })
@@ -54,15 +55,48 @@ export class AddItemDto extends BaseDto {
     @Expose()
     remark: string;
 
+    @ApiProperty({ default: null })
+    @Expose()
+    @IsNotEmpty()
+    @IsEnum(CategoryEnum)
+    categoryId: CategoryEnum;
+}
+
+export class AddItemDto extends AddItemBaseDto {
+
     @Expose()
     createBy: number;
 
     @Expose()
     updateBy: number;
 
-    @ApiProperty({ default: null })
+}
+
+export class AddListItemDto extends BaseDto {
+
+    @ApiProperty({
+        default: [
+            {
+                name: "",
+                origin: "",
+                serial_number: "",
+                specification: "",
+                unit: null,
+                status: null,
+                quantity: null,
+                remark: "",
+                categoryId: null,
+            }
+        ]
+    })
     @Expose()
-    @IsNotEmpty()
-    @IsEnum(CategoryEnum)
-    categoryId: CategoryEnum;
+    @Type(() => AddItemBaseDto)
+    @ValidateNested()
+    items: AddItemBaseDto[]
+
+    @Expose()
+    createBy: number;
+
+    @Expose()
+    updateBy: number;
 }

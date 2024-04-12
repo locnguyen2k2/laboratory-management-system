@@ -2,9 +2,10 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ItemEntity } from "./item.entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AddItemDto } from "./dtos/add-item.dto";
+import { AddItemDto, AddListItemDto } from "./dtos/add-item.dto";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
+import e from "express";
 
 @Injectable()
 export class ItemService {
@@ -63,6 +64,30 @@ export class ItemService {
 
         const newItem = await this.itemRepository.save(new ItemEntity({ ...data, category: category }));
         return newItem;
+    }
+
+    async addListItem(data: AddListItemDto) {
+        let listItem = [];
+        await Promise.all(
+            data.items.map(async (item) => {
+                if (!(await this.findByName(item.name, item.specification, item.serial_number))) {
+                    const isReplace = listItem.findIndex((item1) => item1?.name == item?.name && item1?.specification === item?.specification && item1?.serial_number === item?.serial_number)
+                    if (isReplace === -1) {
+                        listItem.push(item)
+                    }
+                }
+            })
+        )
+        await Promise.all(
+            listItem.map(async (item) => {
+                const category = await this.categoryService.findById(item.categoryId)
+                delete item.categoryId
+                const newItem = new ItemEntity({ ...item, createBy: data.createBy, updateBy: data.updateBy, category })
+                await this.itemRepository.save(newItem)
+                item.categoryId = category.id
+            })
+        )
+        return listItem
     }
 
     async update(id: number, data: UpdateItemDto) {
