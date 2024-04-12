@@ -5,7 +5,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AddItemDto, AddListItemDto } from "./dtos/add-item.dto";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
-import e from "express";
 
 @Injectable()
 export class ItemService {
