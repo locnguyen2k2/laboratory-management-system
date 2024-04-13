@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RoomItemEntity } from "./room-item.entity";
 import { Repository } from "typeorm";
-import { AddRoomItemDto } from "./dtos/add-roomItem.dto";
+import { AddListRoomItemDto, AddRoomItemDto } from "./dtos/add-roomItem.dto";
 import { ItemService } from "../items/item.service";
 import { RoomService } from "../rooms/room.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
@@ -76,6 +76,31 @@ export class RoomItemService {
         } else {
             throw new BusinessException('404:Item or room not found!')
         }
+    }
+
+    async addListRoomItem(data: AddListRoomItemDto) {
+        let listRoomItem = [];
+        await Promise.all(
+            data.room_items.map(async (item) => {
+                const isExistItem = await this.itemService.findById(item.itemId)
+                const isExistRoom = await this.roomService.findById(item.roomId)
+                if (isExistItem && isExistRoom && !(await this.isRoomHasItem(item.roomId, item.itemId))) {
+                    const isReplace = listRoomItem.findIndex((roomItem) => roomItem?.itemId === item?.itemId && roomItem?.roomId === item?.roomId)
+                    if (isReplace === -1) {
+                        listRoomItem.push({ ...item, room: isExistRoom, item: isExistItem })
+                    }
+                }
+            })
+        )
+        await Promise.all(
+            listRoomItem.map(async (roomItem) => {
+                delete roomItem.itemId
+                delete roomItem.roomId
+                const newRoomItem = new RoomItemEntity({ ...roomItem, createBy: data.createBy, updateBy: data.updateBy })
+                await this.roomItemRepository.save(newRoomItem)
+            })
+        )
+        return listRoomItem;
     }
 
     async updateRoomItem(id: number, data: UpdateRoomItemDto) {

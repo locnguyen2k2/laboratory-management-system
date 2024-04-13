@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Expose } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsNumber, Length } from "class-validator";
+import { Expose, Type } from "class-transformer";
+import { IsEnum, IsNotEmpty, IsNumber, Length, ValidateNested } from "class-validator";
 import { BaseDto } from "src/common/dtos/base.dto";
 import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
 
@@ -34,6 +34,29 @@ export class AddRoomItemDto extends BaseDto {
     @IsNotEmpty()
     @Length(4)
     year: string;
+
+    @Expose()
+    createBy: number;
+    @Expose()
+    updateBy: number;
+}
+
+export class AddListRoomItemDto extends BaseDto {
+    @ApiProperty({
+        default: [
+            {
+                roomId: null,
+                itemId: null,
+                status: null,
+                quantity: null,
+                year: "",
+            }
+        ]
+    })
+    @Expose()
+    @Type(() => AddRoomItemDto)
+    @ValidateNested()
+    room_items: AddRoomItemDto[]
 
     @Expose()
     createBy: number;
