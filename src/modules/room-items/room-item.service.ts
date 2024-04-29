@@ -17,6 +17,18 @@ export class RoomItemService {
         private readonly itemService: ItemService,
     ) { }
 
+    async findAll() {
+        const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
+            .leftJoinAndSelect('roomItem.item', 'item')
+            .leftJoinAndSelect('roomItem.room', 'room')
+            .select('roomItem')
+            .select(['roomItem', 'item', 'room'])
+            .getMany()
+        if (roomItem) {
+            return roomItem
+        }
+    }
+
     async findById(id: number) {
         const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
             .leftJoinAndSelect('roomItem.item', 'item')

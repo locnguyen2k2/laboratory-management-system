@@ -48,4 +48,14 @@ export class RoomItemController {
     async getRoomItem(@IdParam() id: number) {
         return await this.roomItemService.findByRoomId(id);
     }
+
+    @Get(':id')
+    async getRoomItems(@IdParam() id: number) {
+        return await this.roomItemService.findById(id);
+    }
+
+    @Get('')
+    async getAllRoomItems() {
+        return await this.roomItemService.findAll();
+    }
 }
