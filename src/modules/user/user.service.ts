@@ -70,6 +70,7 @@ export class UserService {
             const info = {
                 ...data,
                 ...(data.firstName ? { firstName: data.firstName } : { firstName: user.firstName }),
+                ...(data.photo && data.photo.length > 0 ? { photo: data.photo } : { photo: user.photo }),
                 ...(data.lastName ? { lastName: data.lastName } : { lastName: user.lastName }),
                 ...(data.address ? { address: data.address } : { address: user.address }),
                 ...(data.status >= 0 ? { status: data.status } : { status: user.status }),
@@ -81,6 +82,7 @@ export class UserService {
                     lastName: info.lastName,
                     address: info.address,
                     status: info.status,
+                    photo: info.photo,
                     role: info.role
                 })
             return await this.findById(id);
