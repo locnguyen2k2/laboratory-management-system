@@ -17,7 +17,6 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { Credential } from '../auth/interfaces/credential.interface';
 import { JwtPayload } from '../auth/interfaces/jwt.interface';
-import { RoleEnum } from 'src/enums/role-enum.enum';
 
 @Injectable({})
 export class UserService {

@@ -27,12 +27,13 @@ export class ItemRegistrationService {
 
     }
 
-    async findByUserDayItem(uid: number, startDay: string, endDay: string, id: number, roomid: number) {
-        const registration = await this.itemRegistrationRepository.createQueryBuilder('registration')
-            .leftJoinAndSelect('registration.item', 'item')
-            .leftJoinAndSelect('registration.room', 'room')
-            .where('(registration.start_day <= :startDay AND registration.end_day >= :startDay AND registration.start_day <= :endDay AND (registration.end_day >= :endDay OR registration.end_day <= :endDay) AND item.id = :id AND registration.createBy = :uid AND registration.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
-            .select(['registration.status', 'registration.start_day', 'registration.quantity', 'registration.end_day', 'registration.id', 'room.id', 'room.name', 'item.id', 'item.name'])
+    async findByUserDayItem(uid: number, startDay: number, endDay: number, id: number, roomid: number) {
+        const registration = await this.itemRegistrationRepository.createQueryBuilder('registrationItem')
+            .leftJoinAndSelect('registrationItem.item', 'item')
+            .leftJoinAndSelect('registrationItem.room', 'room')
+            .leftJoinAndSelect('registrationItem.registration', 'registration')
+            .where('(registrationItem.start_day <= :startDay AND registrationItem.end_day >= :startDay AND registrationItem.start_day <= :endDay AND (registrationItem.end_day >= :endDay OR registrationItem.end_day <= :endDay) AND item.id = :id AND registrationItem.createBy = :uid AND registrationItem.room_id = :roomid)', { startDay, endDay, id, uid, roomid })
+            .select(['registration.id' as 'registrationId', 'registrationItem.status', 'registrationItem.start_day', 'registrationItem.quantity', 'registrationItem.end_day', 'registrationItem.id', 'room.id', 'room.name', 'item.id', 'item.name'])
             .getOne()
         if (registration)
             return registration
@@ -51,7 +52,7 @@ export class ItemRegistrationService {
                 quantity: data.quantity,
                 status: data.status
             })
-            return;
+            return itemRegistration.registration.id;
         }
         if (!isReplace) {
             const item = await this.itemService.findById(data.itemId)
@@ -59,7 +60,7 @@ export class ItemRegistrationService {
             delete data.user;
             const newItem = new ItemRegistrationEntity({ ...data, item });
             await this.itemRegistrationRepository.save(newItem);
-            return;
+            return data.registration.id;
         }
     }
 }

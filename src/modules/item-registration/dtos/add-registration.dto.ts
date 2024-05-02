@@ -1,7 +1,7 @@
 import { Expose, Transform } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseDto } from "src/common/dtos/base.dto";
-import { IsDateString, IsEnum, IsNotEmpty } from "class-validator";
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber } from "class-validator";
 import { ItemRegistration, RegistrationStatusEnum } from "./../../registration/registration.constant";
 import { IsDateGreaterThanOrEqualToday } from "src/common/decorators/date-validation.decorate";
 import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
@@ -14,19 +14,17 @@ export class AddItemRegistrationDto extends BaseDto {
     @Expose()
     user: number;
 
-    @ApiProperty({ default: "2024-MM-DD" })
+    @ApiProperty({ default: 0 })
     @Expose()
-    @IsDateString({}, { each: true })
-    @IsNotEmpty()
+    @IsNumber()
     @IsDateGreaterThanOrEqualToday()
-    start_day: string;
+    start_day: number;
 
-    @ApiProperty({ default: "2024-MM-DD" })
+    @ApiProperty({ default: 0 })
     @Expose()
-    @IsDateString({}, { each: true })
-    @IsNotEmpty()
+    @IsNumber()
     @IsDateGreaterThanOrEqualToday()
-    end_day: string;
+    end_day: number;
 
     @ApiProperty({ default: [{ itemId: null, quantity: 1, roomId: null, status: ItemStatusEnum.STILLINGOODUSE }] })
     @Expose()

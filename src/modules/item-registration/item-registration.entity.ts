@@ -22,14 +22,14 @@ export class ItemRegistrationEntity extends ExtendedEntity {
     @Column({ type: 'enum', enum: ItemStatusEnum, default: ItemStatusEnum.STILLINGOODUSE })
     status: ItemStatusEnum
 
-    @Column()
+    @Column() 
     quantity: number
 
-    @Column({ type: 'date' })
-    start_day: string
+    @Column({ type: 'varchar' })
+    start_day: number
 
-    @Column({ type: 'date' })
-    end_day: string
+    @Column({ type: 'varchar' })
+    end_day: number
 
     constructor(itemRegistrationEntity: Partial<ItemRegistrationEntity>) {
         super();
