@@ -22,8 +22,23 @@ export class RegistrationService {
         private readonly roomItemService: RoomItemService
     ) { }
 
+    async findByUser(uid: number) {
+        const registration = await this.registrationRepository
+            .createQueryBuilder('registration')
+            .leftJoinAndSelect('registration.user', 'user')
+            .select(['registration', 'user.id'])
+            .where('user.id = :uid', { uid })
+            .getMany()
+        if (registration)
+            return registration
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+    }
+
     async findAll() {
-        return await this.registrationRepository.find()
+        return await this.registrationRepository.createQueryBuilder('registration')
+            .leftJoinAndSelect('registration.user', 'user')
+            .select(['registration', 'user.id'])
+            .getMany()
     }
 
     async addRegistration(createBy: number, updateBy: number, uid: number) {

@@ -4,6 +4,9 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { AddItemRegistrationDto } from "./../item-registration/dtos/add-registration.dto";
 import { IdParam } from "src/common/decorators/id-param.decorator";
+import { RolesGuard } from "../auth/guard/roles-auth.guard";
+import { Roles } from "src/common/decorators/roles.decorator";
+import { RoleEnum } from "src/enums/role-enum.enum";
 
 @Controller("registration")
 @ApiTags('Registration')
@@ -12,8 +15,17 @@ export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
 
     @Get()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async getAll() {
         return await this.registrationService.findAll()
+    }
+
+    @Get('my-borrowing')
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+    async getUserBorrowing(@Request() req: any) {
+        return await this.registrationService.findByUser(req.user.id)
     }
 
     @Post('')
