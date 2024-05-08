@@ -22,8 +22,7 @@ export class RegistrationController {
     }
 
     @Get('my-borrowing')
-    @UseGuards(JwtGuard, RolesGuard)
-    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+    @UseGuards(JwtGuard)
     async getUserBorrowing(@Request() req: any) {
         return await this.registrationService.findByUser(req.user.id)
     }
