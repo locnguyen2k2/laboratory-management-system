@@ -24,6 +24,14 @@ export class CategoryController {
         return await this.categoryService.findAll();
     }
 
+
+    @Get()
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+    async getById(@IdParam() id: number) {
+        return await this.categoryService.findById(id);
+    }
+
     @Post()
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)

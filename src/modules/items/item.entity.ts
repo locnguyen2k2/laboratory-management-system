@@ -5,6 +5,7 @@ import { CategoryEntity } from "../categories/category.entity";
 import { RoomItemEntity } from "./../room-items/room-item.entity";
 import { UnitEnum } from "src/enums/unit-enum.enum";
 import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
+import { HandoverStatus } from "src/enums/handover-status-enum.enum";
 
 @Entity('item_entity')
 export class ItemEntity extends ExtendedEntity {
@@ -18,7 +19,7 @@ export class ItemEntity extends ExtendedEntity {
     @Column({ nullable: true })
     serial_number: string;
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     specification: string;
 
     @Column()
@@ -32,6 +33,9 @@ export class ItemEntity extends ExtendedEntity {
 
     @Column({ type: 'enum', enum: ItemStatusEnum, nullable: false })
     status: ItemStatusEnum
+
+    @Column({ type: 'enum', enum: HandoverStatus, nullable: false, default: HandoverStatus.IsNotHandover })
+    handoverStatus: HandoverStatus
 
     @ManyToOne(() => CategoryEntity, category => category.items)
     @JoinColumn({ name: 'category_id' })
