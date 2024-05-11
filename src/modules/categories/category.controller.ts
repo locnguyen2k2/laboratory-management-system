@@ -25,7 +25,7 @@ export class CategoryController {
     }
 
 
-    @Get()
+    @Get('/:id')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
     async getById(@IdParam() id: number) {

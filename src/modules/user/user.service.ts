@@ -73,7 +73,7 @@ export class UserService {
                 ...(data.lastName ? { lastName: data.lastName } : { lastName: user.lastName }),
                 ...(data.address ? { address: data.address } : { address: user.address }),
                 ...(data.status >= 0 ? { status: data.status } : { status: user.status }),
-                ...(data.role ? { role: data.role } : { role: user.role }),
+                ...(data.role >= 0 ? { role: data.role } : { role: user.role }),
             }
             await this.userRepository.update({ id: id },
                 {
