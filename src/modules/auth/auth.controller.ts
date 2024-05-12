@@ -9,7 +9,7 @@ import { RegisterUserDto } from "../user/dtos/register.dto";
 import { GoogleRedirectDto } from "./dtos/googleRedirect-auth.dto";
 import { RegisterAdminDto } from "./../user/dtos/register.dto";
 import { RegisterManagerDto } from "./../user/dtos/register.dto";
-import { Body, Controller, HttpException, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpException, Post, UseGuards, Request } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { Credential } from "./interfaces/credential.interface";
 import { AccountInfo } from "../user/interfaces/AccountInfo.interface";
@@ -35,23 +35,23 @@ export class AuthController {
     @Post('register')
     async register(@Body() dto: RegisterUserDto): Promise<AccountInfo> {
         const user = plainToClass(RegisterUserDto, dto, { excludeExtraneousValues: true });
-        return this.authService.register(user);
+        return this.authService.register(user, null);
     }
 
     @Post('manager-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
-    async registerManager(@Body() dto: RegisterManagerDto): Promise<AccountInfo> {
+    async registerManager(@Body() dto: RegisterManagerDto, @Request() req: any): Promise<AccountInfo> {
         const manager = plainToClass(RegisterManagerDto, dto, { excludeExtraneousValues: true });
-        return await this.authService.register(manager);
+        return await this.authService.register(manager, req.user);
     }
 
     @Post('admin-create')
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    async registerAdmin(@Body() dto: RegisterAdminDto): Promise<AccountInfo> {
+    async registerAdmin(@Body() dto: RegisterAdminDto, @Request() req: any): Promise<AccountInfo> {
         const admin = plainToClass(RegisterAdminDto, dto, { excludeExtraneousValues: true });
-        return await this.authService.register(admin);
+        return await this.authService.register(admin, req.user);
     }
 
 }

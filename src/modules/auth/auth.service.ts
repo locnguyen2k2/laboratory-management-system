@@ -15,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Credential } from './interfaces/credential.interface';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
+const _ = require('lodash')
 
 @Injectable()
 export class AuthService {
@@ -76,8 +77,8 @@ export class AuthService {
         }
     }
 
-    async register(user: (RegisterUserDto | RegisterManagerDto | RegisterAdminDto)): Promise<any> {
-        return await this.userService.create(user)
+    async register(dto: (RegisterUserDto | RegisterManagerDto | RegisterAdminDto), user: (JwtPayload | null)): Promise<any> {
+        return await this.userService.create({...dto, createBy: !_.isNil(user) ? user.id : null})
     }
 
 }

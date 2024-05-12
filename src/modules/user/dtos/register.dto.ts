@@ -4,6 +4,7 @@ import { UserPasswordDto } from "./password.dto";
 import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString, Length, Validate } from "class-validator"
 import { RoleEnum } from "src/enums/role-enum.enum";
 import { IsValidString } from "src/common/decorators/string-validation.decorator";
+import { UserStatus } from "../user.constant";
 
 export class RegisterUserDto extends UserPasswordDto {
     @ApiProperty({ default: "" })
@@ -26,22 +27,19 @@ export class RegisterUserDto extends UserPasswordDto {
     @Expose()
     email: string;
 
-    @ApiProperty({ default: "Tra Vinh" })
-    @IsString()
-    @IsNotEmpty()
     @Expose()
+    @IsString()
     @Validate(IsValidString)
     address: string;
-
-    @ApiProperty({ default: "" })
-    @IsString()
-    @Length(8, 32)
-    @IsNotEmpty()
-    @Expose()
-    confirmPassword: string;
 }
 
 export class RegisterAdminDto extends RegisterUserDto {
+
+    @ApiProperty({ description: 'Unactive is set as default!', default: UserStatus.UNACTIVE })
+    @Expose()
+    @IsEnum(UserStatus)
+    status: UserStatus
+
     @Expose()
     @IsEnum(RoleEnum)
     @Transform(() => RoleEnum.ADMIN)
@@ -49,6 +47,11 @@ export class RegisterAdminDto extends RegisterUserDto {
 }
 
 export class RegisterManagerDto extends RegisterUserDto {
+    @ApiProperty({ description: 'Unactive is set as default!', default: UserStatus.UNACTIVE })
+    @Expose()
+    @IsEnum(UserStatus)
+    status: UserStatus
+
     @Expose()
     @IsEnum(RoleEnum)
     @Transform(() => RoleEnum.MANAGER)

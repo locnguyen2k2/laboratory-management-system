@@ -49,9 +49,9 @@ export class UserController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
     async update(@IdParam() id: number,
-        @Body() dto: UpdateAdminDto): Promise<UserEntity> {
+        @Body() dto: UpdateAdminDto, @Request() req: any): Promise<UserEntity> {
         const data = UpdateAdminDto.plainToClass(dto);
-        return await this.userService.update(id, data);
+        return await this.userService.update(id, data, req.user);
     }
 
     @Get('info')

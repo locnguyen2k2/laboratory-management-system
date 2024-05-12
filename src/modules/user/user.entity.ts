@@ -1,18 +1,17 @@
-import { CommonEntity } from "src/common/entity/common.entity";
+import { CommonEntity, ExtendedEntity } from "src/common/entity/common.entity";
 import { UserStatus } from "./user.constant";
 import { Column, Entity, OneToMany, Relation } from "typeorm";
 import { RegistrationEntity } from "../registration/registration.entity";
 import { RoleEnum } from "src/enums/role-enum.enum";
 
 @Entity({ name: 'user_entity' })
-export class UserEntity extends CommonEntity {
+export class UserEntity extends ExtendedEntity {
 
     @Column()
     firstName: string;
 
     @Column()
     lastName: string;
-
     
     @Column({ default: null })
     address: string;
