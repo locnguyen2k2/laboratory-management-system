@@ -23,11 +23,19 @@ export class MailService {
     }
 
     async isCtuetEmail(email: string): Promise<boolean | HttpException> {
-        const emailHandle = email.split('@')[1];
-        if (!(emailHandle.includes('ctuet.edu.vn'))) {
+        let teacherEmail = '';
+        let studentEmail = '';
+        for (let i = email.length - 13; i < email.length; i++) {
+            teacherEmail += email[i]
+        }
+        for (let i = email.length - 21; i < email.length; i++) {
+            studentEmail += email[i]
+        }
+        const hasError = teacherEmail == '@ctuet.edu.vn' || studentEmail == '@student.ctuet.edu.vn';
+        if (!hasError) {
             throw new BusinessException(ErrorEnum.CTUET_EMAIL);
         }
-        return true;
+        return hasError;
     }
 
     async sendEmail(options: Mail.Options): Promise<any> {

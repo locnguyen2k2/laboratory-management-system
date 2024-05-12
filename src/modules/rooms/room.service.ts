@@ -4,6 +4,8 @@ import { RoomEntity } from "./room.entity";
 import { Repository } from "typeorm";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
 import { AddRoomDto } from "./dtos/add-room.dto";
+import { BusinessException } from "src/common/exceptions/biz.exception";
+import { ErrorEnum } from "src/constants/error-code.constant";
 
 @Injectable()
 export class RoomService {
@@ -24,6 +26,7 @@ export class RoomService {
             .getOne()
         if (item)
             return item;
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
     async findByName(name: string) {
@@ -61,6 +64,5 @@ export class RoomService {
             await this.roomRepository.update({ id: id }, { ...info })
             return await this.findById(id);
         }
-        throw new HttpException(`The room not found`, HttpStatus.NOT_FOUND);
     }
 }

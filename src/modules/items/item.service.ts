@@ -5,6 +5,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AddItemDto, AddListItemDto } from "./dtos/add-item.dto";
 import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
+import { BusinessException } from "src/common/exceptions/biz.exception";
+import { ErrorEnum } from "src/constants/error-code.constant";
 
 @Injectable()
 export class ItemService {
@@ -30,6 +32,7 @@ export class ItemService {
             .getOne()
         if (item)
             return item
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
     async findByName(name: string, specification: string, serial_number: string) {
@@ -115,7 +118,6 @@ export class ItemService {
                 return await this.findById(id);
             }
         }
-        throw new HttpException(`The item or category not found`, HttpStatus.NOT_FOUND);
     }
 
 }

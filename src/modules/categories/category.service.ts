@@ -21,6 +21,7 @@ export class CategoryService {
         const category = (await this.categoryRepository.find({ where: { id: id } }))[0];
         if (category)
             return category
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
     async findByName(name: string) {
@@ -45,15 +46,16 @@ export class CategoryService {
 
     async update(id: number, data: UpdateDto) {
         const category = await this.findById(id);
-        const isExisted = await this.findByName(data.name)
-        if (isExisted && isExisted.id !== id) {
-            throw new BusinessException(ErrorEnum.RECORD_IS_EXISTED)
-        }
         if (category) {
-            await this.categoryRepository.update({ id: id }, { name: data.name })
-            return "The category is updated successfully!";
+            const isExisted = await this.findByName(data.name)
+            if (isExisted && isExisted.id !== id) {
+                throw new BusinessException(ErrorEnum.RECORD_IS_EXISTED)
+            }
+            if (category) {
+                await this.categoryRepository.update({ id: id }, { name: data.name })
+                return "The category is updated successfully!";
+            }
         }
-        throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
     }
 
     // async delete(id: number) {

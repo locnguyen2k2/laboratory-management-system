@@ -175,7 +175,9 @@ export class UserService {
         return true;
     }
     async updatePassword(email: string, password: string) {
-        await this.userRepository.update({ email: email }, { password: password, repass_token: null })
+        if (this.emailService.isCtuetEmail(email)) {
+            await this.userRepository.update({ email: email }, { password: password, repass_token: null })
+        }
     }
     async userConfirmation(dto: ConfirmationEmailDto) {
         const email = await this.emailService.confirmEmail(dto);
@@ -192,45 +194,49 @@ export class UserService {
         }
     }
     async confirmRePassword(data: ForgotPasswordDto) {
-        const isExisted = await this.findByEmail(data.email);
-        if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
-            throw new BusinessException(ErrorEnum.USER_INVALID);
-        }
-        try {
-            await this.jwtService.verifyAsync(isExisted.repass_token)
-        } catch (error) {
-            throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
-        }
-        const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
-        if (data.digitalNumbs === decoded.digitalNumbs) {
-            const isCheckPass = await bcrypt.compareSync(data.password, isExisted.password);
-            if (!isCheckPass) {
-                const password = await bcrypt.hashSync(data.password, 10);
-                await this.updatePassword(data.email, password);
-                return ("Your password is already updated");
+        if (this.emailService.isCtuetEmail(data.email)) {
+            const isExisted = await this.findByEmail(data.email);
+            if (!isExisted || !isExisted.password || isExisted.status !== UserStatus.ACTIVE) {
+                throw new BusinessException(ErrorEnum.USER_INVALID);
             }
-            throw new HttpException('The password is duplicated', HttpStatus.BAD_REQUEST);
+            try {
+                await this.jwtService.verifyAsync(isExisted.repass_token)
+            } catch (error) {
+                throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN)
+            }
+            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token)
+            if (data.digitalNumbs === decoded.digitalNumbs) {
+                const isCheckPass = await bcrypt.compareSync(data.password, isExisted.password);
+                if (!isCheckPass) {
+                    const password = await bcrypt.hashSync(data.password, 10);
+                    await this.updatePassword(data.email, password);
+                    return ("Your password is already updated");
+                }
+                throw new HttpException('The password is duplicated', HttpStatus.BAD_REQUEST);
+            }
+            throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
         }
-        throw new HttpException('Digital numbers incorrect', HttpStatus.BAD_REQUEST);
     }
     async forgotPassword(email: string): Promise<any> {
-        const isExisted = await this.findByEmail(email);
-        if (!isExisted || isExisted.status !== UserStatus.ACTIVE) {
-            throw new BusinessException(ErrorEnum.USER_INVALID)
-        };
-        try {
-            await this.jwtService.verifyAsync(isExisted.repass_token);
-        } catch (error) {
-            const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
-            const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
-            const repassToken = await this.jwtService.signAsync(payload);
-            await this.updateRepassToken(email, repassToken);
-            throw new BusinessException("The new digital numbers was send to your Email!");
+        if (this.emailService.isCtuetEmail(email)) {
+            const isExisted = await this.findByEmail(email);
+            if (!isExisted || isExisted.status !== UserStatus.ACTIVE) {
+                throw new BusinessException(ErrorEnum.USER_INVALID)
+            };
+            try {
+                await this.jwtService.verifyAsync(isExisted.repass_token);
+            } catch (error) {
+                const digitalNumbs = Math.floor((100000 + Math.random() * 900000));
+                const payload = await this.emailService.sendConfirmationRePassword(email, digitalNumbs.toString());
+                const repassToken = await this.jwtService.signAsync(payload);
+                await this.updateRepassToken(email, repassToken);
+                throw new BusinessException("The new digital numbers was send to your Email!");
+            }
+            const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
+            if (decoded) {
+                throw new BusinessException("Please, check your digital numbers in your email before!");
+            };
         }
-        const decoded = await this.jwtService.verifyAsync(isExisted.repass_token);
-        if (decoded) {
-            throw new BusinessException("Please, check your digital numbers in your email before!");
-        };
     }
     async getAccountInfo(email: string): Promise<AccountInfo> {
         let user = await this.findByEmail(email)
@@ -247,24 +253,26 @@ export class UserService {
         return user
     }
     async resendConfirmationLink(dto: EmailLinkConfirmDto) {
-        const user = await this.findByEmail(dto.email);
-        if (user && user.status !== UserStatus.DISABLE) {
-            if (user.status == UserStatus.UNACTIVE) {
-                try {
-                    await this.emailService.decodeConfirmationToken(user.refresh_token);
-                } catch (error: any) {
-                    const token = await this.emailService.sendConfirmationEmail(user.id, user.email);
-                    await this.userRepository.update({ email: dto.email }, { refresh_token: token })
-                    throw new BusinessException("The confirmation email link already send");
+        if (await this.emailService.isCtuetEmail(dto.email)) {
+            const user = await this.findByEmail(dto.email);
+            if (user && user.status !== UserStatus.DISABLE) {
+                if (user.status == UserStatus.UNACTIVE) {
+                    try {
+                        await this.emailService.decodeConfirmationToken(user.refresh_token);
+                    } catch (error: any) {
+                        const token = await this.emailService.sendConfirmationEmail(user.id, user.email);
+                        await this.userRepository.update({ email: dto.email }, { refresh_token: token })
+                        throw new BusinessException("The confirmation email link already send");
+                    }
+                    const decode = await this.emailService.decodeConfirmationToken(user.refresh_token);
+                    if (decode) {
+                        throw new BusinessException("Please, click the link was send to your account before!")
+                    }
                 }
-                const decode = await this.emailService.decodeConfirmationToken(user.refresh_token);
-                if (decode) {
-                    throw new BusinessException("Please, click the link was send to your account before!")
-                }
+                throw new BusinessException("Your account is confirmed!");
             }
-            throw new BusinessException("Your account is confirmed!");
+            throw new BusinessException(ErrorEnum.USER_INVALID);
         }
-        throw new BusinessException(ErrorEnum.USER_INVALID);
     }
     async resetPassword(id: number, data: PasswordUpdateDto) {
         const user = await this.findById(id);
