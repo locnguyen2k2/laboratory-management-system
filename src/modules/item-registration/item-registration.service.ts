@@ -6,6 +6,8 @@ import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
 import { IAddItemRegistration } from "./interfaces/add-registration.interface";
 import { ItemService } from "src/modules/items/item.service";
+import { UpdateItemRegistrationDto } from "./dtos/update-borrowing.dto";
+import { RoomEntity } from "../rooms/room.entity";
 
 @Injectable()
 export class ItemRegistrationService {
@@ -39,6 +41,19 @@ export class ItemRegistrationService {
             return registration
     }
 
+    async findByUidRegid(uid: number, id: number) {
+        const registration = await this.itemRegistrationRepository.createQueryBuilder('registrationItem')
+            .leftJoinAndSelect('registrationItem.item', 'item')
+            .leftJoinAndSelect('registrationItem.room', 'room')
+            .leftJoinAndSelect('registrationItem.registration', 'registration')
+            .where('(registrationItem.createBy = :uid AND registrationItem.id = :id)', { uid, id })
+            .select(['registration.id' as 'registrationId', 'registrationItem.status', 'registrationItem.start_day', 'registrationItem.quantity', 'registrationItem.end_day', 'registrationItem.id', 'room.id', 'room.name', 'item.id', 'item.name'])
+            .getOne()
+        if (registration)
+            return registration
+        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+    }
+
     async addItemReg(data: IAddItemRegistration) {
         let isReplace = false;
         const roomid = data.room.id
@@ -63,4 +78,18 @@ export class ItemRegistrationService {
             return data.registration.id;
         }
     }
+
+    async update(id: number, uid: number, data: UpdateItemRegistrationDto, room: RoomEntity) {
+        const beforeItemReg = await this.findByUidRegid(uid, id);
+        await this.itemRegistrationRepository.update({ id }, {
+            item: await this.itemService.findById(data.items.itemId),
+            quantity: data.items.quantity,
+            room: room,
+            status: data.items.status,
+            end_day: data.end_day === 0 ? beforeItemReg.end_day : data.end_day,
+            updateBy: uid,
+        })
+        return this.findByUidRegid(uid, id)
+    }
+
 }

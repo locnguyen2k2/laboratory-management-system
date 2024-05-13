@@ -11,6 +11,7 @@ import { ItemRegistration, RegistrationStatusEnum } from "./registration.constan
 import { isEmpty } from "lodash";
 import { RoomService } from "../rooms/room.service";
 import { RoomItemService } from "../room-items/room-item.service";
+import { UpdateItemRegistrationDto } from "../item-registration/dtos/update-borrowing.dto";
 
 @Injectable()
 export class RegistrationService {
@@ -134,5 +135,30 @@ export class RegistrationService {
             await this.registrationRepository.delete({ id: registration.id })
             return { registration: { id: registrationId } }
         }
+    }
+
+    async updateByItemRegId(id: number, uid: number, data: UpdateItemRegistrationDto) {
+        let isItem = true;
+        let items = [data.items]
+        await Promise.all(items.map(async (item: ItemRegistration) => {
+            if (!(item.quantity >= 1)) {
+                isItem = false;
+                return;
+            }
+            if (!(await this.roomItemService.isRoomHasItem(item.roomId, item.itemId))) {
+                isItem = false;
+                return;
+            }
+        }))
+        if (!isItem) {
+            throw new BusinessException("404:Item not found in room or quantity is less than 1!")
+        }
+
+        const handleItems = this.handleItems(items)
+        if (!handleItems) {
+            throw new BusinessException('404:Nothing changes')
+        }
+        const room = await this.roomService.findById(data.items.roomId);
+        return await this.itemRegistrationServce.update(id, uid, data, room)
     }
 }

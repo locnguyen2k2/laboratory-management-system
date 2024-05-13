@@ -1,12 +1,12 @@
-import { Controller, Post } from "@nestjs/common";
+import { Body, Controller, Patch, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { InjectRepository } from "@nestjs/typeorm";
-import { ItemRegistrationEntity } from "./item-registration.entity";
-import { Repository } from "typeorm";
+import { ItemRegistrationService } from "./item-registration.service";
 
 @Controller('item-registration')
 @ApiTags('Item Registration')
 @ApiBearerAuth()
 export class ItemRegistrationController {
-    constructor(@InjectRepository(ItemRegistrationEntity) private readonly itemRegistrationRepo: Repository<ItemRegistrationEntity>) { }
+    constructor(
+        private readonly itemBorrowService: ItemRegistrationService
+    ) { }
 }

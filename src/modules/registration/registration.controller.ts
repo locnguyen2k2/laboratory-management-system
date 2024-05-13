@@ -7,6 +7,7 @@ import { IdParam } from "src/common/decorators/id-param.decorator";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { RoleEnum } from "src/enums/role-enum.enum";
+import { UpdateItemRegistrationDto } from "../item-registration/dtos/update-borrowing.dto";
 
 @Controller("registration")
 @ApiTags('Registration')
@@ -35,9 +36,12 @@ export class RegistrationController {
         return await this.registrationService.createRegistration(data)
     }
 
-    @Patch('')
+    @Patch('item-registration/:id')
     @UseGuards(JwtGuard)
-    async updateItemRegistrartion() { }
+    async update(@IdParam() id: number, @Request() req: any, @Body() dto: UpdateItemRegistrationDto) {
+        const data = UpdateItemRegistrationDto.plainToClass(dto)
+        return await this.registrationService.updateByItemRegId(id, req.user.id, data)
+    }
 
     @Get(':id')
     async getDetail(@IdParam() id: number, @Request() req: any) {
