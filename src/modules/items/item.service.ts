@@ -7,6 +7,10 @@ import { UpdateItemDto } from "./dtos/update-item.dto";
 import { CategoryService } from "../categories/category.service";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageMetaDto } from "src/common/dtos/page-meta.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { ItemDto } from "./dtos/item.dto";
 
 @Injectable()
 export class ItemService {
@@ -15,12 +19,18 @@ export class ItemService {
         private readonly categoryService: CategoryService,
     ) { }
 
-    async findAll() {
-        return this.itemRepository
-            .createQueryBuilder("item")
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
+        const items = this.itemRepository.createQueryBuilder("item")
+        items
             .leftJoinAndSelect('item.category', 'category')
             .select(['item', 'category.id', 'category.name'])
-            .getMany();
+            .orderBy("item.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const itemCount = await items.getCount()
+        const { entities } = await items.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async findById(id: number) {
@@ -45,15 +55,23 @@ export class ItemService {
         )
     }
 
-    async findByCategory(categoryId: number) {
-        const item = await this.itemRepository
-            .createQueryBuilder("item")
-            .leftJoinAndSelect('item.category', 'category')
-            .where('(category.id = :categoryId)', { categoryId: categoryId })
-            .select(['item'])
-            .getMany()
-        if (item)
-            return item
+    async findByCategory(categoryId: number, pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
+        if (await this.categoryService.findById(categoryId)) {
+            const item = this.itemRepository.createQueryBuilder("item")
+
+            item
+                .leftJoinAndSelect('item.category', 'category')
+                .where('(category.id = :categoryId)', { categoryId: categoryId })
+                .select(['item'])
+                .orderBy("item.createdAt", pageOptionsDto.order)
+                .skip(pageOptionsDto.skip)
+                .take(pageOptionsDto.take)
+
+            const itemCount = await item.getCount()
+            const { entities } = await item.getRawAndEntities();
+            const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+            return new PageDto(entities, pageMetaDto)
+        }
     }
 
     async add(data: AddItemDto) {

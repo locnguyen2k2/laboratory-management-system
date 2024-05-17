@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Request, UseGuards, Get, Patch } from "@nestjs/common";
+import { Body, Controller, Post, Request, UseGuards, Get, Patch, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { RoomItemService } from "./room-item.service";
 import { AddListRoomItemDto, AddRoomItemDto } from "./dtos/add-roomItem.dto";
@@ -8,6 +8,12 @@ import { RoleEnum } from "src/enums/role-enum.enum";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateRoomItemDto } from "./dtos/update-roomItem.dto";
+import { ApiPaginatedRespone } from "src/common/decorators/api-paginated-respone.decorate";
+import { RoomItemDto } from "./dtos/room-item.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { RoomItemSpecificDto } from "./dtos/room-item-specific.dto";
+import { RoomItemEntity } from "./room-item.entity";
 
 @Controller('room-items')
 @ApiTags('Room items')
@@ -45,8 +51,9 @@ export class RoomItemController {
     }
 
     @Get('room/:id')
-    async getRoomItem(@IdParam() id: number) {
-        return await this.roomItemService.findByRoomId(id);
+    @ApiPaginatedRespone(RoomItemDto)
+    async getRoomItem(@IdParam() id: number, @Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
+        return await this.roomItemService.findByRoomId(id, pageOptionsDto);
     }
 
     @Get(':id')
@@ -55,7 +62,8 @@ export class RoomItemController {
     }
 
     @Get('')
-    async getAllRoomItems() {
-        return await this.roomItemService.findAll();
+    @ApiPaginatedRespone(RoomItemDto)
+    async getAllRoomItems(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
+        return await this.roomItemService.findAll(pageOptionsDto);
     }
 }

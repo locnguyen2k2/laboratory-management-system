@@ -21,13 +21,12 @@ async function bootstrap() {
   app.use(passport.initialize())
   app.use(passport.session())
   app.enableCors()
-  app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes(new ValidationPipe({ transform: true }))
   const config = new DocumentBuilder()
     .addBearerAuth()
-    .setTitle('NestjsPractice')
+    .setTitle('Laboratory Management System - CTUT')
     .setDescription('APIs calling')
     .setVersion('1.0')
-    .addTag('example')
     .build()
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('apis', app, document);

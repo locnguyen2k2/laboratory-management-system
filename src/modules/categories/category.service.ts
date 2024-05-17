@@ -6,6 +6,10 @@ import { AddCategoryDto } from "./dtos/add-category.dto";
 import { UpdateDto } from "./dtos/update.dto";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { CategoryDto } from "./dtos/category.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { PageMetaDto } from "src/common/dtos/page-meta.dto";
 
 @Injectable()
 export class CategoryService {
@@ -13,8 +17,16 @@ export class CategoryService {
         @InjectRepository(CategoryEntity) private readonly categoryRepository: Repository<CategoryEntity>,
     ) { }
 
-    async findAll() {
-        return this.categoryRepository.find();
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<CategoryDto>> {
+        const items = this.categoryRepository.createQueryBuilder("item")
+        items
+            .orderBy("item.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip) 
+            .take(pageOptionsDto.take)
+        const itemCount = await items.getCount()
+        const { entities } = await items.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async findById(id: number) {

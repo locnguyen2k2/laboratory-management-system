@@ -9,6 +9,10 @@ import { BusinessException } from "src/common/exceptions/biz.exception";
 import { isEmpty } from "lodash";
 import { UpdateRoomItemDto } from "./dtos/update-roomItem.dto";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { PageMetaDto } from "src/common/dtos/page-meta.dto";
+import { RoomItemDto } from "./dtos/room-item.dto";
 
 @Injectable()
 export class RoomItemService {
@@ -18,16 +22,19 @@ export class RoomItemService {
         private readonly itemService: ItemService,
     ) { }
 
-    async findAll() {
-        const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
+        const roomItem = this.roomItemRepository.createQueryBuilder('roomItem')
+        roomItem
             .leftJoinAndSelect('roomItem.item', 'item')
             .leftJoinAndSelect('roomItem.room', 'room')
-            .select('roomItem')
             .select(['roomItem', 'item', 'room'])
-            .getMany()
-        if (roomItem) {
-            return roomItem
-        }
+            .orderBy("roomItem.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const itemCount = await roomItem.getCount()
+        const { entities } = await roomItem.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async findById(id: number) {
@@ -44,18 +51,21 @@ export class RoomItemService {
         throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
     }
 
-    async findByRoomId(id: number) {
-        const roomItem = await this.roomItemRepository.createQueryBuilder('roomItem')
+    async findByRoomId(id: number, pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
+        const roomItem = this.roomItemRepository.createQueryBuilder('roomItem')
+
+        roomItem
             .leftJoinAndSelect('roomItem.item', 'item')
+            .leftJoinAndSelect('roomItem.room', 'room')
             .where('(roomItem.room_id = :id)', { id })
-            .select(['roomItem', 'item'])
-            .getMany()
-        if (roomItem) {
-            const room = await this.roomService.findById(id)
-            if (room) {
-                return { id: room.id, name: room.name, roomItem }
-            }
-        }
+            .select(['roomItem', 'item', 'room'])
+            .orderBy("roomItem.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const itemCount = await roomItem.getCount()
+        const { entities } = await roomItem.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async isRoomHasItem(roomid: number, itemid: number): Promise<Boolean> {

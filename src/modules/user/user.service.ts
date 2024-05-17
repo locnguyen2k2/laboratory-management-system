@@ -17,6 +17,9 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { Credential } from '../auth/interfaces/credential.interface';
 import { JwtPayload } from '../auth/interfaces/jwt.interface';
+import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
+import { PageDto } from 'src/common/dtos/page.dto';
+import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 const _ = require('lodash');
 
 @Injectable({})
@@ -27,9 +30,20 @@ export class UserService {
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) { }
 
-    async findAll(): Promise<UserEntity[]> {
-        return await this.userRepository.createQueryBuilder('user')
-            .getMany();
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
+        const user = this.userRepository.createQueryBuilder('user')
+        user
+            .select(['user.id', 'user.createBy', 'user.updateBy',
+                'user.firstName', 'user.lastName', 'user.address',
+                'user.photo', 'user.email', 'user.status', 'user.role',
+                'user.createdAt', 'user.updatedAt'])
+            .orderBy("user.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const itemCount = await user.getCount()
+        const { entities } = await user.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
     async findByEmail(email: string): Promise<UserEntity> {
         const user = await this.userRepository.createQueryBuilder('user')

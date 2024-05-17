@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request, Get, Patch } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Request, Get, Patch, Query } from "@nestjs/common";
 import { RegistrationService } from "./registration.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
@@ -8,6 +8,10 @@ import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { RoleEnum } from "src/enums/role-enum.enum";
 import { UpdateItemRegistrationDto } from "../item-registration/dtos/update-borrowing.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { RegistrationDto } from "./dtos/registration.dto";
+import { ApiPaginatedRespone } from "src/common/decorators/api-paginated-respone.decorate";
+import { PageDto } from "src/common/dtos/page.dto";
 
 @Controller("registration")
 @ApiTags('Registration')
@@ -16,16 +20,18 @@ export class RegistrationController {
     constructor(private readonly registrationService: RegistrationService) { }
 
     @Get()
+    @ApiPaginatedRespone(RegistrationDto)
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
-    async getAll() {
-        return await this.registrationService.findAll()
+    async getAll(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<RegistrationDto>> {
+        return await this.registrationService.findAll(pageOptionsDto)
     }
 
     @Get('my-borrowing')
+    @ApiPaginatedRespone(RegistrationDto)
     @UseGuards(JwtGuard)
-    async getUserBorrowing(@Request() req: any) {
-        return await this.registrationService.findByUser(req.user.id)
+    async getUserBorrowing(@Request() req: any, @Query() pageOptionsDto: PageOptionsDto) {
+        return await this.registrationService.findByUser(req.user.id, pageOptionsDto)
     }
 
     @Post('')

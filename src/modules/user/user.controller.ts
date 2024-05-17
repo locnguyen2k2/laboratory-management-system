@@ -14,6 +14,10 @@ import { Body, Controller, Request, UseGuards, Get, Put, Patch, Query, Post } fr
 import { ForgotPasswordDto, PasswordUpdateDto } from "./dtos/password.dto";
 import { UserEntity } from "./user.entity";
 import { AccountInfo } from "./interfaces/AccountInfo.interface";
+import { PageDto } from "src/common/dtos/page.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { ApiPaginatedRespone } from "src/common/decorators/api-paginated-respone.decorate";
+import { UserDto } from "./dtos/user.dto";
 
 @Controller('users')
 @ApiTags('Users')
@@ -24,10 +28,11 @@ export class UserController {
     ) { }
 
     @Get('get')
+    @ApiPaginatedRespone(UserDto)
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(RoleEnum.ADMIN)
-    async findAll(): Promise<UserEntity[]> {
-        return await this.userService.findAll();
+    async findAll(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
+        return await this.userService.findAll(pageOptionsDto);
     }
 
     @Get('get/:id')

@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards, Get, Request } from "@nestjs/common";
+import { Body, Controller, Patch, Post, UseGuards, Get, Request, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from "../auth/guard/jwt-auth.guard";
 import { RolesGuard } from "../auth/guard/roles-auth.guard";
@@ -8,6 +8,10 @@ import { AddItemDto, AddListItemDto } from "./dtos/add-item.dto";
 import { ItemService } from "./item.service";
 import { IdParam } from "src/common/decorators/id-param.decorator";
 import { UpdateItemDto } from "./dtos/update-item.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { ApiPaginatedRespone } from "src/common/decorators/api-paginated-respone.decorate";
+import { PageDto } from "src/common/dtos/page.dto";
+import { ItemDto } from "./dtos/item.dto";
 
 @Controller('items')
 @ApiTags('Items')
@@ -18,8 +22,9 @@ export class ItemController {
     ) { }
 
     @Get()
-    async get() {
-        return await this.itemService.findAll();
+    @ApiPaginatedRespone(ItemDto)
+    async get(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
+        return await this.itemService.findAll(pageOptionsDto);
     }
 
     @Post()
@@ -55,7 +60,8 @@ export class ItemController {
     }
 
     @Get('category/:id')
-    async getEquipmentByCategory(@IdParam() id: number) {
-        return await this.itemService.findByCategory(id);
+    @ApiPaginatedRespone(ItemDto)
+    async getEquipmentByCategory(@IdParam() id: number, @Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
+        return await this.itemService.findByCategory(id, pageOptionsDto);
     }
 }

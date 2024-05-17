@@ -12,6 +12,10 @@ import { isEmpty } from "lodash";
 import { RoomService } from "../rooms/room.service";
 import { RoomItemService } from "../room-items/room-item.service";
 import { UpdateItemRegistrationDto } from "../item-registration/dtos/update-borrowing.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageMetaDto } from "src/common/dtos/page-meta.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { RegistrationDto } from "./dtos/registration.dto";
 
 @Injectable()
 export class RegistrationService {
@@ -23,23 +27,35 @@ export class RegistrationService {
         private readonly roomItemService: RoomItemService
     ) { }
 
-    async findByUser(uid: number) {
-        const registration = await this.registrationRepository
-            .createQueryBuilder('registration')
+    async findByUser(uid: number, pageOptionsDto: PageOptionsDto) {
+        const registration = this.registrationRepository.createQueryBuilder('registration')
+
+        registration
             .leftJoinAndSelect('registration.user', 'user')
             .select(['registration', 'user.id'])
             .where('user.id = :uid', { uid })
+            .orderBy("registration.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
             .getMany()
-        if (registration)
-            return registration
-        throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND)
+        const itemCount = await registration.getCount()
+        const { entities } = await registration.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
-    async findAll() {
-        return await this.registrationRepository.createQueryBuilder('registration')
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RegistrationDto>> {
+        const items = this.registrationRepository.createQueryBuilder('registration');
+        items
             .leftJoinAndSelect('registration.user', 'user')
-            .select(['registration', 'user.id'])
-            .getMany()
+            .select(['registration', 'user.id']) 
+            .orderBy("registration.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const itemCount = await items.getCount()
+        const { entities } = await items.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async addRegistration(createBy: number, updateBy: number, uid: number) {
