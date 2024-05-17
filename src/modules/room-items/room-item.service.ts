@@ -31,9 +31,9 @@ export class RoomItemService {
             .orderBy("roomItem.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-        const itemCount = await roomItem.getCount()
+        const numberRecords = await roomItem.getCount()
         const { entities } = await roomItem.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 
@@ -62,9 +62,9 @@ export class RoomItemService {
             .orderBy("roomItem.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-        const itemCount = await roomItem.getCount()
+        const numberRecords = await roomItem.getCount()
         const { entities } = await roomItem.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 

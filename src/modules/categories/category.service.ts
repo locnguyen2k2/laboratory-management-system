@@ -23,9 +23,9 @@ export class CategoryService {
             .orderBy("item.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip) 
             .take(pageOptionsDto.take)
-        const itemCount = await items.getCount()
+        const numberRecords = await items.getCount()
         const { entities } = await items.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 

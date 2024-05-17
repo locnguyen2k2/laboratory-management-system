@@ -38,9 +38,9 @@ export class RegistrationService {
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
             .getMany()
-        const itemCount = await registration.getCount()
+        const numberRecords = await registration.getCount()
         const { entities } = await registration.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 
@@ -52,9 +52,9 @@ export class RegistrationService {
             .orderBy("registration.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-        const itemCount = await items.getCount()
+        const numberRecords = await items.getCount()
         const { entities } = await items.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 

@@ -27,9 +27,9 @@ export class ItemService {
             .orderBy("item.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-        const itemCount = await items.getCount()
+        const numberRecords = await items.getCount()
         const { entities } = await items.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
 
@@ -67,9 +67,9 @@ export class ItemService {
                 .skip(pageOptionsDto.skip)
                 .take(pageOptionsDto.take)
 
-            const itemCount = await item.getCount()
+            const numberRecords = await item.getCount()
             const { entities } = await item.getRawAndEntities();
-            const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+            const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
             return new PageDto(entities, pageMetaDto)
         }
     }

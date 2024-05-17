@@ -40,9 +40,9 @@ export class UserService {
             .orderBy("user.createdAt", pageOptionsDto.order)
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-        const itemCount = await user.getCount()
+        const numberRecords = await user.getCount()
         const { entities } = await user.getRawAndEntities();
-        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
         return new PageDto(entities, pageMetaDto)
     }
     async findByEmail(email: string): Promise<UserEntity> {
