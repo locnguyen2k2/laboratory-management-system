@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, UseGuards, Request } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post, UseGuards, Request, Query } from "@nestjs/common";
 import { RoomService } from "./room.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { IdParam } from "src/common/decorators/id-param.decorator";
@@ -8,6 +8,11 @@ import { RolesGuard } from "../auth/guard/roles-auth.guard";
 import { RoleEnum } from "src/enums/role-enum.enum";
 import { AddRoomDto } from "./dtos/add-room.dto";
 import { UpdateRoomDto } from "./dtos/update-room.dto";
+import { RoomDto } from "./dtos/room.dto";
+import { ApiPaginatedRespone } from "src/common/decorators/api-paginated-respone.decorate";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageDto } from "src/common/dtos/page.dto";
+import { CategoryDto } from "../categories/dtos/category.dto";
 
 @Controller('rooms')
 @ApiTags('Rooms')
@@ -18,8 +23,9 @@ export class RoomController {
     ) { }
 
     @Get()
-    async get() {
-        return await this.roomService.findAll();
+    @ApiPaginatedRespone(CategoryDto)
+    async get(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
+        return await this.roomService.findAll(pageOptionsDto);
     }
 
     @Post()

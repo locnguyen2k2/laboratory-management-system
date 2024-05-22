@@ -24,7 +24,6 @@ export class CategoryController {
 
     @Get()
     @ApiPaginatedRespone(CategoryDto)
-    @UseGuards(JwtGuard)
     async getAll(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<CategoryDto>> {
         return await this.categoryService.findAll(pageOptionsDto);
     }

@@ -28,7 +28,10 @@ const modules = [
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETKEY,

@@ -2,6 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { iPageMetaDtoParameters } from "src/interfaces/page-meta-dto-parameteres.interface";
 
 export class PageMetaDto {
+
+    @ApiProperty()
+    readonly keyword: string;
+
     @ApiProperty()
     readonly page: number;
 
@@ -21,6 +25,7 @@ export class PageMetaDto {
     readonly hasNext: boolean;
 
     constructor({ pageOptionsDto, numberRecords }: iPageMetaDtoParameters) {
+        this.keyword = pageOptionsDto.keyword;
         this.page = pageOptionsDto.page;
         this.take = pageOptionsDto.take;
         this.numberRecords = numberRecords;

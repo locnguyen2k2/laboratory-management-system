@@ -30,7 +30,7 @@ export class RegistrationController {
     @Get('my-borrowing')
     @ApiPaginatedRespone(RegistrationDto)
     @UseGuards(JwtGuard)
-    async getUserBorrowing(@Request() req: any, @Query() pageOptionsDto: PageOptionsDto) {
+    async getUserBorrowing(@Request() req: any, @Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<RegistrationDto>> {
         return await this.registrationService.findByUser(req.user.id, pageOptionsDto)
     }
 

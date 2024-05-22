@@ -6,6 +6,10 @@ import { UpdateRoomDto } from "./dtos/update-room.dto";
 import { AddRoomDto } from "./dtos/add-room.dto";
 import { BusinessException } from "src/common/exceptions/biz.exception";
 import { ErrorEnum } from "src/constants/error-code.constant";
+import { RoomDto } from "./dtos/room.dto";
+import { PageMetaDto } from "src/common/dtos/page-meta.dto";
+import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageDto } from "src/common/dtos/page.dto";
 
 @Injectable()
 export class RoomService {
@@ -13,10 +17,16 @@ export class RoomService {
         @InjectRepository(RoomEntity) private readonly roomRepository: Repository<RoomEntity>,
     ) { }
 
-    async findAll() {
-        return this.roomRepository
-            .createQueryBuilder("item")
-            .getMany();
+    async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
+        let items = this.roomRepository.createQueryBuilder("item")
+        items
+            .orderBy("item.createdAt", pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+        const numberRecords = await items.getCount()
+        const { entities } = await items.getRawAndEntities();
+        const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
+        return new PageDto(entities, pageMetaDto)
     }
 
     async findById(id: number) {
