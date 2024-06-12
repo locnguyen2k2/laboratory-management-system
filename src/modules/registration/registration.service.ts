@@ -7,10 +7,7 @@ import { UserService } from '../user/user.service';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { ItemRegistrationService } from './../item-registration/item-registration.service';
-import {
-  ItemRegistration,
-  RegistrationStatusEnum,
-} from './registration.constant';
+import { ItemRegistration } from './registration.constant';
 import { isEmpty } from 'lodash';
 import { RoomService } from '../rooms/room.service';
 import { RoomItemService } from '../room-items/room-item.service';

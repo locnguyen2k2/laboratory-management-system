@@ -17,7 +17,7 @@ export class RoomService {
   constructor(
     @InjectRepository(RoomEntity)
     private readonly roomRepository: Repository<RoomEntity>,
-  ) {}
+  ) { }
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
     const items = this.roomRepository.createQueryBuilder('item');
@@ -56,6 +56,15 @@ export class RoomService {
     }
     const newItem = await this.roomRepository.save(new RoomEntity({ ...data }));
     return newItem;
+  }
+
+  async updateRoomQuantity(id: number, quantity: number) {
+    const item = await this.findById(id);
+    if (item) {
+      await this.roomRepository.update(id, {
+        quantity: item.quantity + quantity,
+      });
+    }
   }
 
   async update(id: number, data: UpdateRoomDto) {

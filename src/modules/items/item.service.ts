@@ -144,6 +144,15 @@ export class ItemService {
     return listItem;
   }
 
+  async updateItemQuantity(id: number, quantity: number) {
+    const item = await this.findById(id);
+    if (item) {
+      await this.itemRepository.update(id, {
+        quantity: item.quantity + quantity,
+      });
+    }
+  }
+
   async update(id: number, data: UpdateItemDto) {
     const item = await this.findById(id);
     if (item) {

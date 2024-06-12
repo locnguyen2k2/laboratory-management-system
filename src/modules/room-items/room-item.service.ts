@@ -25,7 +25,7 @@ export class RoomItemService {
     private readonly roomService: RoomService,
     private readonly itemService: ItemService,
     private readonly itemRegistrationService: ItemRegistrationService,
-  ) {}
+  ) { }
 
   async deleteById(id: number) {
     const isExisted = await this.findById(id);
@@ -40,6 +40,9 @@ export class RoomItemService {
           ...isExisted.room,
           quantity: isExisted.room.quantity - 1,
         });
+
+        await this.itemService.updateItemQuantity(isExisted.item.id, isExisted.quantity)
+
         await this.itemService.updateItemHandoverStatus(
           isExisted.item.id,
           HandoverStatus.IsNotHandover,
@@ -150,13 +153,19 @@ export class RoomItemService {
   }
 
   async addRoomItem(data: AddRoomItemDto) {
+    const item = await this.itemService.findById(data.itemId);
+    const room = await this.roomService.findById(data.roomId);
     const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
+
+    if (item.quantity < data.quantity) {
+      throw new BusinessException("400:Item quantity is not availiable!")
+    }
+
     if (roomItem) {
+      await this.itemService.updateItemQuantity(roomItem.item.id, -data.quantity)
       return await this.updateRoomItemQuantity(data);
     }
 
-    const item = await this.itemService.findById(data.itemId);
-    const room = await this.roomService.findById(data.roomId);
 
     delete data.itemId;
     delete data.roomId;
@@ -169,6 +178,8 @@ export class RoomItemService {
         quantity: room.quantity + 1,
         status: RoomStatus.AVAILABLE,
       });
+
+      await this.itemService.updateItemQuantity(item.id, -data.quantity)
 
       isHandover &&
         (await this.itemService.updateItemHandoverStatus(
@@ -183,8 +194,28 @@ export class RoomItemService {
     }
   }
 
+  async handleItems(items: RoomItemDto[]) {
+    let listItem = [];
+    items.map(async (item) => {
+      if (isEmpty(listItem)) {
+        listItem = [{ ...item }];
+      } else {
+        const index = listItem.findIndex(
+          (value) =>
+            value.itemId === item.item.id && value.roomId === item.room.id,
+        );
+        if (index !== -1 && item.quantity) {
+          listItem[index].quantity += item.quantity;
+        } else {
+          listItem.push({ ...item });
+        }
+      }
+    });
+    if (listItem.length >= 1) return listItem;
+  }
+
   async addListRoomItem(data: AddListRoomItemDto) {
-    const listRoomItem = [];
+    let listRoomItem = [];
 
     await Promise.all(
       data.room_items.map(async (item) => {
@@ -196,37 +227,38 @@ export class RoomItemService {
           isExistRoom &&
           !(await this.isRoomHasItem(item.roomId, item.itemId))
         ) {
-          const isReplace = listRoomItem.findIndex(
-            (roomItem) =>
-              roomItem?.itemId === item?.itemId &&
-              roomItem?.roomId === item?.roomId,
-          );
-
-          if (isReplace === -1) {
-            const isHandover = await this.itemService.isHandover(item.itemId);
-
-            isHandover &&
-              (await this.itemService.updateItemHandoverStatus(
-                item.itemId,
-                HandoverStatus.IsHandover,
-              ));
-
-            listRoomItem.push({
+          listRoomItem.push(
+            {
               ...item,
-              room: isExistRoom,
-              item: isHandover
-                ? await this.itemService.findById(item.itemId)
-                : isExistItem,
-            });
-          }
+              item: isExistItem,
+              room: isExistRoom
+            }
+          )
         }
       }),
     );
 
+    const handleRoomItem = await this.handleItems(listRoomItem)
+
+    if (!handleRoomItem) {
+      throw new BusinessException('404:Nothing changes');
+    }
+
     await Promise.all(
-      listRoomItem.map(async (roomItem) => {
+      handleRoomItem.map(async (roomItem) => {
         delete roomItem.itemId;
         delete roomItem.roomId;
+        if (roomItem.item.quantity < roomItem.quantity) {
+          throw new BusinessException("400:Item quantity is not availiable!")
+        }
+
+        await this.roomService.updateRoomQuantity(roomItem.room.id, 1)
+        await this.itemService.updateItemQuantity(roomItem.item.id, -roomItem.quantity)
+
+        if (await this.itemService.isHandover(roomItem.item.id)) {
+          roomItem.item = await this.itemService.findById(roomItem.item.id)
+        }
+
 
         const newRoomItem = new RoomItemEntity({
           ...roomItem,
@@ -237,7 +269,7 @@ export class RoomItemService {
         await this.roomItemRepository.save(newRoomItem);
       }),
     );
-    return listRoomItem;
+    return handleRoomItem;
   }
 
   async updateRoomItem(id: number, data: UpdateRoomItemDto) {
