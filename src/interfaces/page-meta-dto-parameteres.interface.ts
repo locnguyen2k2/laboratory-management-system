@@ -1,6 +1,6 @@
-import { PageOptionsDto } from "src/common/dtos/page-options.dto";
+import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 
 export interface iPageMetaDtoParameters {
-    pageOptionsDto: PageOptionsDto,
-    numberRecords: number,
+  pageOptionsDto: PageOptionsDto;
+  numberRecords: number;
 }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
-import { PassportModule } from "@nestjs/passport";
+import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
 import { RolesGuard } from './modules/auth/guard/roles-auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -24,7 +24,7 @@ const modules = [
   RoomModule,
   RegistrationModule,
   RoomItemModule,
-]
+];
 
 @Module({
   imports: [
@@ -35,16 +35,15 @@ const modules = [
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETKEY,
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION }
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION },
     }),
     PassportModule.register({
       defaultStrategy: 'jwt',
       property: 'user',
       session: true,
     }),
-    ...modules
+    ...modules,
   ],
-  providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
+  providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })
-export class AppModule {
-}
+export class AppModule {}

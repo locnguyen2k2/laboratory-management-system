@@ -1,6 +1,6 @@
-import { AccountInfo } from "src/modules/user/interfaces/AccountInfo.interface";
+import { AccountInfo } from 'src/modules/user/interfaces/AccountInfo.interface';
 
 export interface Credential {
-    userInfo: AccountInfo,
-    access_token: string
+  userInfo: AccountInfo;
+  access_token: string;
 }

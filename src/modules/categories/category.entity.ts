@@ -1,22 +1,26 @@
-import { CommonEntity } from "src/common/entity/common.entity";
-import { CategoryStatusEnum } from "./category.constant";
-import { Column, Entity, OneToMany, Relation } from "typeorm";
-import { ItemEntity } from "../items/item.entity";
+import { CommonEntity } from 'src/common/entity/common.entity';
+import { CategoryStatusEnum } from './category.constant';
+import { Column, Entity, OneToMany, Relation } from 'typeorm';
+import { ItemEntity } from '../items/item.entity';
 
 @Entity({ name: 'category_entity' })
 export class CategoryEntity extends CommonEntity {
+  @Column()
+  name: string;
 
-    @Column()
-    name: string;
+  @Column({
+    type: 'enum',
+    enum: CategoryStatusEnum,
+    default: CategoryStatusEnum.ACTIVE,
+    nullable: false,
+  })
+  status: CategoryStatusEnum;
 
-    @Column({ type: 'enum', enum: CategoryStatusEnum, default: CategoryStatusEnum.ACTIVE, nullable: false })
-    status: CategoryStatusEnum
+  @OneToMany(() => ItemEntity, (item) => item.category)
+  items: Relation<ItemEntity[]>;
 
-    @OneToMany(() => ItemEntity, item => item.category)
-    items: Relation<ItemEntity[]>;
-
-    constructor(categoryEntity: Partial<CategoryEntity>) {
-        super();
-        Object.assign(this, categoryEntity)
-    }
+  constructor(categoryEntity: Partial<CategoryEntity>) {
+    super();
+    Object.assign(this, categoryEntity);
+  }
 }
