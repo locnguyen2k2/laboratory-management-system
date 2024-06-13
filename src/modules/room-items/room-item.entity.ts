@@ -23,8 +23,14 @@ export class RoomItemEntity extends ExtendedEntity {
   })
   status: ItemStatusEnum;
 
-  @Column()
+  @Column({ type: 'int', default: 0 })
   quantity: number;
+
+  @Column({ type: 'int', default: 0 })
+  itemQuantityBorrowed: number;
+
+  @Column({ type: 'int', default: 0 })
+  itemQuantityReturned: number;
 
   @Column()
   @Length(4)

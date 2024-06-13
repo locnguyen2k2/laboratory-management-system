@@ -22,10 +22,10 @@ export class ItemDto {
   serial_number: string;
 
   @ApiProperty()
-  specification: string;
+  quantity: number;
 
   @ApiProperty()
-  quantity: number;
+  specification: string;
 
   @ApiProperty()
   remark: string;
@@ -37,5 +37,5 @@ export class ItemDto {
   status: number;
 
   @ApiProperty()
-  handoverStatus: number;
+  handover: number;
 }

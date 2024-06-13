@@ -52,16 +52,16 @@ class AddItemBaseDto extends BaseDto {
   @IsEnum(ItemStatusEnum)
   status: ItemStatusEnum;
 
+  @ApiProperty({ default: '' })
+  @Expose()
+  remark: string;
+
   @ApiProperty({ default: 1 })
   @Expose()
   @IsNumber()
   @Min(1)
   @IsNotEmpty()
   quantity: number;
-
-  @ApiProperty({ default: '' })
-  @Expose()
-  remark: string;
 
   @ApiProperty({ default: null })
   @Expose()

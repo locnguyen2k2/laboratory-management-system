@@ -28,11 +28,14 @@ export class ItemEntity extends ExtendedEntity {
   @Column({ nullable: true })
   specification: string;
 
-  @Column()
-  quantity: number;
-
   @Column({ type: 'varchar', nullable: true })
   remark: string;
+
+  @Column({ type: 'int', default: 0 })
+  quantity: number;
+
+  @Column({ type: 'int', default: 0 })
+  handover: number;
 
   @Column({ type: 'enum', enum: UnitEnum, nullable: false })
   unit: UnitEnum;
@@ -40,13 +43,13 @@ export class ItemEntity extends ExtendedEntity {
   @Column({ type: 'enum', enum: ItemStatusEnum, nullable: false })
   status: ItemStatusEnum;
 
-  @Column({
-    type: 'enum',
-    enum: HandoverStatus,
-    nullable: false,
-    default: HandoverStatus.IsNotHandover,
-  })
-  handoverStatus: HandoverStatus;
+  // @Column({
+  //   type: 'enum',
+  //   enum: HandoverStatus,
+  //   nullable: false,
+  //   default: HandoverStatus.IsNotHandover,
+  // })
+  // handoverStatus: HandoverStatus;
 
   @ManyToOne(() => CategoryEntity, (category) => category.items)
   @JoinColumn({ name: 'category_id' })

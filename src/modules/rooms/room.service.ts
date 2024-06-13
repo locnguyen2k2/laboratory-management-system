@@ -17,14 +17,23 @@ export class RoomService {
   constructor(
     @InjectRepository(RoomEntity)
     private readonly roomRepository: Repository<RoomEntity>,
-  ) { }
+  ) {}
 
-  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
+  async findAll(
+    pageOptionsDto: PageOptionsDto,
+    available?: boolean,
+  ): Promise<PageDto<RoomDto>> {
     const items = this.roomRepository.createQueryBuilder('item');
-    items
-      .orderBy('item.createdAt', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take);
+    available
+      ? items
+          .orderBy('item.createdAt', pageOptionsDto.order)
+          .where('(item.status = :available)', { available })
+          .skip(pageOptionsDto.skip)
+          .take(pageOptionsDto.take)
+      : items
+          .orderBy('item.createdAt', pageOptionsDto.order)
+          .skip(pageOptionsDto.skip)
+          .take(pageOptionsDto.take);
     const numberRecords = await items.getCount();
     const { entities } = await items.getRawAndEntities();
     const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
@@ -56,6 +65,16 @@ export class RoomService {
     }
     const newItem = await this.roomRepository.save(new RoomEntity({ ...data }));
     return newItem;
+  }
+
+  async updateRoomStatus(id: number, status: number) {
+    const item = await this.findById(id);
+    if (item) {
+      await this.roomRepository.update(id, {
+        status,
+      });
+    }
+    return await this.findById(id);
   }
 
   async updateRoomQuantity(id: number, quantity: number) {

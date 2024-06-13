@@ -34,11 +34,6 @@ export class ItemService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async isHandover(id: number): Promise<boolean> {
-    const isHandover = await this.findById(id);
-    return isHandover && isHandover.handoverStatus ? true : false;
-  }
-
   async findById(id: number) {
     const item = await this.itemRepository
       .createQueryBuilder('item')
@@ -86,6 +81,30 @@ export class ItemService {
     }
   }
 
+  async getAvailableQuantity(id: number): Promise<number> {
+    const isExisted = await this.findById(id);
+    if (isExisted)
+      return isExisted.quantity - isExisted.handover > 0
+        ? isExisted.quantity - isExisted.handover
+        : 0;
+  }
+
+  async isHandover(id: number): Promise<boolean> {
+    const isExisted = await this.findById(id);
+    return isExisted && isExisted.handover > 0 ? true : false;
+  }
+
+  async updateItemHandover(id: number, quantity: number) {
+    const item = await this.findById(id);
+    if (item) {
+      await this.itemRepository.update(
+        { id: id },
+        { handover: item.handover + quantity },
+      );
+      return await this.findById(id);
+    }
+  }
+
   async add(data: AddItemDto) {
     const item = await this.findByName(
       data.name,
@@ -127,51 +146,51 @@ export class ItemService {
         }
       }),
     );
+
     await Promise.all(
       listItem.map(async (item) => {
         const category = await this.categoryService.findById(item.categoryId);
         delete item.categoryId;
+
         const newItem = new ItemEntity({
           ...item,
           createBy: data.createBy,
           updateBy: data.updateBy,
           category,
         });
+
         await this.itemRepository.save(newItem);
         item.categoryId = category.id;
       }),
     );
-    return listItem;
-  }
 
-  async updateItemQuantity(id: number, quantity: number) {
-    const item = await this.findById(id);
-    if (item) {
-      await this.itemRepository.update(id, {
-        quantity: item.quantity + quantity,
-      });
-    }
+    return listItem;
   }
 
   async update(id: number, data: UpdateItemDto) {
     const item = await this.findById(id);
+
     if (item) {
       const category = data.categoryId
         ? await this.categoryService.findById(data.categoryId)
         : item.category;
+
       delete data.categoryId;
+
       if (item && category) {
         const isExisted = await this.findByName(
           data.name,
           data.specification,
           data.serial_number,
         );
+
         if (isExisted && isExisted.id !== id) {
           throw new HttpException(
             `The item is existed`,
             HttpStatus.BAD_REQUEST,
           );
         }
+
         const info = {
           ...data,
           ...(data.name ? { name: data.name } : { name: item.name }),
@@ -180,31 +199,19 @@ export class ItemService {
             ? { serial_number: data.serial_number }
             : { serial_number: item.serial_number }),
           ...(data.unit ? { unit: data.unit } : { unit: item.unit }),
-          ...(data.quantity
-            ? { quantity: data.quantity }
-            : { quantity: item.quantity }),
           ...(data.origin ? { origin: data.origin } : { origin: item.origin }),
           ...(data.specification
             ? { specification: data.specification }
             : { specification: item.specification }),
           ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
         };
+
         await this.itemRepository.save({ ...item, category });
+
         await this.itemRepository.update({ id: id }, { ...info });
+
         return await this.findById(id);
       }
-    }
-  }
-
-  async updateItemHandoverStatus(id: number, handoverStatus: number) {
-    const item = await this.findById(id);
-    if (item) {
-      await this.itemRepository.update(
-        { id: id },
-        {
-          handoverStatus: handoverStatus,
-        },
-      );
     }
   }
 }

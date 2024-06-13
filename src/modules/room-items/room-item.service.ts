@@ -13,7 +13,6 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
-import { HandoverStatus } from '../../enums/handover-status-enum.enum';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
 import { RoomStatus } from '../rooms/room.constant';
 
@@ -25,36 +24,7 @@ export class RoomItemService {
     private readonly roomService: RoomService,
     private readonly itemService: ItemService,
     private readonly itemRegistrationService: ItemRegistrationService,
-  ) { }
-
-  async deleteById(id: number) {
-    const isExisted = await this.findById(id);
-
-    if (isExisted) {
-      const isBorrowing = await this.itemRegistrationService.findByRoomIdItemId(
-        isExisted.room.id,
-        isExisted.item.id,
-      );
-      if (isBorrowing.length === 0) {
-        await this.roomService.update(isExisted.room.id, {
-          ...isExisted.room,
-          quantity: isExisted.room.quantity - 1,
-        });
-
-        await this.itemService.updateItemQuantity(isExisted.item.id, isExisted.quantity)
-
-        await this.itemService.updateItemHandoverStatus(
-          isExisted.item.id,
-          HandoverStatus.IsNotHandover,
-        );
-
-        await this.roomItemRepository.delete(id);
-
-        return await this.findAll(new PageOptionsDto());
-      }
-      throw new BusinessException(ErrorEnum.ITEM_IN_USED);
-    }
-  }
+  ) {}
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
     const roomItem = this.roomItemRepository.createQueryBuilder('roomItem');
@@ -98,6 +68,26 @@ export class RoomItemService {
     return roomItem;
   }
 
+  async getAvailableQuantity(id: number): Promise<number> {
+    const roomItem = await this.findById(id);
+    return roomItem.quantity -
+      (roomItem.itemQuantityBorrowed + roomItem.itemQuantityReturned) >
+      0
+      ? roomItem.quantity -
+          (roomItem.itemQuantityBorrowed + roomItem.itemQuantityReturned)
+      : 0;
+  }
+
+  async roomsHasItem(itemId: number) {
+    const quantity = await this.roomItemRepository
+      .createQueryBuilder('roomItem')
+      .where('(roomItem.item_id = :itemId)', {
+        itemId,
+      })
+      .getCount();
+    return quantity;
+  }
+
   async findByRoomId(
     id: number,
     pageOptionsDto: PageOptionsDto,
@@ -137,58 +127,77 @@ export class RoomItemService {
       .where('(item.id = :itemId AND room.id = :roomId)', { itemId, roomId })
       .getOne();
     if (roomItem) return roomItem;
+    throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
-  async updateRoomItemQuantity(data: AddRoomItemDto) {
-    const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
+  async updateRoomItemQuantityReturned(
+    id: number,
+    itemQuantityReturned: number,
+  ) {
+    const roomItem = await this.findById(id);
 
     if (roomItem) {
       await this.roomItemRepository.update(
         { id: roomItem.id },
-        { quantity: roomItem.quantity + data.quantity },
+        { itemQuantityReturned },
       );
 
-      return await this.findByItemRoom(data.itemId, data.roomId);
+      return await this.findById(id);
+    }
+  }
+
+  async updateRoomItemQuantityBorrowed(
+    id: number,
+    itemQuantityBorrowed: number,
+  ) {
+    const roomItem = await this.findById(id);
+
+    if (roomItem) {
+      await this.roomItemRepository.update(
+        { id: roomItem.id },
+        { itemQuantityBorrowed },
+      );
+
+      return await this.findById(id);
     }
   }
 
   async addRoomItem(data: AddRoomItemDto) {
-    const item = await this.itemService.findById(data.itemId);
-    const room = await this.roomService.findById(data.roomId);
-    const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
+    let item = await this.itemService.findById(data.itemId);
+    let room = await this.roomService.findById(data.roomId);
 
-    if (item.quantity < data.quantity) {
-      throw new BusinessException("400:Item quantity is not availiable!")
-    }
+    const availableQuantity = await this.itemService.getAvailableQuantity(
+      data.itemId,
+    );
 
-    if (roomItem) {
-      await this.itemService.updateItemQuantity(roomItem.item.id, -data.quantity)
-      return await this.updateRoomItemQuantity(data);
-    }
-
-
-    delete data.itemId;
-    delete data.roomId;
+    if (availableQuantity - data.quantity < 0)
+      throw new BusinessException('400:The quantity is not available!');
 
     if (item && room) {
+      const roomHasItem = await this.isRoomHasItem(data.itemId, data.roomId);
+
+      if (!roomHasItem) {
+        await this.roomService.updateRoomQuantity(data.roomId, 1);
+
+        room = await this.roomService.updateRoomStatus(
+          data.roomId,
+          RoomStatus.AVAILABLE,
+        );
+
+        item = await this.itemService.updateItemHandover(
+          data.itemId,
+          data.quantity,
+        );
+      }
+
+      delete data.itemId;
+      delete data.roomId;
+
       const newItem = new RoomItemEntity({ ...data, room, item });
-      const isHandover = await this.itemService.isHandover(item.id);
-      await this.roomService.update(room.id, {
-        ...room,
-        quantity: room.quantity + 1,
-        status: RoomStatus.AVAILABLE,
-      });
-
-      await this.itemService.updateItemQuantity(item.id, -data.quantity)
-
-      isHandover &&
-        (await this.itemService.updateItemHandoverStatus(
-          item.id,
-          HandoverStatus.IsHandover,
-        ));
 
       await this.roomItemRepository.save(newItem);
-      return await this.findById(newItem.id);
+
+      return newItem;
     } else {
       throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
     }
@@ -215,50 +224,58 @@ export class RoomItemService {
   }
 
   async addListRoomItem(data: AddListRoomItemDto) {
-    let listRoomItem = [];
+    const listRoomItem = [];
 
     await Promise.all(
       data.room_items.map(async (item) => {
         const isExistItem = await this.itemService.findById(item.itemId);
         const isExistRoom = await this.roomService.findById(item.roomId);
 
-        if (
-          isExistItem &&
-          isExistRoom &&
-          !(await this.isRoomHasItem(item.roomId, item.itemId))
-        ) {
-          listRoomItem.push(
-            {
-              ...item,
-              item: isExistItem,
-              room: isExistRoom
-            }
-          )
+        if (isExistItem && isExistRoom) {
+          listRoomItem.push({
+            ...item,
+            item: isExistItem,
+            room: isExistRoom,
+          });
         }
       }),
     );
 
-    const handleRoomItem = await this.handleItems(listRoomItem)
+    const handleRoomItem = await this.handleItems(listRoomItem);
 
     if (!handleRoomItem) {
-      throw new BusinessException('404:Nothing changes');
+      throw new BusinessException('400:Nothing changes');
     }
 
     await Promise.all(
       handleRoomItem.map(async (roomItem) => {
+        const availableQuantity = await this.itemService.getAvailableQuantity(
+          roomItem.itemId,
+        );
+
+        if (availableQuantity - roomItem.quantity < 0)
+          throw new BusinessException('400:The quantity is not available!');
+
+        const roomHasItem = await this.isRoomHasItem(
+          roomItem.itemId,
+          roomItem.roomId,
+        );
+
+        if (!roomHasItem) {
+          await this.roomService.updateRoomQuantity(roomItem.roomId, 1);
+          roomItem.room = await this.roomService.updateRoomStatus(
+            roomItem.roomId,
+            RoomStatus.AVAILABLE,
+          );
+
+          roomItem.item = await this.itemService.updateItemHandover(
+            roomItem.itemId,
+            roomItem.quantity,
+          );
+        }
+
         delete roomItem.itemId;
         delete roomItem.roomId;
-        if (roomItem.item.quantity < roomItem.quantity) {
-          throw new BusinessException("400:Item quantity is not availiable!")
-        }
-
-        await this.roomService.updateRoomQuantity(roomItem.room.id, 1)
-        await this.itemService.updateItemQuantity(roomItem.item.id, -roomItem.quantity)
-
-        if (await this.itemService.isHandover(roomItem.item.id)) {
-          roomItem.item = await this.itemService.findById(roomItem.item.id)
-        }
-
 
         const newRoomItem = new RoomItemEntity({
           ...roomItem,
@@ -343,6 +360,32 @@ export class RoomItemService {
         },
       );
       return await this.findById(id);
+    }
+  }
+
+  async deleteById(id: number) {
+    const isExisted = await this.findById(id);
+
+    if (isExisted) {
+      const isBorrowed = await this.itemRegistrationService.findByRoomIdItemId(
+        isExisted.room.id,
+        isExisted.item.id,
+      );
+
+      if (isBorrowed.length === 0) {
+        await this.roomService.updateRoomQuantity(isExisted.room.id, -1);
+
+        await this.itemService.updateItemHandover(
+          isExisted.item.id,
+          -isExisted.quantity,
+        );
+
+        await this.roomItemRepository.delete(id);
+
+        return await this.findAll(new PageOptionsDto());
+      }
+
+      throw new BusinessException(ErrorEnum.ITEM_IN_USED);
     }
   }
 }

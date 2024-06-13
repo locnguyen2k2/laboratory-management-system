@@ -1,4 +1,4 @@
 export enum HandoverStatus {
-  IsHandover = 0,
-  IsNotHandover = 1,
+  IsNotHandover = 0,
+  IsHandover = 1,
 }

@@ -33,7 +33,6 @@ export class ItemRegistrationService {
         'item.id',
         'item.name',
         'item.specification',
-        'item.quantity',
       ])
       .where('item.id = :itemId AND room.id = :roomId', {
         itemId,
@@ -61,8 +60,9 @@ export class ItemRegistrationService {
         'registration.quantity',
         'item.id',
         'item.name',
-        'item.specification',
         'item.quantity',
+        'item.handover',
+        'item.specification',
       ])
       .getMany();
     if (registration) return registration;
@@ -96,6 +96,8 @@ export class ItemRegistrationService {
         'room.name',
         'item.id',
         'item.name',
+        'item.quantity',
+        'item.handover',
       ])
       .getOne();
     if (registration) return registration;
@@ -122,6 +124,8 @@ export class ItemRegistrationService {
         'room.name',
         'item.id',
         'item.name',
+        'item.quantity',
+        'item.handover',
       ])
       .getOne();
     if (registration) return registration;

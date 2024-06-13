@@ -23,6 +23,7 @@ import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { CategoryDto } from '../categories/dtos/category.dto';
+import { RoomStatus } from './room.constant';
 
 @Controller('rooms')
 @ApiTags('Rooms')
@@ -33,9 +34,9 @@ export class RoomController {
   @Get()
   @ApiPaginatedRespone(CategoryDto)
   async get(
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() pageOptionsDto: PageOptionsDto, 
   ): Promise<PageDto<RoomDto>> {
-    return await this.roomService.findAll(pageOptionsDto);
+    return await this.roomService.findAll(pageOptionsDto, true);
   }
 
   @Delete(':id')

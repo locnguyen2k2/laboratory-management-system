@@ -21,12 +21,6 @@ export class UpdateItemDto extends BaseDto {
   @Validate(IsValidString)
   name: string;
 
-  @ApiProperty({ default: null })
-  @Expose()
-  @IsNumber()
-  @Min(0)
-  quantity: number;
-
   @ApiProperty({ default: '' })
   @Expose()
   @IsString()

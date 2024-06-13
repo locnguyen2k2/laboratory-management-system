@@ -135,6 +135,7 @@ export class RegistrationService {
           isItem = false;
           return;
         }
+
         if (
           !(await this.roomItemService.isRoomHasItem(item.roomId, item.itemId))
         ) {
@@ -150,15 +151,44 @@ export class RegistrationService {
     }
 
     const handleItems = await this.handleItems(items);
+
     if (!handleItems) {
       throw new BusinessException('404:Nothing changes');
     }
+
+    await Promise.all(
+      handleItems.map(async (roomItem) => {
+        const roomHasItem = await this.roomItemService.findByItemRoom(
+          roomItem.itemId,
+          roomItem.roomId,
+        );
+
+        const availableQuantity =
+          await this.roomItemService.getAvailableQuantity(roomHasItem.id);
+
+        if (availableQuantity - roomItem.quantity < 0)
+          throw new BusinessException(
+            '400:The quantity is not available for now!',
+          );
+
+        const itemQuantityBorrowed =
+          roomHasItem.itemQuantityBorrowed + roomItem.quantity;
+
+        await this.roomItemService.updateRoomItemQuantityBorrowed(
+          roomHasItem.id,
+          itemQuantityBorrowed,
+        );
+      }),
+    );
+
     const registration = await this.addRegistration(
       data.createBy,
       data.updateBy,
       data.user,
     );
+
     let registrationId = -1;
+
     await Promise.all(
       handleItems?.map(async ({ itemId, quantity, roomId, status }) => {
         const room = await this.roomService.findById(roomId);
@@ -174,6 +204,7 @@ export class RegistrationService {
         });
       }),
     );
+
     if (
       !isEmpty(
         await this.itemRegistrationServce.findByRegistrationId(registration.id),
@@ -200,6 +231,7 @@ export class RegistrationService {
           isItem = false;
           return;
         }
+
         if (
           !(await this.roomItemService.isRoomHasItem(item.roomId, item.itemId))
         ) {
@@ -208,17 +240,43 @@ export class RegistrationService {
         }
       }),
     );
+
     if (!isItem) {
       throw new BusinessException(
         '404:Item not found in room or quantity is less than 1!',
       );
     }
 
-    const handleItems = this.handleItems(items);
+    const handleItems = await this.handleItems(items);
+
     if (!handleItems) {
       throw new BusinessException('404:Nothing changes');
     }
+
+    await Promise.all(
+      handleItems.map(async (roomItem) => {
+        const roomHasItem = await this.roomItemService.findByItemRoom(
+          roomItem.itemId,
+          roomItem.roomId,
+        );
+
+        const availableQuantity =
+          await this.roomItemService.getAvailableQuantity(roomHasItem.id);
+
+        if (availableQuantity - roomItem.quantity < 0)
+          throw new BusinessException(
+            '400:The quantity is not available for now!',
+          );
+
+        await this.roomItemService.updateRoomItemQuantityBorrowed(
+          roomHasItem.id,
+          roomItem.quantity,
+        );
+      }),
+    );
+
     const room = await this.roomService.findById(data.items.roomId);
+
     return await this.itemRegistrationServce.update(id, uid, data, room);
   }
 }
