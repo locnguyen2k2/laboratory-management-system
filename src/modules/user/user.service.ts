@@ -29,7 +29,7 @@ export class UserService {
     private readonly emailService: MailService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-  ) {}
+  ) { }
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
     const user = this.userRepository.createQueryBuilder('user');
@@ -206,6 +206,7 @@ export class UserService {
       } else if (!user) {
         delete data.accessToken;
         const newUser = new UserEntity(data);
+        newUser.createBy = newUser.updateBy = newUser.id;
         await this.userRepository.save(newUser);
         await this.updateStatusByUid(newUser.id, UserStatus.ACTIVE);
       }
