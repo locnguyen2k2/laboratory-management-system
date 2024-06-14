@@ -60,6 +60,13 @@ export class CategoryService {
     return await this.findByName(data.name);
   }
 
+  async updateQuantity(id: number, quantity: number) {
+    const isExisted = await this.findById(id);
+    if (isExisted) {
+      await this.categoryRepository.update({ id: id }, { quantity: quantity });
+    }
+  }
+
   async update(id: number, data: UpdateDto) {
     const category = await this.findById(id);
     if (category) {
@@ -82,11 +89,14 @@ export class CategoryService {
     }
   }
 
-  // async delete(id: number) {
-  //     if (await this.findById(id)) {
-  //         await this.categoryRepository.delete({ id: id })
-  //         return "Delete is successful"
-  //     }
-  //     throw new HttpException("The category not found", HttpStatus.NOT_FOUND);
-  // }
+  async delete(id: number) {
+    const isExisted = await this.findById(id);
+    if (isExisted) {
+      if (isExisted.quantity === 0) {
+        await this.categoryRepository.delete({ id: id });
+        return await this.findAll(new PageOptionsDto());
+      }
+      throw new BusinessException(ErrorEnum.ITEM_IN_USED);
+    }
+  }
 }

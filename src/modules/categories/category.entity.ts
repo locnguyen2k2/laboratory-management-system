@@ -8,6 +8,9 @@ export class CategoryEntity extends CommonEntity {
   @Column()
   name: string;
 
+  @Column({ type: 'int', default: 0 })
+  quantity: number;
+
   @Column({
     type: 'enum',
     enum: CategoryStatusEnum,

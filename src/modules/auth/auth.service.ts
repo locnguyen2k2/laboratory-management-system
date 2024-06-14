@@ -24,7 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly emailService: MailService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   async credentialByPassword(
     email: string,
@@ -82,13 +82,12 @@ export class AuthService {
 
   async credentialWithoutPassword(data: GoogleRedirectDto): Promise<any> {
     try {
-      const isVerifyToken = await this.ggAccessTokenVerify(
+      await this.ggAccessTokenVerify(
         data.accessToken,
-      ).then((res: any) => res);
-      if (isVerifyToken && isVerifyToken.email == data.email) {
-        return await this.userService.createWithGoogle(data);
-      }
-      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+      ).then((res: any) => console.log(res))
+      return await this.ggAccessTokenVerify(
+        data.accessToken,
+      ).then(async (res: any) => res && res.email == data.email && await this.userService.createWithGoogle(data));
     } catch (error) {
       throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     }

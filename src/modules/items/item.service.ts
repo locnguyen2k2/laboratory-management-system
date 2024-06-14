@@ -115,6 +115,10 @@ export class ItemService {
       throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
     }
     const category = await this.categoryService.findById(data.categoryId);
+    await this.categoryService.updateQuantity(
+      category.id,
+      category.quantity + 1,
+    );
     delete data.categoryId;
 
     const newItem = await this.itemRepository.save(
@@ -150,6 +154,10 @@ export class ItemService {
     await Promise.all(
       listItem.map(async (item) => {
         const category = await this.categoryService.findById(item.categoryId);
+        await this.categoryService.updateQuantity(
+          category.id,
+          category.quantity + 1,
+        );
         delete item.categoryId;
 
         const newItem = new ItemEntity({
@@ -178,6 +186,17 @@ export class ItemService {
       delete data.categoryId;
 
       if (item && category) {
+        if (item.category.id !== category.id) {
+          await this.categoryService.updateQuantity(
+            item.category.id,
+            item.category.quantity - 1,
+          );
+          await this.categoryService.updateQuantity(
+            category.id,
+            category.quantity + 1,
+          );
+        }
+
         const isExisted = await this.findByName(
           data.name,
           data.specification,
