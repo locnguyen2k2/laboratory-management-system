@@ -205,8 +205,7 @@ export class UserService {
         await this.updateStatusByUid(user.id, UserStatus.ACTIVE);
       } else if (!user) {
         delete data.accessToken;
-        const newUser = new UserEntity(data);
-        newUser.createBy = newUser.updateBy = newUser.id;
+        const newUser = new UserEntity({ ...data, createBy: 0, updateBy: 0 });
         await this.userRepository.save(newUser);
         await this.updateStatusByUid(newUser.id, UserStatus.ACTIVE);
       }

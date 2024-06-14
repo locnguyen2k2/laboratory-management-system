@@ -25,7 +25,7 @@ import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
 @ApiTags('Auths')
 @ApiBearerAuth()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('login')
   async login(@Body() dto: LoginAuthDto): Promise<Credential> {
