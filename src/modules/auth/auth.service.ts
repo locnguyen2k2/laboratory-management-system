@@ -24,7 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly emailService: MailService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   async credentialByPassword(
     email: string,
@@ -90,7 +90,8 @@ export class AuthService {
       }
       throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     } catch (error) {
-      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+      return error
+      // throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     }
   }
 
