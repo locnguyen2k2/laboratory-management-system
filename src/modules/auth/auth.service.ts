@@ -15,7 +15,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Credential } from './interfaces/credential.interface';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
-import { isEmpty } from 'lodash';
 const _ = require('lodash');
 
 @Injectable()
@@ -25,7 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly emailService: MailService,
     private readonly httpService: HttpService,
-  ) { }
+  ) {}
 
   async credentialByPassword(
     email: string,
@@ -83,15 +82,13 @@ export class AuthService {
 
   async credentialWithoutPassword(data: GoogleRedirectDto): Promise<any> {
     try {
-      await this.ggAccessTokenVerify(
+      const isVerifyToken = await this.ggAccessTokenVerify(
         data.accessToken,
-      ).then(async (res: any) => {
-        if (isEmpty(res) || res.email !== data.email) {
-          throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
-        } else {
-          return await this.userService.createWithGoogle(data);
-        }
-      });
+      ).then((res: any) => res);
+      if (isVerifyToken && isVerifyToken.email == data.email) {
+        return await this.userService.createWithGoogle(data);
+      }
+      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     } catch (error) {
       throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     }
