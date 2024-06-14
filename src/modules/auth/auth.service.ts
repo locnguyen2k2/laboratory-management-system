@@ -90,8 +90,7 @@ export class AuthService {
       }
       throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     } catch (error) {
-      return error
-      // throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
     }
   }
 
