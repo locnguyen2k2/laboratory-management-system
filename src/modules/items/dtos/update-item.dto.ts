@@ -47,6 +47,11 @@ export class UpdateItemDto extends BaseDto {
   @IsEnum(ItemStatusEnum)
   status: ItemStatusEnum;
 
+  @ApiProperty({ default: null })
+  @Expose()
+  @IsNumber()
+  quantity: number;
+
   @ApiProperty({ default: '' })
   @Expose()
   remark: string;

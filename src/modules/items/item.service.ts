@@ -222,6 +222,9 @@ export class ItemService {
           ...(data.specification
             ? { specification: data.specification }
             : { specification: item.specification }),
+            ...(data.quantity
+              ? { quantity: data.quantity }
+              : { quantity: item.quantity }),
           ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
         };
 
