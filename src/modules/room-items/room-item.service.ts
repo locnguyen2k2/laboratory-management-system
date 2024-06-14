@@ -188,7 +188,7 @@ export class RoomItemService {
 
         item = await this.itemService.updateItemHandover(
           data.itemId,
-          data.quantity,
+          item.handover + data.quantity,
         );
       }
 

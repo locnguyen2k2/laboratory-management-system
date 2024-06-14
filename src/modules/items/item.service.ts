@@ -99,10 +99,8 @@ export class ItemService {
   async updateItemHandover(id: number, quantity: number) {
     const item = await this.findById(id);
     if (item) {
-      await this.itemRepository.update(
-        { id: id },
-        { handover: item.handover + quantity },
-      );
+      item.quantity >= quantity &&
+        (await this.itemRepository.update({ id: id }, { handover: quantity }));
       return await this.findById(id);
     }
   }
