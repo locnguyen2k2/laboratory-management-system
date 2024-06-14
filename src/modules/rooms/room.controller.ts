@@ -36,7 +36,7 @@ export class RoomController {
   async get(
     @Query() pageOptionsDto: PageOptionsDto, 
   ): Promise<PageDto<RoomDto>> {
-    return await this.roomService.findAll(pageOptionsDto, true);
+    return await this.roomService.findAll(pageOptionsDto);
   }
 
   @Delete(':id')

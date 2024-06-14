@@ -9,7 +9,6 @@ export class UpdateDto extends BaseDto {
   @ApiProperty({ default: '' })
   @IsString()
   @Expose()
-  @IsNotEmpty()
   @Validate(IsValidString)
   name: string;
 

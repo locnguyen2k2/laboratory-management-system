@@ -68,8 +68,16 @@ export class CategoryService {
         throw new BusinessException(ErrorEnum.RECORD_IS_EXISTED);
       }
       if (category) {
-        await this.categoryRepository.update({ id: id }, { name: data.name });
-        return 'The category is updated successfully!';
+        await this.categoryRepository.update(
+          { id: id },
+          {
+            ...(data.name ? { name: data.name } : { name: category.name }),
+            ...(data.status
+              ? { status: data.status }
+              : { status: category.status }),
+          },
+        );
+        return await this.findById(id);
       }
     }
   }

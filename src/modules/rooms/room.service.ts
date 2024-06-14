@@ -19,21 +19,12 @@ export class RoomService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
-  async findAll(
-    pageOptionsDto: PageOptionsDto,
-    available?: boolean,
-  ): Promise<PageDto<RoomDto>> {
+  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
     const items = this.roomRepository.createQueryBuilder('item');
-    available
-      ? items
-          .orderBy('item.createdAt', pageOptionsDto.order)
-          .where('(item.status = :available)', { available })
-          .skip(pageOptionsDto.skip)
-          .take(pageOptionsDto.take)
-      : items
-          .orderBy('item.createdAt', pageOptionsDto.order)
-          .skip(pageOptionsDto.skip)
-          .take(pageOptionsDto.take);
+    items
+      .orderBy('item.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
     const numberRecords = await items.getCount();
     const { entities } = await items.getRawAndEntities();
     const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
