@@ -269,12 +269,12 @@ export class RoomItemService {
             roomItem.roomId,
             RoomStatus.AVAILABLE,
           );
-
-          roomItem.item = await this.itemService.updateItemHandover(
-            roomItem.itemId,
-            roomItem.quantity,
-          );
         }
+
+        roomItem.item = await this.itemService.updateItemHandover(
+          roomItem.itemId,
+          roomItem.quantity,
+        );
 
         delete roomItem.itemId;
         delete roomItem.roomId;
