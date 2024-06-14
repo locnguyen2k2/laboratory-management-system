@@ -137,10 +137,11 @@ export class RoomItemService {
     const roomItem = await this.findById(id);
 
     if (roomItem) {
-      await this.roomItemRepository.update(
-        { id: roomItem.id },
-        { itemQuantityReturned },
-      );
+      itemQuantityReturned >= 0 &&
+        (await this.roomItemRepository.update(
+          { id: roomItem.id },
+          { itemQuantityReturned },
+        ));
 
       return await this.findById(id);
     }
@@ -153,10 +154,11 @@ export class RoomItemService {
     const roomItem = await this.findById(id);
 
     if (roomItem) {
-      await this.roomItemRepository.update(
-        { id: roomItem.id },
-        { itemQuantityBorrowed },
-      );
+      itemQuantityBorrowed >= 0 &&
+        (await this.roomItemRepository.update(
+          { id: roomItem.id },
+          { itemQuantityBorrowed },
+        ));
 
       return await this.findById(id);
     }

@@ -63,7 +63,12 @@ export class CategoryService {
   async updateQuantity(id: number, quantity: number) {
     const isExisted = await this.findById(id);
     if (isExisted) {
-      await this.categoryRepository.update({ id: id }, { quantity: quantity });
+      quantity >= 0 &&
+        (await this.categoryRepository.update(
+          { id: id },
+          { quantity: quantity },
+        ));
+      return await this.findById(id);
     }
   }
 
@@ -89,7 +94,7 @@ export class CategoryService {
     }
   }
 
-  async delete(id: number) {
+  async deleteById(id: number) {
     const isExisted = await this.findById(id);
     if (isExisted) {
       if (isExisted.quantity === 0) {

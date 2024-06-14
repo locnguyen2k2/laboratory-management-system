@@ -20,6 +20,7 @@ import {
   Patch,
   Query,
   Post,
+  Delete,
 } from '@nestjs/common';
 import { ForgotPasswordDto, PasswordUpdateDto } from './dtos/password.dto';
 import { UserEntity } from './user.entity';
@@ -108,5 +109,12 @@ export class UserController {
   async resetPassword(@Body() dto: PasswordUpdateDto, @Request() req: any) {
     const data = PasswordUpdateDto.plainToClass(dto);
     return await this.userService.resetPassword(req.user.id, data);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN)
+  async delete(@IdParam() id: number) {
+    return await this.userService.deleteById(id);
   }
 }

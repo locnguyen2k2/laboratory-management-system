@@ -7,6 +7,7 @@ import {
   Get,
   Request,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/guard/jwt-auth.guard';
@@ -70,6 +71,13 @@ export class ItemController {
   @Get('/:id')
   async getEquipment(@IdParam() id: number) {
     return await this.itemService.findById(id);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+  async delete(@IdParam() id: number) {
+    return await this.itemService.deleteById(id);
   }
 
   @Get('category/:id')

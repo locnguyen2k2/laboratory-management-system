@@ -6,6 +6,7 @@ import {
   Patch,
   Get,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { JwtGuard } from './../auth/guard/jwt-auth.guard';
@@ -49,6 +50,13 @@ export class CategoryController {
   async add(@Body() dto: AddCategoryDto) {
     const data = AddCategoryDto.plainToClass(dto);
     return await this.categoryService.add(data);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+  async delete(@IdParam() id: number) {
+    return await this.categoryService.deleteById(id);
   }
 
   @Patch('/:id')

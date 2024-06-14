@@ -3,12 +3,11 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateAdminDto } from './dtos/update.dto';
+import { UpdateAdminDto, UpdateUserDto } from './dtos/update.dto';
 import { MailService } from '../email/mail.service';
 import { UserStatus } from './user.constant';
 import { ForgotPasswordDto, PasswordUpdateDto } from './dtos/password.dto';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
-import { UpdateUserDto } from './dtos/update.dto';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import { GoogleRedirectDto } from './../auth/dtos/googleRedirect-auth.dto';
@@ -20,6 +19,7 @@ import { JwtPayload } from '../auth/interfaces/jwt.interface';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+
 const _ = require('lodash');
 
 @Injectable({})
@@ -29,7 +29,7 @@ export class UserService {
     private readonly emailService: MailService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-  ) { }
+  ) {}
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
     const user = this.userRepository.createQueryBuilder('user');
@@ -56,6 +56,7 @@ export class UserService {
     const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
     return new PageDto(entities, pageMetaDto);
   }
+
   async findByEmail(email: string): Promise<UserEntity> {
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -63,6 +64,7 @@ export class UserService {
       .getOne();
     if (user) return user;
   }
+
   async findById(id: number): Promise<UserEntity> {
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -71,6 +73,7 @@ export class UserService {
     if (user) return user;
     throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
   }
+
   async updateAccountInfo(
     id: number,
     data: UpdateUserDto,
@@ -96,6 +99,7 @@ export class UserService {
       throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
     }
   }
+
   async update(
     id: number,
     dto: UpdateAdminDto,
@@ -232,6 +236,7 @@ export class UserService {
       }
     }
   }
+
   async updateToken(email: string, access_token: string): Promise<boolean> {
     const user = await this.findByEmail(email);
     if (user) {
@@ -245,6 +250,7 @@ export class UserService {
     }
     return false;
   }
+
   async updateRepassToken(email: string, repassToken: string) {
     const user = await this.findByEmail(email);
     if (!user || !user.password || user.status !== UserStatus.ACTIVE) {
@@ -256,6 +262,7 @@ export class UserService {
     );
     return true;
   }
+
   async updatePassword(email: string, password: string) {
     if (this.emailService.isCtuetEmail(email)) {
       await this.userRepository.update(
@@ -264,6 +271,7 @@ export class UserService {
       );
     }
   }
+
   async userConfirmation(dto: ConfirmationEmailDto) {
     const email = await this.emailService.confirmEmail(dto);
     if (email) {
@@ -281,6 +289,7 @@ export class UserService {
       throw new BusinessException('This email is confirmed!');
     }
   }
+
   async confirmRePassword(data: ForgotPasswordDto) {
     if (this.emailService.isCtuetEmail(data.email)) {
       const isExisted = await this.findByEmail(data.email);
@@ -318,6 +327,7 @@ export class UserService {
       );
     }
   }
+
   async forgotPassword(email: string): Promise<any> {
     if (this.emailService.isCtuetEmail(email)) {
       const isExisted = await this.findByEmail(email);
@@ -346,6 +356,7 @@ export class UserService {
       }
     }
   }
+
   async getAccountInfo(email: string): Promise<AccountInfo> {
     const user = await this.findByEmail(email);
     if (!user || user.status == UserStatus.DISABLE) {
@@ -360,6 +371,7 @@ export class UserService {
     delete user.repass_token;
     return user;
   }
+
   async resendConfirmationLink(dto: EmailLinkConfirmDto) {
     if (await this.emailService.isCtuetEmail(dto.email)) {
       const user = await this.findByEmail(dto.email);
@@ -394,6 +406,7 @@ export class UserService {
       throw new BusinessException(ErrorEnum.USER_INVALID);
     }
   }
+
   async resetPassword(id: number, data: PasswordUpdateDto) {
     const user = await this.findById(id);
     const isTrue = await bcrypt.compareSync(data.oldPassword, user.password);
@@ -403,5 +416,17 @@ export class UserService {
       throw new BusinessException('The password is changed');
     }
     throw new BusinessException('400:Old password is incorrect!');
+  }
+
+  async deleteById(uid: number) {
+    const user = await this.findById(uid);
+    if (user) {
+      try {
+        await this.userRepository.delete(user.id);
+        return await this.findAll(new PageOptionsDto());
+      } catch (error: any) {
+        throw new BusinessException(ErrorEnum.ITEM_IN_USED);
+      }
+    }
   }
 }

@@ -11,6 +11,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
+import { RoomService } from '../rooms/room.service';
 
 @Injectable()
 export class ItemService {
@@ -18,6 +19,7 @@ export class ItemService {
     @InjectRepository(ItemEntity)
     private readonly itemRepository: Repository<ItemEntity>,
     private readonly categoryService: CategoryService,
+    private readonly roomService: RoomService,
   ) {}
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
@@ -111,19 +113,27 @@ export class ItemService {
       data.specification,
       data.serial_number,
     );
+
     if (item) {
       throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
     }
-    const category = await this.categoryService.findById(data.categoryId);
-    await this.categoryService.updateQuantity(
+
+    let category = await this.categoryService.findById(data.categoryId);
+
+    category = await this.categoryService.updateQuantity(
       category.id,
       category.quantity + 1,
     );
+
     delete data.categoryId;
 
     const newItem = await this.itemRepository.save(
-      new ItemEntity({ ...data, category: category }),
+      new ItemEntity({
+        ...data,
+        category,
+      }),
     );
+
     return newItem;
   }
 
@@ -153,11 +163,13 @@ export class ItemService {
 
     await Promise.all(
       listItem.map(async (item) => {
-        const category = await this.categoryService.findById(item.categoryId);
-        await this.categoryService.updateQuantity(
+        let category = await this.categoryService.findById(item.categoryId);
+
+        category = await this.categoryService.updateQuantity(
           category.id,
           category.quantity + 1,
         );
+
         delete item.categoryId;
 
         const newItem = new ItemEntity({
@@ -186,17 +198,6 @@ export class ItemService {
       delete data.categoryId;
 
       if (item && category) {
-        if (item.category.id !== category.id) {
-          await this.categoryService.updateQuantity(
-            item.category.id,
-            item.category.quantity - 1,
-          );
-          await this.categoryService.updateQuantity(
-            category.id,
-            category.quantity + 1,
-          );
-        }
-
         const isExisted = await this.findByName(
           data.name,
           data.specification,
@@ -207,6 +208,18 @@ export class ItemService {
           throw new HttpException(
             `The item is existed`,
             HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (item.category.id !== category.id) {
+          await this.categoryService.updateQuantity(
+            item.category.id,
+            item.category.quantity - 1,
+          );
+
+          await this.categoryService.updateQuantity(
+            category.id,
+            category.quantity + 1,
           );
         }
 
@@ -222,9 +235,9 @@ export class ItemService {
           ...(data.specification
             ? { specification: data.specification }
             : { specification: item.specification }),
-            ...(data.quantity
-              ? { quantity: data.quantity }
-              : { quantity: item.quantity }),
+          ...(data.quantity
+            ? { quantity: data.quantity }
+            : { quantity: item.quantity }),
           ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
         };
 
@@ -234,6 +247,22 @@ export class ItemService {
 
         return await this.findById(id);
       }
+    }
+  }
+
+  async deleteById(id: number) {
+    const item = await this.findById(id);
+    if (item) {
+      if (item.handover === 0) {
+        await this.categoryService.updateQuantity(
+          item.category.id,
+          item.category.quantity - 1,
+        );
+        await this.itemRepository.delete(id);
+
+        return await this.findAll(new PageOptionsDto());
+      }
+      throw new BusinessException(ErrorEnum.ITEM_IN_USED);
     }
   }
 }

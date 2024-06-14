@@ -10,7 +10,6 @@ import { RoomDto } from './dtos/room.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
-import { RoomStatus } from './room.constant';
 
 @Injectable()
 export class RoomService {
@@ -71,9 +70,12 @@ export class RoomService {
   async updateRoomQuantity(id: number, quantity: number) {
     const item = await this.findById(id);
     if (item) {
-      await this.roomRepository.update(id, {
-        quantity: item.quantity + quantity,
-      });
+      quantity >= 0 &&
+        (await this.roomRepository.update(id, {
+          quantity: item.quantity + quantity,
+        }));
+
+      return await this.findById(id);
     }
   }
 
