@@ -10,6 +10,7 @@ import { RoomDto } from './dtos/room.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
+import { RoomStatus } from './room.constant';
 
 @Injectable()
 export class RoomService {
@@ -37,6 +38,14 @@ export class RoomService {
       .getOne();
     if (item) return item;
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+  }
+
+  async getAvailableRoom() {
+    const items = await this.roomRepository
+      .createQueryBuilder('item')
+      .where({ status: RoomStatus.AVAILABLE })
+      .getMany();
+    return items;
   }
 
   async findByName(name: string) {

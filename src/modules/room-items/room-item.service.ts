@@ -273,7 +273,7 @@ export class RoomItemService {
 
         roomItem.item = await this.itemService.updateItemHandover(
           roomItem.itemId,
-          roomItem.quantity,
+          roomItem.item.handover + roomItem.quantity,
         );
 
         delete roomItem.itemId;
