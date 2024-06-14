@@ -185,12 +185,12 @@ export class RoomItemService {
           data.roomId,
           RoomStatus.AVAILABLE,
         );
-
-        item = await this.itemService.updateItemHandover(
-          data.itemId,
-          item.handover + data.quantity,
-        );
       }
+
+      item = await this.itemService.updateItemHandover(
+        data.itemId,
+        item.handover + data.quantity,
+      );
 
       delete data.itemId;
       delete data.roomId;
