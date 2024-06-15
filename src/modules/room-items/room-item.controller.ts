@@ -88,4 +88,13 @@ export class RoomItemController {
   ): Promise<PageDto<RoomItemDto>> {
     return await this.roomItemService.findAll(pageOptionsDto);
   }
+
+  @Get('item/:id')
+  @ApiPaginatedRespone(RoomItemDto)
+  async getRoomItemsByItem(
+    @IdParam() id: number,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RoomItemDto>> {
+    return await this.roomItemService.getRoomItemByItemId(id, pageOptionsDto);
+  }
 }

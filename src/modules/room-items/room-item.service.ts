@@ -78,6 +78,27 @@ export class RoomItemService {
       : 0;
   }
 
+  async getRoomItemByItemId(
+    itemId: number,
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RoomItemDto>> {
+    const roomItems =
+      await this.roomItemRepository.createQueryBuilder('roomItem');
+
+    roomItems
+      .leftJoinAndSelect('roomItem.room', 'room')
+      .leftJoinAndSelect('roomItem.item', 'item')
+      .where('(item.id = :itemId)', { itemId })
+      .select(['roomItem', 'item', 'room'])
+      .orderBy('roomItem.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+    const numberRecords = await roomItems.getCount();
+    const { entities } = await roomItems.getRawAndEntities();
+    const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
+    return new PageDto(entities, pageMetaDto);
+  }
+
   async roomsHasItem(itemId: number) {
     const quantity = await this.roomItemRepository
       .createQueryBuilder('roomItem')
