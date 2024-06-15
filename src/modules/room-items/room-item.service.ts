@@ -14,7 +14,7 @@ import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
-import { RoomStatus } from '../rooms/room.constant';
+const _ = require('lodash');
 
 @Injectable()
 export class RoomItemService {
@@ -108,15 +108,14 @@ export class RoomItemService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async isRoomHasItem(roomid: number, itemid: number): Promise<boolean> {
+  async isRoomHasItem(itemId: number, roomId: number): Promise<boolean> {
     const isResult = await this.roomItemRepository
       .createQueryBuilder('roomItem')
-      .where('(roomItem.room_id = :roomid AND roomItem.item_id = :itemid)', {
-        roomid,
-        itemid,
-      })
+      .leftJoinAndSelect('roomItem.room', 'room')
+      .leftJoinAndSelect('roomItem.item', 'item')
+      .where('(item.id = :itemId AND room.id = :roomId)', { itemId, roomId })
       .getOne();
-    return !isEmpty(isResult) ? true : false;
+    return isResult ? true : false;
   }
 
   async findByItemRoom(itemId: number, roomId: number) {
@@ -164,6 +163,14 @@ export class RoomItemService {
     }
   }
 
+  async updateRoomItemQuantity(id: number, quantity: number) {
+    const roomItem = await this.findById(id);
+    if (roomItem) {
+      await this.roomItemRepository.update({ id }, { quantity });
+      return await this.findById(id);
+    }
+  }
+
   async addRoomItem(data: AddRoomItemDto) {
     let item = await this.itemService.findById(data.itemId);
     let room = await this.roomService.findById(data.roomId);
@@ -176,30 +183,30 @@ export class RoomItemService {
       throw new BusinessException('400:The quantity is not available!');
 
     if (item && room) {
-      const roomHasItem = await this.isRoomHasItem(data.itemId, data.roomId);
-
-      if (!roomHasItem) {
-        await this.roomService.updateRoomQuantity(data.roomId, 1);
-
-        room = await this.roomService.updateRoomStatus(
-          data.roomId,
-          RoomStatus.AVAILABLE,
-        );
-      }
-
       item = await this.itemService.updateItemHandover(
         data.itemId,
         item.handover + data.quantity,
       );
 
-      delete data.itemId;
-      delete data.roomId;
+      if (await this.isRoomHasItem(data.itemId, data.roomId)) {
+        const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
+        return await this.updateRoomItemQuantity(
+          roomItem.id,
+          roomItem.quantity + data.quantity,
+        );
+      } else {
+        room = await this.roomService.updateRoomQuantity(
+          data.roomId,
+          room.quantity + 1,
+        );
 
-      const newItem = new RoomItemEntity({ ...data, room, item });
+        delete data.itemId;
+        delete data.roomId;
 
-      await this.roomItemRepository.save(newItem);
-
-      return newItem;
+        const newItem = new RoomItemEntity({ ...data, room, item });
+        await this.roomItemRepository.save(newItem);
+        return newItem;
+      }
     } else {
       throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
     }
@@ -258,45 +265,101 @@ export class RoomItemService {
         if (availableQuantity - roomItem.quantity < 0)
           throw new BusinessException('400:The quantity is not available!');
 
-        const roomHasItem = await this.isRoomHasItem(
-          roomItem.itemId,
-          roomItem.roomId,
-        );
-
-        if (!roomHasItem) {
-          await this.roomService.updateRoomQuantity(roomItem.roomId, 1);
-          roomItem.room = await this.roomService.updateRoomStatus(
-            roomItem.roomId,
-            RoomStatus.AVAILABLE,
-          );
-        }
-
-        roomItem.item = await this.itemService.updateItemHandover(
+        const item = await this.itemService.updateItemHandover(
           roomItem.itemId,
           roomItem.item.handover + roomItem.quantity,
         );
 
-        delete roomItem.itemId;
-        delete roomItem.roomId;
+        if (await this.isRoomHasItem(roomItem.itemId, roomItem.roomId)) {
+          const data = await this.findByItemRoom(
+            roomItem.itemId,
+            roomItem.roomId,
+          );
+          return await this.updateRoomItemQuantity(
+            data.id,
+            data.quantity + roomItem.quantity,
+          );
+        } else {
+          const room = await this.roomService.updateRoomQuantity(
+            roomItem.roomId,
+            roomItem.room.quantity + 1,
+          );
 
-        const newRoomItem = new RoomItemEntity({
-          ...roomItem,
-          createBy: data.createBy,
-          updateBy: data.updateBy,
-        });
+          delete roomItem.itemId;
+          delete roomItem.roomId;
 
-        await this.roomItemRepository.save(newRoomItem);
+          const newItem = new RoomItemEntity({ ...data, room, item });
+          await this.roomItemRepository.save(newItem);
+        }
       }),
     );
-    return handleRoomItem;
+    return await this.findAll(new PageOptionsDto());
   }
 
   async updateRoomItem(id: number, data: UpdateRoomItemDto) {
     const roomItem = await this.findById(id);
     if (roomItem) {
-      if (data.roomId || data.itemId) {
+      const roomId =
+        !_.isNil(data.roomId) && data.roomId !== roomItem.room.id
+          ? data.roomId
+          : roomItem.room.id;
+
+      const itemId =
+        !_.isNil(data.itemId) && data.itemId !== roomItem.item.id
+          ? data.itemId
+          : roomItem.item.id;
+
+      const item = await this.itemService.findById(itemId);
+
+      const room = await this.roomService.findById(roomId);
+
+      const availableItemQuantity = await this.itemService.getAvailableQuantity(
+        item.id,
+      );
+
+      if (item && room) {
+        if (availableItemQuantity - data.quantity < 0)
+          throw new BusinessException('400:The quantity is not available!');
+
+        if (await this.isRoomHasItem(item.id, room.id)) {
+          const isExisted = await this.findByItemRoom(item.id, room.id);
+          if (isExisted?.id !== id) {
+            throw new BusinessException('400:The room has this item!');
+          }
+        }
+
+        if (item.id !== roomItem.item.id) {
+          await this.itemService.updateItemHandover(
+            item.id,
+            data.quantity + item.handover,
+          );
+          await this.itemService.updateItemHandover(
+            roomItem.item.id,
+            roomItem.item.handover - roomItem.quantity,
+          );
+        } else {
+          await this.itemService.updateItemHandover(item.id, data.quantity);
+        }
+
+        if (room.id !== roomItem.room.id) {
+          await this.roomService.updateRoomQuantity(room.id, room.quantity + 1);
+          await this.roomService.updateRoomQuantity(
+            roomItem.room.id,
+            roomItem.room.quantity - 1,
+          );
+        }
+
         const info = {
-          ...(data.quantity
+          ...(data.roomId
+            ? { roomId: data.roomId }
+            : { roomId: roomItem.room.id }),
+          ...(data.itemId
+            ? { itemId: data.itemId }
+            : { itemId: roomItem.item.id }),
+          ...(data.status
+            ? { item_status: data.status }
+            : { status: roomItem.status }),
+          ...(data.quantity && data.quantity > 0
             ? { quantity: data.quantity }
             : { quantity: roomItem.quantity }),
           ...(data.year ? { year: data.year } : { year: roomItem.year }),
@@ -304,64 +367,20 @@ export class RoomItemService {
             ? { remark: data.remark }
             : { remark: roomItem.remark }),
         };
-        if (data.itemId) {
-          if (!(await this.itemService.findById(data.itemId))) {
-            throw new BusinessException('404:Item not found!');
-          }
-          const roomId = data.roomId ? data.roomId : roomItem.room.id;
-          if (await this.isRoomHasItem(roomId, data.itemId)) {
-            const isRoomItem = await this.findByItemRoom(roomId, data.itemId);
-            if (isRoomItem?.id !== id) {
-              throw new BusinessException('400:The room has this item!');
-            }
-            await this.roomItemRepository.update({ id }, { ...info });
-            return await this.findByItemRoom(data.itemId, roomId);
-          }
-        }
-        if (!(await this.roomService.findById(data?.roomId))) {
-          throw new BusinessException('404:Room not found!');
-        }
-        const itemId = data?.itemId ? data.itemId : roomItem?.item.id;
-        if (await this.isRoomHasItem(data.roomId, itemId)) {
-          const isRoomItem = await this.findByItemRoom(data.roomId, itemId);
-          if (isRoomItem?.id !== id) {
-            throw new BusinessException('400:The room has this item!');
-          }
-          await this.roomItemRepository.update({ id }, { ...info });
-          return this.findByItemRoom(itemId, data.roomId);
-        }
+        // const room = await this.roomService.findById(info.roomId);
+        // const item = await this.itemService.findById(info.itemId);
+        roomItem.updateBy = data.updateBy;
+        await this.roomItemRepository.save({ ...roomItem, room, item });
+        await this.roomItemRepository.update(
+          { id: id },
+          {
+            year: info.year,
+            quantity: info.quantity,
+            remark: info.remark,
+          },
+        );
+        return await this.findById(id);
       }
-      const info = {
-        ...(data.roomId
-          ? { roomId: data.roomId }
-          : { roomId: roomItem.room.id }),
-        ...(data.itemId
-          ? { itemId: data.itemId }
-          : { itemId: roomItem.item.id }),
-        ...(data.status
-          ? { item_status: data.status }
-          : { status: roomItem.status }),
-        ...(data.quantity && data.quantity > 0
-          ? { quantity: data.quantity }
-          : { quantity: roomItem.quantity }),
-        ...(data.year ? { year: data.year } : { year: roomItem.year }),
-        ...(data.remark
-          ? { remark: data.remark }
-          : { remark: roomItem.remark }),
-      };
-      const room = await this.roomService.findById(info.roomId);
-      const item = await this.itemService.findById(info.itemId);
-      roomItem.updateBy = data.updateBy;
-      await this.roomItemRepository.save({ ...roomItem, room, item });
-      await this.roomItemRepository.update(
-        { id: id },
-        {
-          year: info.year,
-          quantity: info.quantity,
-          remark: info.remark,
-        },
-      );
-      return await this.findById(id);
     }
   }
 
@@ -375,11 +394,14 @@ export class RoomItemService {
       );
 
       if (isBorrowed.length === 0) {
-        await this.roomService.updateRoomQuantity(isExisted.room.id, -1);
+        await this.roomService.updateRoomQuantity(
+          isExisted.room.id,
+          isExisted.room.quantity - 1,
+        );
 
         await this.itemService.updateItemHandover(
           isExisted.item.id,
-          -isExisted.quantity,
+          isExisted.item.handover - isExisted.quantity,
         );
 
         await this.roomItemRepository.delete(id);

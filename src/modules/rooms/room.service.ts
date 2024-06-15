@@ -81,7 +81,7 @@ export class RoomService {
     if (item) {
       quantity >= 0 &&
         (await this.roomRepository.update(id, {
-          quantity: item.quantity + quantity,
+          quantity: quantity,
         }));
 
       return await this.findById(id);
