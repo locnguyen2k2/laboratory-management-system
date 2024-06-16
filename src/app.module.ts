@@ -13,6 +13,7 @@ import { RegistrationModule } from './modules/registration/registration.module';
 import { RoomModule } from './modules/rooms/room.module';
 import { CategoryModule } from './modules/categories/category.module';
 import { RoomItemModule } from './modules/room-items/room-item.module';
+import { ItemReturningModule } from './modules/returning/item-returning.module';
 
 const modules = [
   DatabaseModule,
@@ -24,6 +25,7 @@ const modules = [
   RoomModule,
   RegistrationModule,
   RoomItemModule,
+  ItemReturningModule,
 ];
 
 @Module({

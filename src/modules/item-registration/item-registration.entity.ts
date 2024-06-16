@@ -32,6 +32,9 @@ export class ItemRegistrationEntity extends ExtendedEntity {
   @Column()
   quantity: number;
 
+  @Column({ type: 'int', default: 0 })
+  quantityReturned: number;
+
   @Column({ type: 'varchar' })
   start_day: number;
 

@@ -43,14 +43,6 @@ export class ItemEntity extends ExtendedEntity {
   @Column({ type: 'enum', enum: ItemStatusEnum, nullable: false })
   status: ItemStatusEnum;
 
-  // @Column({
-  //   type: 'enum',
-  //   enum: HandoverStatus,
-  //   nullable: false,
-  //   default: HandoverStatus.IsNotHandover,
-  // })
-  // handoverStatus: HandoverStatus;
-
   @ManyToOne(() => CategoryEntity, (category) => category.items)
   @JoinColumn({ name: 'category_id' })
   category: Relation<CategoryEntity>;

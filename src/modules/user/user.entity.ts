@@ -1,8 +1,10 @@
-import { CommonEntity, ExtendedEntity } from 'src/common/entity/common.entity';
+import { ExtendedEntity } from 'src/common/entity/common.entity';
 import { UserStatus } from './user.constant';
 import { Column, Entity, OneToMany, Relation } from 'typeorm';
 import { RegistrationEntity } from '../registration/registration.entity';
 import { RoleEnum } from 'src/enums/role-enum.enum';
+import { ItemReturningEntity } from '../returning/entities/item-returning.entity';
+import { ItemReturningModule } from '../returning/item-returning.module';
 
 @Entity({ name: 'user_entity' })
 export class UserEntity extends ExtendedEntity {
@@ -46,6 +48,9 @@ export class UserEntity extends ExtendedEntity {
 
   @OneToMany(() => RegistrationEntity, (registration) => registration.user)
   registration: Relation<RegistrationEntity>;
+
+  @OneToMany(() => ItemReturningEntity, (itemReturning) => itemReturning.user)
+  itemReturning: Relation<ItemReturningModule>;
 
   constructor(userEntity: Partial<UserEntity>) {
     super();

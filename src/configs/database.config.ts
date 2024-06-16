@@ -8,6 +8,7 @@ import { RoomEntity } from 'src/modules/rooms/room.entity';
 import { ItemRegistrationEntity } from 'src/modules/item-registration/item-registration.entity';
 import { CategoryEntity } from 'src/modules/categories/category.entity';
 import { RoomItemEntity } from 'src/modules/room-items/room-item.entity';
+import { ItemReturningEntity } from '../modules/returning/entities/item-returning.entity';
 
 const entities = [
   UserEntity,
@@ -17,6 +18,7 @@ const entities = [
   RegistrationEntity,
   ItemRegistrationEntity,
   RoomItemEntity,
+  ItemReturningEntity,
 ];
 
 @Module({

@@ -132,6 +132,32 @@ export class ItemRegistrationService {
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
+  async findById(id: number) {
+    const registration = await this.itemRegistrationRepository
+      .createQueryBuilder('registrationItem')
+      .leftJoinAndSelect('registrationItem.item', 'item')
+      .leftJoinAndSelect('registrationItem.room', 'room')
+      .leftJoinAndSelect('registrationItem.registration', 'registration')
+      .where('(registrationItem.id = :id)', { id })
+      .select([
+        'registration.id' as 'registrationId',
+        'registrationItem.quantityReturned',
+        'registrationItem.status',
+        'registrationItem.start_day',
+        'registrationItem.quantity',
+        'registrationItem.end_day',
+        'registrationItem.id',
+        'room.id',
+        'room.name',
+        'item.id',
+        'item.name',
+        'item.quantity',
+        'item.handover',
+      ])
+      .getOne();
+    if (registration) return registration;
+    throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+  }
   async addItemReg(data: IAddItemRegistration) {
     let isReplace = false;
     const roomid = data.room.id;
@@ -184,6 +210,18 @@ export class ItemRegistrationService {
         updateBy: uid,
       },
     );
-    return this.findByUidRegid(uid, id);
+    return await this.findByUidRegid(uid, id);
+  }
+
+  async updateQuantityReturned(id: number, quantity: number) {
+    if (await this.findById(id)) {
+      await this.itemRegistrationRepository.update(
+        { id },
+        {
+          quantityReturned: quantity,
+        },
+      );
+      return await this.findById(id);
+    }
   }
 }

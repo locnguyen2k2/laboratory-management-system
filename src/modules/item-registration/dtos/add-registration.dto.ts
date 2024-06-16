@@ -1,11 +1,8 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseDto } from 'src/common/dtos/base.dto';
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
-import {
-  ItemRegistration,
-  RegistrationStatusEnum,
-} from './../../registration/registration.constant';
+import { IsNotEmpty, IsNumber } from 'class-validator';
+import { ItemRegistration } from './../../registration/registration.constant';
 import { IsDateGreaterThanOrEqualToday } from 'src/common/decorators/date-validation.decorate';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 
