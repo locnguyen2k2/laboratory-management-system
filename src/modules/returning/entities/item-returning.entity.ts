@@ -1,26 +1,14 @@
 import { ExtendedEntity } from 'src/common/entity/common.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  Relation,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
-import { UserEntity } from '../../user/user.entity';
 import { ItemRegistrationEntity } from '../../item-registration/item-registration.entity';
 import { BaseStatusEnum } from '../../../enums/base-status.enum';
 
 @Entity('item_returning_entity')
 export class ItemReturningEntity extends ExtendedEntity {
-  @ManyToOne(() => UserEntity, (user) => user.itemReturning)
-  @JoinColumn({ name: 'user_id' })
-  user: Relation<UserEntity>;
-
-  @OneToOne(
+  @ManyToOne(
     () => ItemRegistrationEntity,
-    (itemRegistration) => itemRegistration.id,
+    (itemRegistration) => itemRegistration.itemReturning,
   )
   @JoinColumn()
   itemRegistration: Relation<ItemRegistrationEntity>;

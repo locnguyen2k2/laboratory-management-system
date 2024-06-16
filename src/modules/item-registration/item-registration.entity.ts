@@ -1,9 +1,17 @@
 import { ExtendedEntity } from 'src/common/entity/common.entity';
-import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  Relation,
+} from 'typeorm';
 import { RegistrationEntity } from './../registration/registration.entity';
 import { ItemEntity } from './../items/item.entity';
 import { RoomEntity } from '../rooms/room.entity';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
+import { ItemReturningEntity } from '../returning/entities/item-returning.entity';
 
 @Entity('item_registration_entity')
 export class ItemRegistrationEntity extends ExtendedEntity {
@@ -13,6 +21,13 @@ export class ItemRegistrationEntity extends ExtendedEntity {
   )
   @JoinColumn({ name: 'registration_id' })
   registration: Relation<RegistrationEntity>;
+
+  @OneToMany(
+    () => ItemReturningEntity,
+    (itemReturning) => itemReturning.itemRegistration,
+  )
+  @JoinColumn({ name: 'registration_id' })
+  itemReturning: Relation<ItemReturningEntity>;
 
   @ManyToOne(() => ItemEntity, (item) => item.itemRegistration)
   @JoinColumn({ name: 'item_id' })

@@ -25,11 +25,6 @@ export class ItemReturningDto {
   remark: string;
   @ApiProperty()
   @IsObject()
-  user: {
-    id: number;
-  };
-  @ApiProperty()
-  @IsObject()
   itemRegistration: {
     id: number;
   };

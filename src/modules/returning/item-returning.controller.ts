@@ -18,6 +18,7 @@ import { PageOptionsDto } from '../../common/dtos/page-options.dto';
 import { PageDto } from '../../common/dtos/page.dto';
 import { ItemReturningDto } from './dtos/item-returning.dto';
 import { AddItemReturningDto } from './dtos/add-item-returning.dto';
+import { JwtPayload } from '../auth/interfaces/jwt.interface';
 
 @ApiTags('Item Returning')
 @ApiBearerAuth()
@@ -33,6 +34,19 @@ export class ItemReturningController {
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<ItemReturningDto>> {
     return await this.itemReturningService.findAll(pageOptionsDto);
+  }
+
+  @Get('my-returning')
+  @ApiPaginatedRespone(ItemReturningDto)
+  @UseGuards(JwtGuard)
+  async getMyReturning(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Request() req: any,
+  ): Promise<PageDto<ItemReturningDto>> {
+    return await this.itemReturningService.findByUid(
+      req.user.id,
+      pageOptionsDto,
+    );
   }
 
   @Post('')

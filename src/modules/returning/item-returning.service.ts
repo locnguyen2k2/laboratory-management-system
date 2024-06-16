@@ -10,7 +10,6 @@ import { AddItemReturningDto } from './dtos/add-item-returning.dto';
 import { BusinessException } from '../../common/exceptions/biz.exception';
 import { ErrorEnum } from '../../constants/error-code.constant';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
-import { RegistrationEntity } from '../registration/registration.entity';
 import { UserService } from '../user/user.service';
 import { RoomItemService } from '../room-items/room-item.service';
 
@@ -31,9 +30,8 @@ export class ItemReturningService {
       this.itemReturningRepository.createQueryBuilder('itemReturning');
 
     items
-      .leftJoinAndSelect('itemReturning.user', 'user')
       .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
-      .select(['itemReturning', 'itemRegistration.id', 'user.id'])
+      .select(['itemReturning', 'itemRegistration.id'])
       .orderBy('itemReturning.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -55,7 +53,26 @@ export class ItemReturningService {
 
   async findByRegId() {}
 
-  async findByUserId() {}
+  async findByUid(
+    uid: number,
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<ItemReturningDto>> {
+    const items =
+      this.itemReturningRepository.createQueryBuilder('itemReturning');
+
+    items
+      .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
+      .where('(itemReturning.updateBy = :uid)', { uid })
+      .select(['itemReturning', 'itemRegistration.id'])
+      .orderBy('itemReturning.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const numberRecords = await items.getCount();
+    const { entities } = await items.getRawAndEntities();
+    const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
+    return new PageDto(entities, pageMetaDto);
+  }
 
   async add(data: AddItemReturningDto) {
     const itemRegistration = await this.itemRegistrationService.findById(
@@ -80,8 +97,6 @@ export class ItemReturningService {
           data.itemRegistrationId,
           data.quantity + itemRegistration.quantityReturned,
         );
-
-        // await this.roomItemService.updateRoomItem(roomItem.id, {});
 
         const newItem = new ItemReturningEntity({ ...data, itemRegistration });
         await this.itemReturningRepository.save(newItem);
