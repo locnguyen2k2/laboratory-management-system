@@ -233,7 +233,7 @@ export class RegistrationService {
         }
 
         if (
-          !(await this.roomItemService.isRoomHasItem(item.roomId, item.itemId))
+          !(await this.roomItemService.isRoomHasItem(item.itemId, item.roomId))
         ) {
           isItem = false;
           return;
