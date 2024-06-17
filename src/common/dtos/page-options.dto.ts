@@ -15,6 +15,12 @@ export class PageOptionsDto {
   @IsOptional()
   readonly keyword?: string = '';
 
+  @ApiPropertyOptional({ default: '' })
+  @Type(() => String)
+  @IsString()
+  @IsOptional()
+  readonly sort?: string = '';
+
   @ApiPropertyOptional({
     minimum: 1,
     default: 1,

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcryptjs';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,7 @@ import { JwtPayload } from '../auth/interfaces/jwt.interface';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { SortUserEnum } from './dtos/search-user.dto';
 
 const _ = require('lodash');
 
@@ -29,10 +30,29 @@ export class UserService {
     private readonly emailService: MailService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-  ) {}
+  ) { }
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
     const user = this.userRepository.createQueryBuilder('user');
+
+    if (pageOptionsDto.keyword) {
+      user.andWhere(new Brackets(qb => {
+        qb.where('LOWER(user.firstName) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.lastName) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.address) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.photo) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.email) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.status) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(user.role) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+      }))
+    }
+
+    if (Object.values<string>(SortUserEnum).includes(pageOptionsDto.sort)) {
+      user.orderBy(`user.${pageOptionsDto.sort}`, pageOptionsDto.order)
+    } else {
+      user.orderBy('user.createdAt', pageOptionsDto.order)
+    }
+
     user
       .select([
         'user.id',
@@ -48,7 +68,6 @@ export class UserService {
         'user.createdAt',
         'user.updatedAt',
       ])
-      .orderBy('user.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
     const numberRecords = await user.getCount();

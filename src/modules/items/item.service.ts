@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ItemEntity } from './item.entity';
-import { Repository } from 'typeorm';
+import { Brackets, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AddItemDto, AddListItemDto } from './dtos/add-item.dto';
 import { UpdateItemDto } from './dtos/update-item.dto';
@@ -12,6 +12,7 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
 import { RoomService } from '../rooms/room.service';
+import { SortItemDto } from './dtos/search-item.dto';
 
 @Injectable()
 export class ItemService {
@@ -20,16 +21,37 @@ export class ItemService {
     private readonly itemRepository: Repository<ItemEntity>,
     private readonly categoryService: CategoryService,
     private readonly roomService: RoomService,
-  ) {}
+  ) { }
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<ItemDto>> {
     const items = this.itemRepository.createQueryBuilder('item');
+
+    if (pageOptionsDto.keyword) {
+      items.andWhere(new Brackets(qb => {
+        qb.where('LOWER(item.name) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.origin) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.specification) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.remark) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.serial_number) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.handover) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(item.quantity) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+          .orWhere('LOWER(category.name) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
+
+      }))
+    }
+
+    if (Object.values<string>(SortItemDto).includes(pageOptionsDto.sort)) {
+      items.orderBy(`item.${pageOptionsDto.sort}`, pageOptionsDto.order)
+    } else {
+      items.orderBy('item.createdAt', pageOptionsDto.order)
+    }
+
     items
       .leftJoinAndSelect('item.category', 'category')
       .select(['item', 'category.id', 'category.name'])
-      .orderBy('item.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
+
     const numberRecords = await items.getCount();
     const { entities } = await items.getRawAndEntities();
     const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });

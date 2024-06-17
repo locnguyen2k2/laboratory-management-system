@@ -6,6 +6,9 @@ export class PageMetaDto {
   readonly keyword: string;
 
   @ApiProperty()
+  readonly sort: string;
+
+  @ApiProperty()
   readonly page: number;
 
   @ApiProperty()
@@ -27,6 +30,7 @@ export class PageMetaDto {
     this.keyword = pageOptionsDto.keyword;
     this.page = pageOptionsDto.page;
     this.take = pageOptionsDto.take;
+    this.sort = pageOptionsDto.sort;
     this.numberRecords = numberRecords;
     this.pages = Math.ceil(this.numberRecords / this.take);
     this.hasPrev = this.page > 1;

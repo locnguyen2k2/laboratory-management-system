@@ -22,6 +22,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
+import { SearchItemDto } from './dtos/search-item.dto';
 
 @Controller('items')
 @ApiTags('Items')
