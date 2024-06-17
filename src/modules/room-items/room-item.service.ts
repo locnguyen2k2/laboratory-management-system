@@ -71,10 +71,10 @@ export class RoomItemService {
   async getAvailableQuantity(id: number): Promise<number> {
     const roomItem = await this.findById(id);
     return roomItem.quantity -
-      (roomItem.itemQuantityBorrowed + roomItem.itemQuantityReturned) >
+      (roomItem.itemQuantityBorrowed - roomItem.itemQuantityReturned) >
       0
       ? roomItem.quantity -
-          (roomItem.itemQuantityBorrowed + roomItem.itemQuantityReturned)
+          (roomItem.itemQuantityBorrowed - roomItem.itemQuantityReturned)
       : 0;
   }
 
