@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsEnum, IsNumber, IsString, Min, Validate } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min, Validate } from 'class-validator';
 import { IsValidString } from 'src/common/decorators/string-validation.decorator';
 import { BaseDto } from 'src/common/dtos/base.dto';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
@@ -11,7 +11,8 @@ export class UpdateItemHandoverStatusDto extends BaseDto {
   @ApiProperty({ default: HandoverStatus.IsHandover })
   @Expose()
   @IsEnum(HandoverStatus)
-  handoverStatus: HandoverStatus;
+  @IsOptional()
+  handoverStatus?: HandoverStatus;
 }
 
 export class UpdateItemDto extends BaseDto {
@@ -19,47 +20,57 @@ export class UpdateItemDto extends BaseDto {
   @Expose()
   @IsString()
   @Validate(IsValidString)
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @ApiProperty({ default: '' })
   @Expose()
   @IsString()
   @Validate(IsValidString)
-  origin: string;
+  @IsOptional()
+  origin?: string;
 
   @ApiProperty({ default: '' })
   @Expose()
-  serial_number: string;
+  @IsOptional()
+  serial_number?: string;
 
   @ApiProperty({ default: '' })
   @Expose()
   @IsString()
   @Validate(IsValidString)
-  specification: string;
+  @IsOptional()
+  specification?: string;
 
   @ApiProperty({ default: null })
   @Expose()
   @IsEnum(UnitEnum)
-  unit: UnitEnum;
+  @IsOptional()
+  unit?: UnitEnum;
 
   @ApiProperty({ default: null })
   @Expose()
   @IsEnum(ItemStatusEnum)
-  status: ItemStatusEnum;
+  @IsOptional()
+  status?: ItemStatusEnum;
 
   @ApiProperty({ default: null })
   @Expose()
   @IsNumber()
-  quantity: number;
+  @IsOptional()
+  quantity?: number;
 
   @ApiProperty({ default: '' })
   @Expose()
-  remark: string;
+  @IsOptional()
+  remark?: string;
 
   @Expose()
-  updateBy: number;
+  @IsOptional()
+  updateBy?: number;
 
   @ApiProperty({ default: null })
   @Expose()
-  categoryId: number;
+  @IsOptional()
+  categoryId?: number;
 }
