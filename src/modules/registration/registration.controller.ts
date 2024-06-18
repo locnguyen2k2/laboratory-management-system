@@ -38,18 +38,18 @@ export class RegistrationController {
     return await this.registrationService.findAll(pageOptionsDto);
   }
 
-  // @Get('my-borrowing')
-  // @ApiPaginatedRespone(RegistrationDto)
-  // @UseGuards(JwtGuard)
-  // async getUserBorrowing(
-  //   @Request() req: any,
-  //   @Query() pageOptionsDto: PageOptionsDto,
-  // ): Promise<PageDto<RegistrationDto>> {
-  //   return await this.registrationService.findByUser(
-  //     req.user.id,
-  //     pageOptionsDto,
-  //   );
-  // }
+  @Get('my-borrowing')
+  @ApiPaginatedRespone(RegistrationDto)
+  @UseGuards(JwtGuard)
+  async getUserBorrowing(
+    @Request() req: any,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RegistrationDto>> {
+    return await this.registrationService.findByUser(
+      req.user.id,
+      pageOptionsDto,
+    );
+  }
 
   @Post('')
   @UseGuards(JwtGuard)
