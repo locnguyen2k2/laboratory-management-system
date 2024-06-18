@@ -273,6 +273,11 @@ export class ItemService {
           );
         }
 
+        if (data?.quantity < isExisted.handover) {
+          throw new BusinessException(
+            `400:the amount must be greater than ${isExisted.handover}`,
+          );
+        }
         const info = {
           ...data,
           ...(data.name ? { name: data.name } : { name: item.name }),
