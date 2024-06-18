@@ -36,6 +36,20 @@ export class ItemReturningController {
     return await this.itemReturningService.findAll(pageOptionsDto);
   }
 
+  @Get('my-returning')
+  // @ApiPaginatedRespone(ItemReturningDto)
+  @UseGuards(JwtGuard)
+  async getMyReturning(
+    @Request() req: any,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<ItemReturningDto>> {
+    console.log(req.user);
+    return await this.itemReturningService.findByUid(
+      req.user.id,
+      pageOptionsDto,
+    );
+  }
+
   @Get('/:id')
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
