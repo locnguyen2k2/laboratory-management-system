@@ -249,9 +249,9 @@ export class ItemService {
 
       if (item && category) {
         const isExisted = await this.findByName(
-          data.name,
-          data.specification,
-          data.serial_number,
+          data?.name ? data.name : '',
+          data?.specification ? data.specification : '',
+          data?.serial_number ? data.serial_number : '',
         );
 
         if (isExisted && isExisted.id !== id) {
@@ -273,13 +273,12 @@ export class ItemService {
           );
         }
 
-        if (data?.quantity < isExisted.handover) {
+        if (data?.quantity < item.handover) {
           throw new BusinessException(
             `400:the amount must be greater than ${isExisted.handover}`,
           );
         }
         const info = {
-          ...data,
           ...(data.name ? { name: data.name } : { name: item.name }),
           ...(data.status ? { status: data.status } : { status: item.status }),
           ...(data.serial_number
