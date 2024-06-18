@@ -98,7 +98,7 @@ export class ItemRegistrationService {
       .leftJoinAndSelect('registrationItem.room', 'room')
       .leftJoinAndSelect('registrationItem.registration', 'registration')
       .where(
-        '(registrationItem.start_day <= :startDay AND registrationItem.end_day >= :startDay AND registrationItem.start_day <= :endDay AND (registrationItem.end_day >= :endDay OR registrationItem.end_day <= :endDay) AND item.id = :id AND registrationItem.createBy = :uid AND registrationItem.room_id = :roomid)',
+        '(registrationItem.start_day <= :startDay AND registrationItem.end_day >= :startDay AND registrationItem.start_day <= :endDay AND item.id = :id AND registrationItem.createBy = :uid AND registrationItem.room_id = :roomid)',
         { startDay, endDay, id, uid, roomid },
       )
       .select([
