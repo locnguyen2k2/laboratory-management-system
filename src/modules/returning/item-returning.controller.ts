@@ -37,13 +37,12 @@ export class ItemReturningController {
   }
 
   @Get('my-returning')
-  // @ApiPaginatedRespone(ItemReturningDto)
+  @ApiPaginatedRespone(ItemReturningDto)
   @UseGuards(JwtGuard)
   async getMyReturning(
     @Request() req: any,
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<ItemReturningDto>> {
-    console.log(req.user);
     return await this.itemReturningService.findByUid(
       req.user.id,
       pageOptionsDto,
