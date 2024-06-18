@@ -5,7 +5,7 @@ import { UserEntity } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateAdminDto, UpdateUserDto } from './dtos/update.dto';
 import { MailService } from '../email/mail.service';
-import { UserStatus } from './user.constant';
+import { UserFilterDto, UserStatus } from './user.constant';
 import { ForgotPasswordDto, PasswordUpdateDto } from './dtos/password.dto';
 import { EmailLinkConfirmDto } from '../email/dtos/email-confirm.dto';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -30,27 +30,55 @@ export class UserService {
     private readonly emailService: MailService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-  ) { }
+  ) {}
 
-  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<UserEntity>> {
+  async findAll(pageOptionsDto: UserFilterDto): Promise<PageDto<UserEntity>> {
     const user = this.userRepository.createQueryBuilder('user');
 
     if (pageOptionsDto.keyword) {
-      user.andWhere(new Brackets(qb => {
-        qb.where('LOWER(user.firstName) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.lastName) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.address) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.photo) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.email) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.status) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-          .orWhere('LOWER(user.role) LIKE LOWER(:keyword)', { keyword: `%${pageOptionsDto.keyword}%` })
-      }))
+      user.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(user.firstName) LIKE LOWER(:keyword)', {
+            keyword: `%${pageOptionsDto.keyword}%`,
+          })
+            .orWhere('LOWER(user.lastName) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+            .orWhere('LOWER(user.address) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+            .orWhere('LOWER(user.photo) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+            .orWhere('LOWER(user.email) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+            .orWhere('LOWER(user.status) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+            .orWhere('LOWER(user.role) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            });
+        }),
+      );
+    }
+
+    if (pageOptionsDto.status && pageOptionsDto.status.length > 0) {
+      user.andWhere('user.status IN (:status)', {
+        status: pageOptionsDto.status.map((value) => value + 1),
+      });
+    }
+
+    if (pageOptionsDto.role && pageOptionsDto.role.length > 0) {
+      user.andWhere('user.role IN (:role)', {
+        role: pageOptionsDto.role.map((value) => value + 1),
+      });
     }
 
     if (Object.values<string>(SortUserEnum).includes(pageOptionsDto.sort)) {
-      user.orderBy(`user.${pageOptionsDto.sort}`, pageOptionsDto.order)
+      user.orderBy(`user.${pageOptionsDto.sort}`, pageOptionsDto.order);
     } else {
-      user.orderBy('user.createdAt', pageOptionsDto.order)
+      user.orderBy('user.createdAt', pageOptionsDto.order);
     }
 
     user

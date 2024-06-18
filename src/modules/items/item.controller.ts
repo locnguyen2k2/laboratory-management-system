@@ -1,13 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Patch,
   Post,
-  UseGuards,
-  Get,
-  Request,
   Query,
-  Delete,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/guard/jwt-auth.guard';
@@ -22,7 +22,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
-import { SearchItemDto } from './dtos/search-item.dto';
+import { ItemFilterDto } from './item.constant';
 
 @Controller('items')
 @ApiTags('Items')
@@ -32,9 +32,7 @@ export class ItemController {
 
   @Get()
   @ApiPaginatedRespone(ItemDto)
-  async get(
-    @Query() pageOptionsDto: PageOptionsDto,
-  ): Promise<PageDto<ItemDto>> {
+  async get(@Query() pageOptionsDto: ItemFilterDto): Promise<PageDto<ItemDto>> {
     return await this.itemService.findAll(pageOptionsDto);
   }
 

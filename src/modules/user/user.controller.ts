@@ -1,7 +1,6 @@
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UpdateUserDto } from './dtos/update.dto';
-import { UpdateAdminDto } from './dtos/update.dto';
+import { UpdateAdminDto, UpdateUserDto } from './dtos/update.dto';
 import { RoleEnum } from 'src/enums/role-enum.enum';
 import { ResetPaswordDto } from '../auth/dtos/reset-password.dto';
 import { IdParam } from 'src/common/decorators/id-param.decorator';
@@ -13,14 +12,13 @@ import { ConfirmationEmailDto } from './dtos/confirmationEmail-auth.dto';
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Query,
   Request,
   UseGuards,
-  Get,
-  Put,
-  Patch,
-  Query,
-  Post,
-  Delete,
 } from '@nestjs/common';
 import { ForgotPasswordDto, PasswordUpdateDto } from './dtos/password.dto';
 import { UserEntity } from './user.entity';
@@ -29,6 +27,7 @@ import { PageDto } from 'src/common/dtos/page.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { UserDto } from './dtos/user.dto';
+import { UserFilterDto } from './user.constant';
 
 @Controller('users')
 @ApiTags('Users')
@@ -41,7 +40,7 @@ export class UserController {
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   async findAll(
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() pageOptionsDto: UserFilterDto,
   ): Promise<PageDto<UserEntity>> {
     return await this.userService.findAll(pageOptionsDto);
   }
