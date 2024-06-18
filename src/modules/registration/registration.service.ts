@@ -51,9 +51,22 @@ export class RegistrationService {
   ): Promise<PageDto<RegistrationDto>> {
     const items =
       this.registrationRepository.createQueryBuilder('registration');
+
     items
       .leftJoinAndSelect('registration.user', 'user')
-      .select(['registration', 'user.id'])
+      .select([
+        'registration',
+        'user.id',
+        'user.email',
+        'user.firstName',
+        'user.lastName',
+        'user.address',
+        'user.createBy',
+        'user.updateBy',
+        'user.photo',
+        'user.status',
+        'user.role',
+      ])
       .orderBy('registration.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);

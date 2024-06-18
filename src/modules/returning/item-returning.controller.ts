@@ -18,6 +18,7 @@ import { PageOptionsDto } from '../../common/dtos/page-options.dto';
 import { PageDto } from '../../common/dtos/page.dto';
 import { ItemReturningDto } from './dtos/item-returning.dto';
 import { AddItemReturningDto } from './dtos/add-item-returning.dto';
+import { IdParam } from '../../common/decorators/id-param.decorator';
 
 @ApiTags('Item Returning')
 @ApiBearerAuth()
@@ -35,17 +36,11 @@ export class ItemReturningController {
     return await this.itemReturningService.findAll(pageOptionsDto);
   }
 
-  @Get('my-returning')
-  @ApiPaginatedRespone(ItemReturningDto)
-  @UseGuards(JwtGuard)
-  async getMyReturning(
-    @Query() pageOptionsDto: PageOptionsDto,
-    @Request() req: any,
-  ): Promise<PageDto<ItemReturningDto>> {
-    return await this.itemReturningService.findByUid(
-      req.user.id,
-      pageOptionsDto,
-    );
+  @Get('/:id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+  async getDetail(@IdParam() id: number) {
+    return await this.itemReturningService.findById(id);
   }
 
   @Post('')

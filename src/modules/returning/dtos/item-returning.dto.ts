@@ -1,4 +1,4 @@
-import { IsEnum, IsObject } from 'class-validator';
+import { IsEnum, IsObject, IsOptional } from 'class-validator';
 import { BaseStatusEnum } from '../../../enums/base-status.enum';
 import { ItemStatusEnum } from '../../../enums/item-status-enum.enum';
 import { ApiProperty } from '@nestjs/swagger';
@@ -25,7 +25,14 @@ export class ItemReturningDto {
   remark: string;
   @ApiProperty()
   @IsObject()
+  @IsOptional()
   itemRegistration: {
+    id: number;
+  };
+  @ApiProperty()
+  @IsObject()
+  @IsOptional()
+  registration: {
     id: number;
   };
   @ApiProperty()

@@ -18,5 +18,14 @@ export class RegistrationDto {
   @IsObject()
   user: {
     id: number;
+    email?: string;
+    createBy?: number;
+    updateBy?: number;
+    firstName?: string;
+    lastName?: string;
+    address?: string;
+    photo?: string;
+    status?: number;
+    role?: number;
   };
 }

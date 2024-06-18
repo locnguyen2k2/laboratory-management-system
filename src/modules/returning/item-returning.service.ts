@@ -32,15 +32,8 @@ export class ItemReturningService {
       this.itemReturningRepository.createQueryBuilder('itemReturning');
 
     items
-      .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
-      .leftJoinAndSelect('itemReturning.registration', 'registration.id')
       .leftJoinAndSelect('itemReturning.user', 'user')
-      .select([
-        'itemReturning',
-        'itemRegistration.id',
-        'user.id',
-        'registration.id',
-      ])
+      .select(['itemReturning', 'user.id'])
       .orderBy('itemReturning.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -52,34 +45,28 @@ export class ItemReturningService {
   }
 
   async findById(id: number) {
-    const item =
-      await this.itemReturningRepository.createQueryBuilder('itemReturning');
-    item.where({ id }).getOne();
-
-    if (item) return item;
+    const itemReturning = await this.itemReturningRepository
+      .createQueryBuilder('itemReturning')
+      .leftJoinAndSelect('itemReturning.user', 'user')
+      .leftJoinAndSelect('itemReturning.registration', 'registration')
+      .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
+      .select(['itemReturning', 'user', 'registration', 'itemRegistration'])
+      .where({ id })
+      .getOne();
+    if (itemReturning) {
+      return itemReturning;
+    }
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
-  async findByRegId() {}
-
-  async findByUid(
-    uid: number,
-    pageOptionsDto: PageOptionsDto,
-  ): Promise<PageDto<ItemReturningDto>> {
+  async findByUid(uid: number, pageOptionsDto: PageOptionsDto) {
     const items =
       this.itemReturningRepository.createQueryBuilder('itemReturning');
 
     items
-      .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
       .leftJoinAndSelect('itemReturning.user', 'user')
-      .leftJoinAndSelect('itemRegistration.registration', 'registration')
+      .select(['itemReturning', 'user.id'])
       .where('(user.id = :uid)', { uid })
-      .select([
-        'itemReturning',
-        'itemRegistration.id',
-        'user.id',
-        'registration.id',
-      ])
       .orderBy('itemReturning.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
