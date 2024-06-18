@@ -29,6 +29,11 @@ export class ItemReturningDto {
     id: number;
   };
   @ApiProperty()
+  @IsObject()
+  user: {
+    id: number;
+  };
+  @ApiProperty()
   @IsEnum(ItemStatusEnum)
   itemStatus: ItemStatusEnum;
 }

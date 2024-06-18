@@ -17,6 +17,20 @@ export class ItemRegistrationService {
     private readonly itemService: ItemService,
   ) {}
 
+  async itemRegHasInReg(regId: number, itemRegId: number) {
+    const itemReg = await this.itemRegistrationRepository
+      .createQueryBuilder('itemRegistration')
+      .leftJoinAndSelect('itemRegistration.registration', 'registration')
+      .select(['itemRegistration', 'registration'])
+      .where('itemRegistration.id = :regId AND registration.id = :itemRegId', {
+        regId,
+        itemRegId,
+      })
+      .getOne();
+    if (itemReg) return itemReg;
+    throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+  }
+
   async findByRoomIdItemId(roomId: number, itemId: number) {
     const registration = await this.itemRegistrationRepository
       .createQueryBuilder('registration')
@@ -162,6 +176,7 @@ export class ItemRegistrationService {
     if (registration) return registration;
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
+
   async addItemReg(data: IAddItemRegistration) {
     let isReplace = false;
     const roomid = data.room.id;

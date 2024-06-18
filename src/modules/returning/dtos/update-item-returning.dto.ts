@@ -2,7 +2,7 @@ import { BaseDto } from '../../../common/dtos/base.dto';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseStatusEnum } from '../../../enums/base-status.enum';
-import { IsEnum, IsNumber, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ItemStatusEnum } from '../../../enums/item-status-enum.enum';
 
 export class UpdateItemReturningDto extends BaseDto {
@@ -10,23 +10,36 @@ export class UpdateItemReturningDto extends BaseDto {
   updateBy: number;
 
   @Expose()
-  itemRegistrationId: number;
+  @IsOptional()
+  itemRegistrationId?: number;
+
+  @Expose()
+  @IsOptional()
+  registrationId?: number;
+
+  @Expose()
+  @IsOptional()
+  uid?: number;
 
   @ApiProperty({ default: BaseStatusEnum.UNMANAGED })
   @Expose()
   @IsEnum(BaseStatusEnum)
-  status: BaseStatusEnum;
+  @IsOptional()
+  status?: BaseStatusEnum;
 
   @ApiProperty({ default: ItemStatusEnum.NORMALOPERATION })
   @Expose()
   @IsEnum(ItemStatusEnum)
-  itemStatus: ItemStatusEnum;
+  @IsOptional()
+  itemStatus?: ItemStatusEnum;
 
   @Expose()
   @IsNumber()
   @Min(0)
-  quantity: number;
+  @IsOptional()
+  quantity?: number;
 
   @Expose()
-  remark: string;
+  @IsOptional()
+  remark?: string;
 }

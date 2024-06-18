@@ -6,11 +6,13 @@ import { ItemReturningService } from './item-returning.service';
 import { ItemRegistrationModule } from '../item-registration/item-registration.module';
 import { UserModule } from '../user/user.module';
 import { RoomItemModule } from '../room-items/room-item.module';
+import { RegistrationModule } from '../registration/registration.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ItemReturningEntity]),
     ItemRegistrationModule,
+    RegistrationModule,
     UserModule,
     RoomItemModule,
   ],

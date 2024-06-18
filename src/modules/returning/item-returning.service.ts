@@ -12,6 +12,7 @@ import { ErrorEnum } from '../../constants/error-code.constant';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
 import { UserService } from '../user/user.service';
 import { RoomItemService } from '../room-items/room-item.service';
+import { RegistrationService } from '../registration/registration.service';
 
 @Injectable()
 export class ItemReturningService {
@@ -19,6 +20,7 @@ export class ItemReturningService {
     @InjectRepository(ItemReturningEntity)
     private readonly itemReturningRepository: Repository<ItemReturningEntity>,
     private readonly itemRegistrationService: ItemRegistrationService,
+    private readonly registrationService: RegistrationService,
     private readonly userService: UserService,
     private readonly roomItemService: RoomItemService,
   ) {}
@@ -31,7 +33,14 @@ export class ItemReturningService {
 
     items
       .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
-      .select(['itemReturning', 'itemRegistration.id'])
+      .leftJoinAndSelect('itemReturning.registration', 'registration.id')
+      .leftJoinAndSelect('itemReturning.user', 'user')
+      .select([
+        'itemReturning',
+        'itemRegistration.id',
+        'user.id',
+        'registration.id',
+      ])
       .orderBy('itemReturning.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -62,8 +71,15 @@ export class ItemReturningService {
 
     items
       .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
-      .where('(itemReturning.updateBy = :uid)', { uid })
-      .select(['itemReturning', 'itemRegistration.id'])
+      .leftJoinAndSelect('itemReturning.user', 'user')
+      .leftJoinAndSelect('itemRegistration.registration', 'registration')
+      .where('(user.id = :uid)', { uid })
+      .select([
+        'itemReturning',
+        'itemRegistration.id',
+        'user.id',
+        'registration.id',
+      ])
       .orderBy('itemReturning.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -75,10 +91,22 @@ export class ItemReturningService {
   }
 
   async add(data: AddItemReturningDto) {
-    const itemRegistration = await this.itemRegistrationService.findById(
+    const regHasItemReg = await this.itemRegistrationService.itemRegHasInReg(
+      data.registrationId,
       data.itemRegistrationId,
     );
-    if (itemRegistration) {
+
+    if (regHasItemReg) {
+      const user = await this.userService.findById(data.uid);
+
+      const itemRegistration = await this.itemRegistrationService.findById(
+        data.itemRegistrationId,
+      );
+
+      const registration = await this.registrationService.findById(
+        data.registrationId,
+      );
+
       if (
         itemRegistration.quantityReturned + data.quantity <=
         itemRegistration.quantity
@@ -98,7 +126,12 @@ export class ItemReturningService {
           data.quantity + itemRegistration.quantityReturned,
         );
 
-        const newItem = new ItemReturningEntity({ ...data, itemRegistration });
+        const newItem = new ItemReturningEntity({
+          ...data,
+          itemRegistration,
+          registration,
+          user,
+        });
         await this.itemReturningRepository.save(newItem);
 
         return newItem;

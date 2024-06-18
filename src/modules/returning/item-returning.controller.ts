@@ -18,7 +18,6 @@ import { PageOptionsDto } from '../../common/dtos/page-options.dto';
 import { PageDto } from '../../common/dtos/page.dto';
 import { ItemReturningDto } from './dtos/item-returning.dto';
 import { AddItemReturningDto } from './dtos/add-item-returning.dto';
-import { JwtPayload } from '../auth/interfaces/jwt.interface';
 
 @ApiTags('Item Returning')
 @ApiBearerAuth()

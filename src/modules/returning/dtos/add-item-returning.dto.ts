@@ -15,6 +15,14 @@ export class AddItemReturningDto extends BaseDto {
   @Expose()
   itemRegistrationId: number;
 
+  @ApiProperty({ default: 0, nullable: false })
+  @Expose()
+  registrationId: number;
+
+  @ApiProperty({ default: 0, nullable: false })
+  @Expose()
+  uid: number;
+
   @ApiProperty({ default: BaseStatusEnum.UNMANAGED })
   @Expose()
   @IsEnum(BaseStatusEnum)
