@@ -46,3 +46,11 @@ export class AddItemReturningDto extends BaseDto {
   @Expose()
   date_returning: number;
 }
+
+export class AddChemicalItemReturningDto extends AddItemReturningDto {
+  @ApiProperty({ default: 1 })
+  @Expose()
+  @IsNumber()
+  @Min(0)
+  quantity: number;
+}

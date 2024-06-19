@@ -12,4 +12,5 @@ export interface ItemRegistration {
 export enum RegistrationStatusEnum {
   BORROWING = 0,
   RETURNED = 1,
+  RECALLED = 2,
 }

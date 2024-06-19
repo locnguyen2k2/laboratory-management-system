@@ -68,4 +68,17 @@ export class ItemReturningController {
     const data = AddItemReturningDto.plainToClass(dto);
     return await this.itemReturningService.add(data);
   }
+
+  @Post('')
+  @UseGuards(JwtGuard)
+  async createChemicalItemReturning(
+    @Body() dto: AddItemReturningDto,
+    @Request() req: any,
+  ) {
+    dto.createBy = dto.updateBy = req.user.id;
+    const dateNow = new Date();
+    dto.date_returning = dateNow.valueOf();
+    const data = AddItemReturningDto.plainToClass(dto);
+    return await this.itemReturningService.add(data);
+  }
 }
