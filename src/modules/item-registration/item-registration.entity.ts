@@ -12,6 +12,7 @@ import { ItemEntity } from './../items/item.entity';
 import { RoomEntity } from '../rooms/room.entity';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 import { ItemReturningEntity } from '../returning/entities/item-returning.entity';
+import { ItemRegistrationStatus } from './item-registration.constant';
 
 @Entity('item_registration_entity')
 export class ItemRegistrationEntity extends ExtendedEntity {
@@ -42,7 +43,14 @@ export class ItemRegistrationEntity extends ExtendedEntity {
     enum: ItemStatusEnum,
     default: ItemStatusEnum.STILLINGOODUSE,
   })
-  status: ItemStatusEnum;
+  itemStatus: ItemStatusEnum;
+
+  @Column({
+    type: 'enum',
+    enum: ItemRegistrationStatus,
+    default: ItemRegistrationStatus.PENDING,
+  })
+  status: ItemRegistrationStatus;
 
   @Column()
   quantity: number;

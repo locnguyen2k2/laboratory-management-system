@@ -67,6 +67,7 @@ export class ItemRegistrationService {
       .leftJoinAndSelect('registration.room', 'room')
       .select([
         'registration.status',
+        'registration.itemStatus',
         'registration.start_day',
         'registration.end_day',
         'registration.id',
@@ -104,6 +105,7 @@ export class ItemRegistrationService {
       .select([
         'registration.id' as 'registrationId',
         'registrationItem.status',
+        'registrationItem.itemStatus',
         'registrationItem.start_day',
         'registrationItem.quantity',
         'registrationItem.quantityReturned',
@@ -133,6 +135,7 @@ export class ItemRegistrationService {
       .select([
         'registration.id' as 'registrationId',
         'registrationItem.status',
+        'registrationItem.itemStatus',
         'registrationItem.start_day',
         'registrationItem.quantity',
         'registrationItem.quantityReturned',
@@ -161,6 +164,7 @@ export class ItemRegistrationService {
         'registration.id' as 'registrationId',
         'registrationItem.quantityReturned',
         'registrationItem.status',
+        'registrationItem.itemStatus',
         'registrationItem.start_day',
         'registrationItem.quantity',
         'registrationItem.end_day',
@@ -196,7 +200,7 @@ export class ItemRegistrationService {
           updatedAt: data.registration.createdAt,
           end_day: data.end_day,
           quantity: data.quantity,
-          status: data.status,
+          itemStatus: data.itemStatus,
         },
       );
       return itemRegistration.registration.id;
@@ -225,6 +229,7 @@ export class ItemRegistrationService {
         quantity: data.items.quantity,
         room: room,
         status: data.items.status,
+        itemStatus: data.items.itemStatus,
         end_day: data.end_day === 0 ? beforeItemReg.end_day : data.end_day,
         updateBy: uid,
       },

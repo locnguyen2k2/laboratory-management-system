@@ -5,6 +5,7 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 import { ItemRegistration } from './../../registration/registration.constant';
 import { IsDateGreaterThanOrEqualToday } from 'src/common/decorators/date-validation.decorate';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
+// import { ItemRegistrationStatus } from '../item-registration.constant';
 
 export class AddItemRegistrationDto extends BaseDto {
   @Expose()
@@ -32,7 +33,8 @@ export class AddItemRegistrationDto extends BaseDto {
         itemId: null,
         quantity: 1,
         roomId: null,
-        status: ItemStatusEnum.STILLINGOODUSE,
+        // status: ItemRegistrationStatus.PENDING,
+        itemStatus: ItemStatusEnum.STILLINGOODUSE,
       },
     ],
   })

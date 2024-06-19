@@ -203,13 +203,13 @@ export class RegistrationService {
     let registrationId = -1;
 
     await Promise.all(
-      handleItems?.map(async ({ itemId, quantity, roomId, status }) => {
+      handleItems?.map(async ({ itemId, quantity, roomId, itemStatus }) => {
         const room = await this.roomService.findById(roomId);
         registrationId = await this.itemRegistrationServce.addItemReg({
           ...data,
           start_day,
           end_day,
-          status,
+          itemStatus,
           itemId,
           quantity,
           registration,
@@ -238,13 +238,17 @@ export class RegistrationService {
   ) {
     let isItem = true;
     const items = [data.items];
+    const itemReg = await this.itemRegistrationServce.findById(id);
     await Promise.all(
       items.map(async (item: ItemRegistration) => {
-        if (!(item.quantity >= 1)) {
+        if (item.quantity && !(item.quantity >= 1)) {
           isItem = false;
           return;
         }
-
+        if (!item.itemId && !item.roomId) {
+          item.itemId = itemReg.item.id;
+          item.roomId = itemReg.room.id;
+        }
         if (
           !(await this.roomItemService.isRoomHasItem(item.itemId, item.roomId))
         ) {
@@ -261,7 +265,6 @@ export class RegistrationService {
     }
 
     const handleItems = await this.handleItems(items);
-
     if (!handleItems) {
       throw new BusinessException('404:Nothing changes');
     }
