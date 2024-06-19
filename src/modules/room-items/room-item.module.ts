@@ -7,6 +7,7 @@ import { RoomItemService } from './room-item.service';
 import { ItemModule } from '../items/item.module';
 import { RoomModule } from '../rooms/room.module';
 import { ItemRegistrationModule } from '../item-registration/item-registration.module';
+import { CategoryModule } from '../categories/category.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ItemRegistrationModule } from '../item-registration/item-registration.m
     UserModule,
     ItemModule,
     RoomModule,
+    CategoryModule,
     ItemRegistrationModule,
   ],
   controllers: [RoomItemController],

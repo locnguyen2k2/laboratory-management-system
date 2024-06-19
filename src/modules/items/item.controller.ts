@@ -32,6 +32,8 @@ export class ItemController {
 
   @Get()
   @ApiPaginatedRespone(ItemDto)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
   async get(@Query() pageOptionsDto: ItemFilterDto): Promise<PageDto<ItemDto>> {
     return await this.itemService.findAll(pageOptionsDto);
   }
@@ -68,6 +70,8 @@ export class ItemController {
   }
 
   @Get('/:id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
   async getEquipment(@IdParam() id: number) {
     return await this.itemService.findById(id);
   }
@@ -81,6 +85,8 @@ export class ItemController {
 
   @Get('category/:id')
   @ApiPaginatedRespone(ItemDto)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
   async getEquipmentByCategory(
     @IdParam() id: number,
     @Query() pageOptionsDto: PageOptionsDto,

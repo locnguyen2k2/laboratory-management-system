@@ -14,6 +14,7 @@ import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
+import { CategoryService } from '../categories/category.service';
 const _ = require('lodash');
 
 @Injectable()
@@ -23,6 +24,7 @@ export class RoomItemService {
     private readonly roomItemRepository: Repository<RoomItemEntity>,
     private readonly roomService: RoomService,
     private readonly itemService: ItemService,
+    private readonly categoryService: CategoryService,
     private readonly itemRegistrationService: ItemRegistrationService,
   ) {}
 
@@ -31,7 +33,7 @@ export class RoomItemService {
     roomItem
       .leftJoinAndSelect('roomItem.item', 'item')
       .leftJoinAndSelect('roomItem.room', 'room')
-      .select(['roomItem', 'item', 'room'])
+      .select(['roomItem', 'item', 'item.category', 'room'])
       .orderBy('roomItem.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -54,6 +56,32 @@ export class RoomItemService {
       return roomItem;
     }
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+  }
+
+  async findByCategory(
+    categoryId: number,
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RoomItemDto>> {
+    const roomItem = this.roomItemRepository.createQueryBuilder('roomItem');
+    const items = await this.itemService.findByCategory(
+      categoryId,
+      new PageOptionsDto(),
+    );
+    const itemsId = items.data.map((item) => item.id);
+
+    roomItem
+      .leftJoinAndSelect('roomItem.item', 'item')
+      .leftJoinAndSelect('roomItem.room', 'room')
+      .select(['roomItem', 'item', 'room'])
+      .where('(item.id IN (:...itemsId))', { itemsId })
+      .orderBy('roomItem.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+    const numberRecords = await roomItem.getCount();
+    const { entities } = await roomItem.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
+    return new PageDto(entities, pageMetaDto);
   }
 
   async findAllById(id: number) {

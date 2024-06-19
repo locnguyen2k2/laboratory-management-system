@@ -62,7 +62,7 @@ export class RoomItemController {
 
   @Get('room/:id')
   @ApiPaginatedRespone(RoomItemDto)
-  async getRoomItem(
+  async getItemsInRoom(
     @IdParam() id: number,
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomItemDto>> {
@@ -87,6 +87,15 @@ export class RoomItemController {
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomItemDto>> {
     return await this.roomItemService.findAll(pageOptionsDto);
+  }
+
+  @Get('category/:id')
+  @ApiPaginatedRespone(RoomItemDto)
+  async getRoomItemsByCategory(
+    @IdParam() id: number,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RoomItemDto>> {
+    return await this.roomItemService.findByCategory(id, pageOptionsDto);
   }
 
   @Get('item/:id')
