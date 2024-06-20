@@ -26,7 +26,6 @@ export class MailService {
     const hasError =
       teacherEmail == '@ctut.edu.vn' || studentEmail == '@student.ctuet.edu.vn';
     if (!hasError) {
-      console.log(teacherEmail);
       throw new BusinessException(ErrorEnum.CTUET_EMAIL);
     }
     return hasError;
