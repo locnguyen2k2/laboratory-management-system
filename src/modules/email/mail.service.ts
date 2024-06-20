@@ -40,10 +40,10 @@ export class MailService {
 
   async isTeacherCtutEmail(email: string) {
     let teacherEmail = '';
-    for (let i = email.length - 12; i < email.length; i++) {
+    for (let i = email.length - 13; i < email.length; i++) {
       teacherEmail += email[i];
     }
-    return teacherEmail == '@ctut.edu.vn' ? true : false;
+    return teacherEmail == '@ctuet.edu.vn' ? true : false;
   }
 
   async sendEmail(options: Mail.Options): Promise<any> {
