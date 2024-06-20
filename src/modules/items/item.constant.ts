@@ -2,8 +2,6 @@ import { PageOptionsDto } from '../../common/dtos/page-options.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsEnum, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { RoleEnum } from '../../enums/role-enum.enum';
-import { UserStatus } from '../user/user.constant';
 
 export enum ItemStatus {
   AVAILABLE = 0,

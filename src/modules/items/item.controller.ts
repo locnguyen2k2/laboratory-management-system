@@ -23,6 +23,7 @@ import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
 import { ItemFilterDto } from './item.constant';
+const _ = require('lodash');
 
 @Controller('items')
 @ApiTags('Items')

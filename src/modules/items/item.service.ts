@@ -14,6 +14,7 @@ import { ItemDto } from './dtos/item.dto';
 import { RoomService } from '../rooms/room.service';
 import { SortItemDto } from './dtos/search-item.dto';
 import { ItemFilterDto } from './item.constant';
+const _ = require('lodash');
 
 @Injectable()
 export class ItemService {
@@ -241,7 +242,7 @@ export class ItemService {
     const item = await this.findById(id);
 
     if (item) {
-      const category = data.categoryId
+      const category = !_.isNil(data.categoryId)
         ? await this.categoryService.findById(data.categoryId)
         : item.category;
 
@@ -280,16 +281,18 @@ export class ItemService {
         }
         const info = {
           ...(data.name ? { name: data.name } : { name: item.name }),
-          ...(data.status ? { status: data.status } : { status: item.status }),
+          ...(!_.isNil(data.status)
+            ? { status: data.status }
+            : { status: item.status }),
           ...(data.serial_number
             ? { serial_number: data.serial_number }
             : { serial_number: item.serial_number }),
-          ...(data.unit ? { unit: data.unit } : { unit: item.unit }),
+          ...(!_.isNil(data.unit) ? { unit: data.unit } : { unit: item.unit }),
           ...(data.origin ? { origin: data.origin } : { origin: item.origin }),
           ...(data.specification
             ? { specification: data.specification }
             : { specification: item.specification }),
-          ...(data.quantity
+          ...(!_.isNil(data.quantity)
             ? { quantity: data.quantity }
             : { quantity: item.quantity }),
           ...(data.remark ? { remark: data.remark } : { remark: item.remark }),
