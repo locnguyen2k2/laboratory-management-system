@@ -82,8 +82,10 @@ export class RoomItemController {
   }
 
   @Get('')
+  @UseGuards(JwtGuard)
   @ApiPaginatedRespone(RoomItemDto)
   async getAllRoomItems(
+    @Request() req: any,
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomItemDto>> {
     return await this.roomItemService.findAll(pageOptionsDto);

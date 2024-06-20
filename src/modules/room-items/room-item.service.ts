@@ -43,6 +43,31 @@ export class RoomItemService {
     return new PageDto(entities, pageMetaDto);
   }
 
+  async findItemsForStudent(
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<RoomItemDto>> {
+    const roomItem = this.roomItemRepository.createQueryBuilder('roomItem');
+    const items = await this.itemService.findByCategory(
+      3,
+      new PageOptionsDto(),
+    );
+    const itemsId = items.data.map((item) => item.id);
+
+    roomItem
+      .leftJoinAndSelect('roomItem.item', 'item')
+      .leftJoinAndSelect('roomItem.room', 'room')
+      .select(['roomItem', 'item', 'room'])
+      .where('(item.id NOT IN (:...itemsId))', { itemsId })
+      .orderBy('roomItem.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+    const numberRecords = await roomItem.getCount();
+    const { entities } = await roomItem.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
+    return new PageDto(entities, pageMetaDto);
+  }
+
   async findById(id: number) {
     const roomItem = await this.roomItemRepository
       .createQueryBuilder('roomItem')

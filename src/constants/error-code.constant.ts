@@ -2,7 +2,7 @@ export enum ErrorEnum {
   USER_EXISTS = '400:Email already exist',
   ROOM_IS_USED = '400:Room is registrated',
   TOKEN_IS_REQUIRE = '401:Unauthorized',
-  CTUET_EMAIL = "400:This email must have the extension '@ctuet.edu.vn' or '@student.ctuet.edu.vn'!",
+  CTUET_EMAIL = "400:This email must have the extension '@ctut.edu.vn' or '@student.ctuet.edu.vn'!",
   USER_UNCONFIRMED = '400:Confirmation your email before!',
   USER_IS_BLOCKED = '400:User is blocked',
   USER_INVALID = '400:User not found or blocked',

@@ -7,16 +7,11 @@ import { RoleEnum } from 'src/enums/role-enum.enum';
 import { RolesGuard } from './guard/roles-auth.guard';
 import { RegisterUserDto } from '../user/dtos/register.dto';
 import { GoogleRedirectDto } from './dtos/googleRedirect-auth.dto';
-import { RegisterAdminDto } from './../user/dtos/register.dto';
-import { RegisterManagerDto } from './../user/dtos/register.dto';
 import {
-  Body,
-  Controller,
-  HttpException,
-  Post,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+  RegisterAdminDto,
+  RegisterManagerDto,
+} from './../user/dtos/register.dto';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { Credential } from './interfaces/credential.interface';
 import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
@@ -25,7 +20,7 @@ import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
 @ApiTags('Auths')
 @ApiBearerAuth()
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   async login(@Body() dto: LoginAuthDto): Promise<Credential> {

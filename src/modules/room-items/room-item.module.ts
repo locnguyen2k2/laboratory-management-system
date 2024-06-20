@@ -8,6 +8,7 @@ import { ItemModule } from '../items/item.module';
 import { RoomModule } from '../rooms/room.module';
 import { ItemRegistrationModule } from '../item-registration/item-registration.module';
 import { CategoryModule } from '../categories/category.module';
+import { MailModule } from '../email/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CategoryModule } from '../categories/category.module';
     ItemModule,
     RoomModule,
     CategoryModule,
+    MailModule,
     ItemRegistrationModule,
   ],
   controllers: [RoomItemController],

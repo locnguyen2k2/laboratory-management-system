@@ -21,21 +21,31 @@ export class MailService {
   }
 
   async isCtuetEmail(email: string): Promise<boolean | HttpException> {
-    let teacherEmail = '';
-    let studentEmail = '';
-    for (let i = email.length - 13; i < email.length; i++) {
-      teacherEmail += email[i];
-    }
-    for (let i = email.length - 21; i < email.length; i++) {
-      studentEmail += email[i];
-    }
+    const teacherEmail = await this.isTeacherCtutEmail(email);
+    const studentEmail = await this.isStudentCtuetEmail(email);
     const hasError =
-      teacherEmail == '@ctuet.edu.vn' ||
-      studentEmail == '@student.ctuet.edu.vn';
+      teacherEmail == '@ctut.edu.vn' || studentEmail == '@student.ctuet.edu.vn';
     if (!hasError) {
+      console.log(teacherEmail);
       throw new BusinessException(ErrorEnum.CTUET_EMAIL);
     }
     return hasError;
+  }
+
+  async isStudentCtuetEmail(email: string) {
+    let studentEmail = '';
+    for (let i = email.length - 21; i < email.length; i++) {
+      studentEmail += email[i];
+    }
+    return studentEmail;
+  }
+
+  async isTeacherCtutEmail(email: string) {
+    let teacherEmail = '';
+    for (let i = email.length - 12; i < email.length; i++) {
+      teacherEmail += email[i];
+    }
+    return teacherEmail;
   }
 
   async sendEmail(options: Mail.Options): Promise<any> {
