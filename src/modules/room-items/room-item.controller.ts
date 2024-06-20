@@ -93,7 +93,8 @@ export class RoomItemController {
     @Request() req: any,
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomItemDto>> {
-    return (await this.mailService.isTeacherCtutEmail(req.user.email))
+    return (await this.mailService.isTeacherCtutEmail(req.user.email)) ||
+      req.user.role === RoleEnum.ADMIN
       ? await this.roomItemService.findAll(pageOptionsDto)
       : await this.roomItemService.findItemsForStudent(pageOptionsDto);
   }
@@ -108,7 +109,8 @@ export class RoomItemController {
   ): Promise<PageDto<RoomItemDto> | { data: [] }> {
     return (id == CategoryEnum.CHEMICALS &&
       (await this.mailService.isTeacherCtutEmail(req.user.email))) ||
-      id !== CategoryEnum.CHEMICALS
+      id !== CategoryEnum.CHEMICALS ||
+      req.user.role === RoleEnum.ADMIN
       ? await this.roomItemService.findByCategory(id, pageOptionsDto)
       : { data: [] };
   }

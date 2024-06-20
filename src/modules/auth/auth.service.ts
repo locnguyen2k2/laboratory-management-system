@@ -24,7 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly emailService: MailService,
     private readonly httpService: HttpService,
-  ) { }
+  ) {}
 
   async credentialByPassword(
     email: string,
@@ -57,6 +57,8 @@ export class AuthService {
         const payload: JwtPayload = {
           id: user.id,
           email: user.email,
+          status: user.status,
+          role: user.role,
         };
         const access_token = await this.jwtService.signAsync(payload);
         await this.userService.updateToken(payload.email, access_token);

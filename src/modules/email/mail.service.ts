@@ -2,7 +2,7 @@ import Mail from 'nodemailer/lib/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { createTransport } from 'nodemailer';
 import { JwtPayload } from './../auth/interfaces/jwt.interface';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfirmationEmailDto } from '../user/dtos/confirmationEmail-auth.dto';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
@@ -10,6 +10,7 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 @Injectable()
 export class MailService {
   private nodeMailerTransport: Mail;
+
   constructor(private readonly jwtService: JwtService) {
     this.nodeMailerTransport = createTransport({
       service: process.env.EMAIL_SERVICE,
@@ -60,8 +61,13 @@ export class MailService {
     }
   }
 
-  async sendConfirmationEmail(id: number, email: string): Promise<string> {
-    const payload: JwtPayload = { id: id, email: email };
+  async sendConfirmationEmail(
+    id: number,
+    email: string,
+    status: number,
+    role: number,
+  ): Promise<string> {
+    const payload: JwtPayload = { id, email, status, role };
     const token = this.jwtService.sign(payload);
     const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
     const text = `Welcome to Laboratory Management System. To confirm the email address, click here: ${url}`;

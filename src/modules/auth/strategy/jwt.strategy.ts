@@ -21,7 +21,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (await this.userService.findById(payload.id)) {
       const user = await this.userService.findById(payload.id);
       if (user.status == UserStatus.ACTIVE) {
-        return { id: payload.id, email: payload.email };
+        return {
+          id: payload.id,
+          email: payload.email,
+          role: user.role,
+          status: user.status,
+        };
       }
       throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
     }

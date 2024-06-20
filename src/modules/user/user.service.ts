@@ -207,9 +207,12 @@ export class UserService {
       if (isExisted) {
         await this.updatePassword(isExisted.email, newPassword);
         await this.updateStatusByUid(isExisted.id, UserStatus.UNACTIVE);
+        const { id, status, role } = isExisted;
         const refresh_token = await this.emailService.sendConfirmationEmail(
-          isExisted.id,
-          isExisted.email,
+          id,
+          email,
+          status,
+          role,
         );
         await this.updateRefreshTokenByUid(isExisted.id, refresh_token);
         throw new BusinessException(
@@ -225,11 +228,14 @@ export class UserService {
       }
       await this.userRepository.save(newUser);
       if (user.status != UserStatus.ACTIVE) {
+        const { id, status, role } = newUser;
         const refresh_token = await this.emailService.sendConfirmationEmail(
-          newUser.id,
-          newUser.email,
+          id,
+          email,
+          status,
+          role,
         );
-        await this.updateRefreshTokenByUid(newUser.id, refresh_token);
+        await this.updateRefreshTokenByUid(id, refresh_token);
         throw new BusinessException(
           'Confirm your account by the link was send to your email!',
         );
@@ -273,6 +279,8 @@ export class UserService {
         const payload: JwtPayload = {
           id: newUser.id,
           email: newUser.email,
+          status: newUser.status,
+          role: newUser.role,
         };
         const access_token = await this.jwtService.signAsync(payload);
         await this.updateToken(payload.email, access_token);
@@ -427,12 +435,15 @@ export class UserService {
           try {
             await this.emailService.decodeConfirmationToken(user.refresh_token);
           } catch (error: any) {
+            const { id, email, status, role } = user;
             const token = await this.emailService.sendConfirmationEmail(
-              user.id,
-              user.email,
+              id,
+              email,
+              status,
+              role,
             );
             await this.userRepository.update(
-              { email: dto.email },
+              { email },
               { refresh_token: token },
             );
             throw new BusinessException(
