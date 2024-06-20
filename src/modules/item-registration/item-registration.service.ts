@@ -7,7 +7,8 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { IAddItemRegistration } from './interfaces/add-registration.interface';
 import { ItemService } from 'src/modules/items/item.service';
 import { UpdateItemRegistrationDto } from './dtos/update-borrowing.dto';
-import { RoomEntity } from '../rooms/room.entity';
+import { RoomItemService } from '../room-items/room-item.service';
+const _ = require('lodash');
 
 @Injectable()
 export class ItemRegistrationService {
@@ -15,6 +16,7 @@ export class ItemRegistrationService {
     @InjectRepository(ItemRegistrationEntity)
     private readonly itemRegistrationRepository: Repository<ItemRegistrationEntity>,
     private readonly itemService: ItemService,
+    private readonly roomItemService: RoomItemService,
   ) {}
 
   async itemRegHasInReg(regId: number, itemRegId: number) {
@@ -31,210 +33,176 @@ export class ItemRegistrationService {
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
-  async findByRoomIdItemId(roomId: number, itemId: number) {
+  async findByRoomItemId(roomItemId: number) {
     const registration = await this.itemRegistrationRepository
-      .createQueryBuilder('registration')
-      .leftJoinAndSelect('registration.item', 'item')
-      .leftJoinAndSelect('registration.room', 'room')
+      .createQueryBuilder('itemReg')
+      .leftJoinAndSelect('itemReg.roomItem', 'roomItem')
       .select([
-        'registration.status',
-        'registration.start_day',
-        'registration.end_day',
-        'registration.id',
-        'room.id',
-        'room.name',
-        'registration.quantity',
-        'registration.quantityReturned',
-        'item.id',
-        'item.name',
-        'item.specification',
+        'itemReg.status',
+        'itemReg.start_day',
+        'itemReg.end_day',
+        'itemReg.id',
+        'itemReg.quantity',
+        'itemReg.quantityReturned',
+        'roomItem',
       ])
-      .where('item.id = :itemId AND room.id = :roomId', {
-        itemId,
-        roomId,
-      })
+      .where('itemReg.roomItem = :roomItemId', { roomItemId })
       .getMany();
     return registration;
   }
 
   async findByRegistrationId(regid: number) {
-    const registration = await this.itemRegistrationRepository
-      .createQueryBuilder('registration')
-      .where('registration.registration_id = :registrationId', {
+    const itemReg = await this.itemRegistrationRepository
+      .createQueryBuilder('itemReg')
+      .where('itemReg.registration_id = :registrationId', {
         registrationId: regid,
       })
-      .leftJoinAndSelect('registration.item', 'item')
-      .leftJoinAndSelect('registration.room', 'room')
+      .leftJoinAndSelect('itemReg.roomItem', 'roomItem')
       .select([
-        'registration.status',
-        'registration.itemStatus',
-        'registration.start_day',
-        'registration.end_day',
-        'registration.id',
-        'room.id',
-        'room.name',
-        'registration.quantity',
-        'registration.quantityReturned',
-        'item.id',
-        'item.name',
-        'item.quantity',
-        'item.handover',
-        'item.specification',
+        'itemReg.status',
+        'itemReg.itemStatus',
+        'itemReg.start_day',
+        'itemReg.end_day',
+        'itemReg.id',
+        'itemReg.quantity',
+        'itemReg.quantityReturned',
+        'roomItem',
       ])
       .getMany();
-    if (registration) return registration;
+    if (itemReg) return itemReg;
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
   async findByUserDayItem(
-    uid: number,
     startDay: number,
     endDay: number,
-    id: number,
-    roomid: number,
+    roomItemId: number,
+    uid: number,
   ) {
-    const registration = await this.itemRegistrationRepository
-      .createQueryBuilder('registrationItem')
-      .leftJoinAndSelect('registrationItem.item', 'item')
-      .leftJoinAndSelect('registrationItem.room', 'room')
-      .leftJoinAndSelect('registrationItem.registration', 'registration')
+    const itemReg = await this.itemRegistrationRepository
+      .createQueryBuilder('itemReg')
+      .leftJoinAndSelect('itemReg.roomItem', 'roomItem')
+      .leftJoinAndSelect('itemReg.registration', 'registration')
       .where(
-        '(registrationItem.start_day <= :startDay AND registrationItem.end_day >= :startDay AND registrationItem.start_day <= :endDay AND item.id = :id AND registrationItem.createBy = :uid AND registrationItem.room_id = :roomid)',
-        { startDay, endDay, id, uid, roomid },
+        '(itemReg.start_day <= :startDay AND itemReg.end_day >= :startDay AND itemReg.start_day <= :endDay AND roomItem.id = :roomItemId AND itemReg.createBy = :uid)',
+        { startDay, endDay, roomItemId, uid },
       )
       .select([
         'registration.id' as 'registrationId',
-        'registrationItem.status',
-        'registrationItem.itemStatus',
-        'registrationItem.start_day',
-        'registrationItem.quantity',
-        'registrationItem.quantityReturned',
-        'registrationItem.end_day',
-        'registrationItem.id',
-        'room.id',
-        'room.name',
-        'item.id',
-        'item.name',
-        'item.quantity',
-        'item.handover',
+        'itemReg.status',
+        'itemReg.itemStatus',
+        'itemReg.start_day',
+        'itemReg.quantity',
+        'itemReg.quantityReturned',
+        'itemReg.end_day',
+        'itemReg.id',
+        'roomItem',
       ])
       .getOne();
-    if (registration) return registration;
+    if (itemReg) return itemReg;
   }
 
   async findByUidRegid(uid: number, id: number) {
-    const registration = await this.itemRegistrationRepository
-      .createQueryBuilder('registrationItem')
-      .leftJoinAndSelect('registrationItem.item', 'item')
-      .leftJoinAndSelect('registrationItem.room', 'room')
-      .leftJoinAndSelect('registrationItem.registration', 'registration')
-      .where(
-        '(registrationItem.createBy = :uid AND registrationItem.id = :id)',
-        { uid, id },
-      )
+    const itemReg = await this.itemRegistrationRepository
+      .createQueryBuilder('itemReg')
+      .leftJoinAndSelect('itemReg.roomItem', 'roomItem')
+      .leftJoinAndSelect('itemReg.registration', 'registration')
+      .where('(itemReg.createBy = :uid AND itemReg.id = :id)', { uid, id })
       .select([
         'registration.id' as 'registrationId',
-        'registrationItem.status',
-        'registrationItem.itemStatus',
-        'registrationItem.start_day',
-        'registrationItem.quantity',
-        'registrationItem.quantityReturned',
-        'registrationItem.end_day',
-        'registrationItem.id',
-        'room.id',
-        'room.name',
-        'item.id',
-        'item.name',
-        'item.quantity',
-        'item.handover',
+        'itemReg.status',
+        'itemReg.itemStatus',
+        'itemReg.start_day',
+        'itemReg.quantity',
+        'itemReg.quantityReturned',
+        'itemReg.end_day',
+        'itemReg.id',
+        'roomItem',
       ])
       .getOne();
-    if (registration) return registration;
+    if (itemReg) return itemReg;
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
   async findById(id: number) {
-    const registration = await this.itemRegistrationRepository
-      .createQueryBuilder('registrationItem')
-      .leftJoinAndSelect('registrationItem.item', 'item')
-      .leftJoinAndSelect('registrationItem.room', 'room')
-      .leftJoinAndSelect('registrationItem.registration', 'registration')
-      .where('(registrationItem.id = :id)', { id })
+    const itemReg = await this.itemRegistrationRepository
+      .createQueryBuilder('itemReg')
+      .leftJoinAndSelect('itemReg.roomItem', 'roomItem')
+      .leftJoinAndSelect('itemReg.registration', 'registration')
+      .where('(itemReg.id = :id)', { id })
       .select([
         'registration.id' as 'registrationId',
-        'registrationItem.quantityReturned',
-        'registrationItem.status',
-        'registrationItem.itemStatus',
-        'registrationItem.start_day',
-        'registrationItem.quantity',
-        'registrationItem.end_day',
-        'registrationItem.id',
-        'room.id',
-        'room.name',
-        'item.id',
-        'item.name',
-        'item.quantity',
-        'item.handover',
+        'itemReg.quantityReturned',
+        'itemReg.status',
+        'itemReg.itemStatus',
+        'itemReg.start_day',
+        'itemReg.quantity',
+        'itemReg.end_day',
+        'itemReg.id',
+        'roomItem',
       ])
       .getOne();
-    if (registration) return registration;
+    if (itemReg) return itemReg;
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
   async addItemReg(data: IAddItemRegistration) {
     let isReplace = false;
-    const roomid = data.room.id;
-    const itemRegistration = await this.findByUserDayItem(
-      data.user,
-      data.start_day,
-      data.end_day,
-      data.itemId,
-      roomid,
-    );
-    if (itemRegistration) {
-      isReplace = true;
-      data.quantity += itemRegistration.quantity;
-      await this.itemRegistrationRepository.update(
-        { id: itemRegistration.id },
-        {
-          updatedAt: data.registration.createdAt,
-          end_day: data.end_day,
-          quantity: data.quantity,
-          itemStatus: data.itemStatus,
-        },
+
+    const roomItem = await this.roomItemService.findById(data.roomItemId);
+
+    if (roomItem) {
+      const itemReg = await this.findByUserDayItem(
+        data.start_day,
+        data.end_day,
+        data.roomItemId,
+        data.user,
       );
-      return itemRegistration.registration.id;
-    }
-    if (!isReplace) {
-      const item = await this.itemService.findById(data.itemId);
-      delete data.itemId;
-      delete data.user;
-      const newItem = new ItemRegistrationEntity({ ...data, item });
-      await this.itemRegistrationRepository.save(newItem);
-      return data.registration.id;
+
+      if (itemReg) {
+        isReplace = true;
+        data.quantity += itemReg.quantity;
+        await this.itemRegistrationRepository.update(
+          { id: itemReg.id },
+          {
+            updatedAt: data.registration.createdAt,
+            end_day: data.end_day,
+            quantity: data.quantity,
+            itemStatus: data.itemStatus,
+          },
+        );
+        return itemReg.registration.id;
+      }
+      if (!isReplace) {
+        delete data.roomItemId;
+        delete data.user;
+        const newItem = new ItemRegistrationEntity({ ...data, roomItem });
+        await this.itemRegistrationRepository.save(newItem);
+        return data.registration.id;
+      }
     }
   }
 
-  async update(
-    id: number,
-    uid: number,
-    data: UpdateItemRegistrationDto,
-    room: RoomEntity,
-  ) {
-    const beforeItemReg = await this.findByUidRegid(uid, id);
-    await this.itemRegistrationRepository.update(
-      { id },
-      {
-        item: await this.itemService.findById(data.items.itemId),
-        quantity: data.items.quantity,
-        room: room,
-        status: data.items.status,
-        itemStatus: data.items.itemStatus,
-        end_day: data.end_day === 0 ? beforeItemReg.end_day : data.end_day,
-        updateBy: uid,
-      },
-    );
-    return await this.findByUidRegid(uid, id);
+  async update(id: number, uid: number, data: UpdateItemRegistrationDto) {
+    const isExisted = await this.findByUidRegid(uid, id);
+
+    if (isExisted) {
+      const roomItem = !_.isNil(data.items.roomItemId)
+        ? await this.roomItemService.findById(data.items.roomItemId)
+        : isExisted.roomItem;
+      await this.itemRegistrationRepository.update(
+        { id },
+        {
+          roomItem,
+          quantity: data.items.quantity,
+          status: data.items.status,
+          itemStatus: data.items.itemStatus,
+          end_day: data.end_day === 0 ? isExisted.end_day : data.end_day,
+          updateBy: uid,
+        },
+      );
+      return await this.findByUidRegid(uid, id);
+    }
   }
 
   async updateQuantityReturned(id: number, quantity: number) {

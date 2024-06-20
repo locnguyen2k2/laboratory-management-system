@@ -2,9 +2,8 @@ import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 import { ItemRegistrationStatus } from '../item-registration/item-registration.constant';
 
 export interface ItemRegistration {
-  itemId: number;
+  roomItemId: number;
   quantity: number;
-  roomId: number;
   status: ItemRegistrationStatus;
   itemStatus: ItemStatusEnum;
 }

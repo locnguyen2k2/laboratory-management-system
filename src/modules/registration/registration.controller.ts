@@ -78,7 +78,7 @@ export class RegistrationController {
   }
 
   @Get(':id')
-  async getDetail(@IdParam() id: number, @Request() req: any) {
+  async getDetail(@IdParam() id: number) {
     return await this.registrationService.getDetailById(id);
   }
 }

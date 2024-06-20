@@ -7,12 +7,10 @@ import {
   OneToMany,
   Relation,
 } from 'typeorm';
-import { ItemRegistrationEntity } from './../item-registration/item-registration.entity';
 import { CategoryEntity } from '../categories/category.entity';
 import { RoomItemEntity } from './../room-items/room-item.entity';
 import { UnitEnum } from 'src/enums/unit-enum.enum';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
-import { HandoverStatus } from 'src/enums/handover-status-enum.enum';
 
 @Entity('item_entity')
 export class ItemEntity extends ExtendedEntity {
@@ -46,12 +44,6 @@ export class ItemEntity extends ExtendedEntity {
   @ManyToOne(() => CategoryEntity, (category) => category.items)
   @JoinColumn({ name: 'category_id' })
   category: Relation<CategoryEntity>;
-
-  @OneToMany(
-    () => ItemRegistrationEntity,
-    (itemRegistration) => itemRegistration.item,
-  )
-  itemRegistration: Relation<ItemRegistrationEntity[]>;
 
   @OneToMany(() => RoomItemEntity, (roomItem) => roomItem.item)
   roomItem: Relation<RoomItemEntity[]>;

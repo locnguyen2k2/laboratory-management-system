@@ -13,7 +13,6 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
-import { ItemRegistrationService } from '../item-registration/item-registration.service';
 import { CategoryService } from '../categories/category.service';
 
 const _ = require('lodash');
@@ -26,7 +25,6 @@ export class RoomItemService {
     private readonly roomService: RoomService,
     private readonly itemService: ItemService,
     private readonly categoryService: CategoryService,
-    private readonly itemRegistrationService: ItemRegistrationService,
   ) {}
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomItemDto>> {
@@ -474,12 +472,8 @@ export class RoomItemService {
     const isExisted = await this.findById(id);
 
     if (isExisted) {
-      const isBorrowed = await this.itemRegistrationService.findByRoomIdItemId(
-        isExisted.room.id,
-        isExisted.item.id,
-      );
-
-      if (isBorrowed.length === 0) {
+      try {
+        await this.roomItemRepository.delete(id);
         await this.roomService.updateRoomQuantity(
           isExisted.room.id,
           isExisted.room.quantity - 1,
@@ -490,12 +484,10 @@ export class RoomItemService {
           isExisted.item.handover - isExisted.quantity,
         );
 
-        await this.roomItemRepository.delete(id);
-
         return await this.findAll(new PageOptionsDto());
+      } catch (error: any) {
+        throw new BusinessException(ErrorEnum.ITEM_IN_USED);
       }
-
-      throw new BusinessException(ErrorEnum.ITEM_IN_USED);
     }
   }
 }

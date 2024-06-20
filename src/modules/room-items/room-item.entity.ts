@@ -1,13 +1,27 @@
 import { ExtendedEntity } from 'src/common/entity/common.entity';
-import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  Relation,
+} from 'typeorm';
 import { RoomEntity } from './../rooms/room.entity';
 import { ItemEntity } from 'src/modules/items/item.entity';
 import { Length } from 'class-validator';
 
 import { ItemStatusEnum } from './../../enums/item-status-enum.enum';
+import { ItemRegistrationEntity } from '../item-registration/item-registration.entity';
 
 @Entity('room_item_entity')
 export class RoomItemEntity extends ExtendedEntity {
+  @OneToMany(
+    () => ItemRegistrationEntity,
+    (itemRegistration) => itemRegistration.roomItem,
+  )
+  itemRegistration: Relation<ItemRegistrationEntity[]>;
+
   @ManyToOne(() => RoomEntity, (room) => room.roomItem)
   @JoinColumn({ name: 'room_id' })
   room: Relation<RoomEntity>;

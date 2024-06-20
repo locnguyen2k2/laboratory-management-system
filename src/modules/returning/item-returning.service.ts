@@ -98,9 +98,8 @@ export class ItemReturningService {
         itemRegistration.quantityReturned + data.quantity <=
         itemRegistration.quantity
       ) {
-        const roomItem = await this.roomItemService.findByItemRoom(
-          itemRegistration.item.id,
-          itemRegistration.room.id,
+        const roomItem = await this.roomItemService.findById(
+          itemRegistration.roomItem.id,
         );
 
         await this.roomItemService.updateRoomItemQuantityReturned(

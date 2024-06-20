@@ -12,14 +12,14 @@ export class ItemReturningEntity extends ExtendedEntity {
     () => RegistrationEntity,
     (registration) => registration.itemReturning,
   )
-  @JoinColumn()
+  @JoinColumn({ name: 'registration_id' })
   registration: Relation<RegistrationEntity>;
 
   @ManyToOne(
     () => ItemRegistrationEntity,
     (itemRegistration) => itemRegistration.itemReturning,
   )
-  @JoinColumn()
+  @JoinColumn({ name: 'item_registration_id' })
   itemRegistration: Relation<ItemRegistrationEntity>;
 
   @ManyToOne(() => UserEntity, (user) => user.itemReturning)

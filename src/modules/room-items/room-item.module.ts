@@ -6,7 +6,6 @@ import { RoomItemController } from './room-item.controller';
 import { RoomItemService } from './room-item.service';
 import { ItemModule } from '../items/item.module';
 import { RoomModule } from '../rooms/room.module';
-import { ItemRegistrationModule } from '../item-registration/item-registration.module';
 import { CategoryModule } from '../categories/category.module';
 import { MailModule } from '../email/mail.module';
 
@@ -18,7 +17,6 @@ import { MailModule } from '../email/mail.module';
     RoomModule,
     CategoryModule,
     MailModule,
-    ItemRegistrationModule,
   ],
   controllers: [RoomItemController],
   providers: [RoomItemService],

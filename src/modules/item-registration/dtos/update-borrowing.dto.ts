@@ -14,9 +14,8 @@ export class UpdateItemRegistrationDto extends BaseDto {
 
   @ApiProperty({
     default: {
-      itemId: null,
+      roomItemId: null,
       quantity: 1,
-      roomId: null,
       status: ItemRegistrationStatus.PENDING,
       itemStatus: ItemStatusEnum.STILLINGOODUSE,
     },

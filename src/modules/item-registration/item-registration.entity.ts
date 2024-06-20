@@ -8,14 +8,19 @@ import {
   Relation,
 } from 'typeorm';
 import { RegistrationEntity } from './../registration/registration.entity';
-import { ItemEntity } from './../items/item.entity';
-import { RoomEntity } from '../rooms/room.entity';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 import { ItemReturningEntity } from '../returning/entities/item-returning.entity';
 import { ItemRegistrationStatus } from './item-registration.constant';
+import { RoomItemEntity } from '../room-items/room-item.entity';
 
 @Entity('item_registration_entity')
 export class ItemRegistrationEntity extends ExtendedEntity {
+  @OneToMany(
+    () => ItemReturningEntity,
+    (itemReturning) => itemReturning.itemRegistration,
+  )
+  itemReturning: Relation<ItemReturningEntity[]>;
+
   @ManyToOne(
     () => RegistrationEntity,
     (registration) => registration.itemRegistration,
@@ -23,20 +28,9 @@ export class ItemRegistrationEntity extends ExtendedEntity {
   @JoinColumn({ name: 'registration_id' })
   registration: Relation<RegistrationEntity>;
 
-  @OneToMany(
-    () => ItemReturningEntity,
-    (itemReturning) => itemReturning.itemRegistration,
-  )
-  @JoinColumn({ name: 'registration_id' })
-  itemReturning: Relation<ItemReturningEntity>;
-
-  @ManyToOne(() => ItemEntity, (item) => item.itemRegistration)
-  @JoinColumn({ name: 'item_id' })
-  item: Relation<ItemEntity>;
-
-  @ManyToOne(() => RoomEntity, (room) => room.itemRegistration)
-  @JoinColumn({ name: 'room_id' })
-  room: Relation<RoomEntity>;
+  @ManyToOne(() => RoomItemEntity, (roomItem) => roomItem.itemRegistration)
+  @JoinColumn({ name: 'room_item_id' })
+  roomItem: Relation<RoomItemEntity>;
 
   @Column({
     type: 'enum',

@@ -5,15 +5,11 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 import { ItemRegistration } from './../../registration/registration.constant';
 import { IsDateGreaterThanOrEqualToday } from 'src/common/decorators/date-validation.decorate';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
-// import { ItemRegistrationStatus } from '../item-registration.constant';
 
 export class AddItemRegistrationDto extends BaseDto {
-  @Expose()
-  createBy: number;
-  @Expose()
-  updateBy: number;
-  @Expose()
-  user: number;
+  @Expose() createBy: number;
+  @Expose() updateBy: number;
+  @Expose() user: number;
 
   @ApiProperty({ default: 0 })
   @Expose()
@@ -30,10 +26,8 @@ export class AddItemRegistrationDto extends BaseDto {
   @ApiProperty({
     default: [
       {
-        itemId: null,
+        roomItemId: null,
         quantity: 1,
-        roomId: null,
-        // status: ItemRegistrationStatus.PENDING,
         itemStatus: ItemStatusEnum.STILLINGOODUSE,
       },
     ],
