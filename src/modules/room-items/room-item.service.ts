@@ -15,6 +15,7 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { ItemRegistrationService } from '../item-registration/item-registration.service';
 import { CategoryService } from '../categories/category.service';
+
 const _ = require('lodash');
 
 @Injectable()
@@ -52,15 +53,22 @@ export class RoomItemService {
       new PageOptionsDto(),
     );
     const itemsId = items.data.map((item) => item.id);
-
-    roomItem
-      .leftJoinAndSelect('roomItem.item', 'item')
-      .leftJoinAndSelect('roomItem.room', 'room')
-      .select(['roomItem', 'item', 'room'])
-      .where('(item.id NOT IN (:...itemsId))', { itemsId })
-      .orderBy('roomItem.createdAt', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take);
+    itemsId.length > 0
+      ? roomItem
+          .leftJoinAndSelect('roomItem.item', 'item')
+          .leftJoinAndSelect('roomItem.room', 'room')
+          .select(['roomItem', 'item', 'room'])
+          .andWhere('(item.id NOT IN (:...itemsId))', { itemsId })
+          .orderBy('roomItem.createdAt', pageOptionsDto.order)
+          .skip(pageOptionsDto.skip)
+          .take(pageOptionsDto.take)
+      : roomItem
+          .leftJoinAndSelect('roomItem.item', 'item')
+          .leftJoinAndSelect('roomItem.room', 'room')
+          .select(['roomItem', 'item', 'room'])
+          .orderBy('roomItem.createdAt', pageOptionsDto.order)
+          .skip(pageOptionsDto.skip)
+          .take(pageOptionsDto.take);
     const numberRecords = await roomItem.getCount();
     const { entities } = await roomItem.getRawAndEntities();
 
@@ -93,17 +101,21 @@ export class RoomItemService {
       new PageOptionsDto(),
     );
     const itemsId = items.data.map((item) => item.id);
+    let numberRecords = 0;
+    let entities = [];
+    if (itemsId.length > 0) {
+      roomItem
+        .leftJoinAndSelect('roomItem.item', 'item')
+        .leftJoinAndSelect('roomItem.room', 'room')
+        .where('(item.id IN (:...itemsId))', { itemsId })
+        .select(['roomItem', 'item', 'room'])
+        .orderBy('roomItem.createdAt', pageOptionsDto.order)
+        .skip(pageOptionsDto.skip)
+        .take(pageOptionsDto.take);
 
-    roomItem
-      .leftJoinAndSelect('roomItem.item', 'item')
-      .leftJoinAndSelect('roomItem.room', 'room')
-      .select(['roomItem', 'item', 'room'])
-      .where('(item.id IN (:...itemsId))', { itemsId })
-      .orderBy('roomItem.createdAt', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take);
-    const numberRecords = await roomItem.getCount();
-    const { entities } = await roomItem.getRawAndEntities();
+      numberRecords = await roomItem.getCount();
+      entities = (await roomItem.getRawAndEntities()).entities;
+    }
 
     const pageMetaDto = new PageMetaDto({ numberRecords, pageOptionsDto });
     return new PageDto(entities, pageMetaDto);

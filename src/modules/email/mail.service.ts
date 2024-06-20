@@ -23,12 +23,10 @@ export class MailService {
   async isCtuetEmail(email: string): Promise<boolean | HttpException> {
     const teacherEmail = await this.isTeacherCtutEmail(email);
     const studentEmail = await this.isStudentCtuetEmail(email);
-    const hasError =
-      teacherEmail == '@ctut.edu.vn' || studentEmail == '@student.ctuet.edu.vn';
-    if (!hasError) {
+    if (!teacherEmail && !studentEmail) {
       throw new BusinessException(ErrorEnum.CTUET_EMAIL);
     }
-    return hasError;
+    return true;
   }
 
   async isStudentCtuetEmail(email: string) {
@@ -36,7 +34,7 @@ export class MailService {
     for (let i = email.length - 21; i < email.length; i++) {
       studentEmail += email[i];
     }
-    return studentEmail;
+    return studentEmail == '@student.ctuet.edu.vn' ? true : false;
   }
 
   async isTeacherCtutEmail(email: string) {
@@ -44,7 +42,7 @@ export class MailService {
     for (let i = email.length - 12; i < email.length; i++) {
       teacherEmail += email[i];
     }
-    return teacherEmail;
+    return teacherEmail == '@ctut.edu.vn' ? true : false;
   }
 
   async sendEmail(options: Mail.Options): Promise<any> {

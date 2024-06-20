@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Post,
-  UseGuards,
-  Patch,
-  Get,
-  Query,
   Delete,
+  Get,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { JwtGuard } from './../auth/guard/jwt-auth.guard';
@@ -20,7 +20,6 @@ import { UpdateDto } from './dtos/update.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { CategoryDto } from './dtos/category.dto';
-import { CategoryEntity } from './category.entity';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 
 @Controller('categories')

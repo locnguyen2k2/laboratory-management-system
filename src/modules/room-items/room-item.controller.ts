@@ -22,12 +22,17 @@ import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone
 import { RoomItemDto } from './dtos/room-item.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
+import { MailService } from '../email/mail.service';
+import { CategoryEnum } from '../categories/category.constant';
 
 @Controller('room-items')
 @ApiTags('Room items')
 @ApiBearerAuth()
 export class RoomItemController {
-  constructor(private readonly roomItemService: RoomItemService) {}
+  constructor(
+    private readonly roomItemService: RoomItemService,
+    private readonly mailService: MailService,
+  ) {}
 
   @Post()
   @UseGuards(JwtGuard, RolesGuard)
@@ -88,16 +93,24 @@ export class RoomItemController {
     @Request() req: any,
     @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomItemDto>> {
-    return await this.roomItemService.findAll(pageOptionsDto);
+    return (await this.mailService.isTeacherCtutEmail(req.user.email))
+      ? await this.roomItemService.findAll(pageOptionsDto)
+      : await this.roomItemService.findItemsForStudent(pageOptionsDto);
   }
 
   @Get('category/:id')
   @ApiPaginatedRespone(RoomItemDto)
+  @UseGuards(JwtGuard)
   async getRoomItemsByCategory(
+    @Request() req: any,
     @IdParam() id: number,
     @Query() pageOptionsDto: PageOptionsDto,
-  ): Promise<PageDto<RoomItemDto>> {
-    return await this.roomItemService.findByCategory(id, pageOptionsDto);
+  ): Promise<PageDto<RoomItemDto> | { data: [] }> {
+    return (id == CategoryEnum.CHEMICALS &&
+      (await this.mailService.isTeacherCtutEmail(req.user.email))) ||
+      id !== CategoryEnum.CHEMICALS
+      ? await this.roomItemService.findByCategory(id, pageOptionsDto)
+      : { data: [] };
   }
 
   @Get('item/:id')

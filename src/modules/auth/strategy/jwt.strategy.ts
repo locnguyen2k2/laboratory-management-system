@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from './../../auth/interfaces/jwt.interface';
@@ -16,6 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: process.env.JWT_SECRETKEY,
     });
   }
+
   async validate(payload: JwtPayload): Promise<JwtPayload> {
     if (await this.userService.findById(payload.id)) {
       const user = await this.userService.findById(payload.id);

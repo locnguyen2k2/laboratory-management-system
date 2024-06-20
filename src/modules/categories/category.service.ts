@@ -10,6 +10,7 @@ import { CategoryDto } from './dtos/category.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+const _ = require('lodash');
 
 @Injectable()
 export class CategoryService {
@@ -84,7 +85,7 @@ export class CategoryService {
           { id: id },
           {
             ...(data.name ? { name: data.name } : { name: category.name }),
-            ...(data.status
+            ...(!_.isNil(data.status)
               ? { status: data.status }
               : { status: category.status }),
           },
