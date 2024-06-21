@@ -4,38 +4,34 @@ import { IsEnum, IsOptional, Length, Min } from 'class-validator';
 import { BaseDto } from 'src/common/dtos/base.dto';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 
-export class UpdateRoomItemDto extends BaseDto {
-  @ApiProperty({ default: null })
+export class TransferRoomItemDto extends BaseDto {
+  @ApiProperty({ default: 0 })
   @Expose()
-  roomId?: number;
+  roomId: number;
 
-  @ApiProperty({ default: null })
+  @ApiProperty({ default: 0 })
   @Expose()
-  itemId?: number;
+  itemId: number;
 
   @ApiProperty({ default: ItemStatusEnum.NORMALOPERATION })
   @Expose()
   @IsEnum(ItemStatusEnum)
-  @IsOptional()
   status?: ItemStatusEnum;
 
-  @ApiProperty({ default: null })
-  @Min(0)
+  @ApiProperty({ default: 1 })
+  @Min(1)
   @Expose()
-  quantity?: number;
+  quantity: number;
 
-  @ApiProperty({ default: '' })
+  @ApiProperty({ default: `${new Date().getFullYear()}` })
   @Expose()
-  @IsOptional()
   @Length(4)
-  year?: string;
+  year: string;
 
   @ApiProperty({ default: '' })
   @Expose()
-  @IsOptional()
-  remark?: string;
+  remark: string;
 
   @Expose()
-  @IsOptional()
-  updateBy?: number;
+  updateBy: number;
 }

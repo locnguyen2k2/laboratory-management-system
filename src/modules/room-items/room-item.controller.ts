@@ -17,13 +17,14 @@ import { RolesGuard } from '../auth/guard/roles-auth.guard';
 import { RoleEnum } from 'src/enums/role-enum.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { IdParam } from 'src/common/decorators/id-param.decorator';
-import { UpdateRoomItemDto } from './dtos/update-roomItem.dto';
+import { TransferRoomItemDto } from './dtos/transfer-roomItem.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { MailService } from '../email/mail.service';
 import { CategoryEnum } from '../categories/category.constant';
+import { UpdateRoomItemDto } from "./dtos/update-room-item.dto";
 
 @Controller('room-items')
 @ApiTags('Room items')
@@ -50,6 +51,19 @@ export class RoomItemController {
     dto.createBy = dto.updateBy = req.user.id;
     const data = AddListRoomItemDto.plainToClass(dto);
     return await this.roomItemService.addListRoomItem(data);
+  }
+
+  @Patch('transfer-room-item/:id')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
+  async transferRoomItem(
+    @IdParam() id: number,
+    @Body() dto: TransferRoomItemDto,
+    @Request() req: any,
+  ) {
+    dto.updateBy = req.user.id;
+    const data = TransferRoomItemDto.plainToClass(dto);
+    return await this.roomItemService.transferRoomItem(id, data);
   }
 
   @Patch(':id')
