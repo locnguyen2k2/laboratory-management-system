@@ -322,26 +322,26 @@ export class RoomItemService {
     const roomItem = await this.findById(id);
 
     if (roomItem) {
-      const availableQuantity = await this.itemService.getAvailableQuantity(roomItem.item.id)
+      const availableQuantity = await this.itemService.getAvailableQuantity(roomItem.item.id);
 
       if ((availableQuantity + roomItem.quantity) - data.quantity < 0) {
         throw new BusinessException(`400:The quantity must greater or euqal ${availableQuantity + roomItem.quantity}!`);
       }
+      if (!_.isNil(data.quantity)) {
+        if (data.quantity < roomItem.itemQuantityBorrowed)
+          throw new BusinessException(`400:The quantity must greater or euqal ${roomItem.itemQuantityBorrowed}!`);
 
-      if (data.quantity < roomItem.itemQuantityBorrowed)
-        throw new BusinessException(`400:The quantity must greater or euqal ${roomItem.itemQuantityBorrowed}!`);
-
-      data.quantity < roomItem.quantity ?
-        await this.itemService.updateItemHandover(roomItem.item.id, roomItem.item.handover - (roomItem.quantity - data.quantity))
-        : await this.itemService.updateItemHandover(roomItem.item.id, roomItem.item.handover + (data.quantity - roomItem.quantity))
+        data.quantity < roomItem.quantity ?
+          await this.itemService.updateItemHandover(roomItem.item.id, roomItem.item.handover - (roomItem.quantity - data.quantity))
+          : await this.itemService.updateItemHandover(roomItem.item.id, roomItem.item.handover + (data.quantity - roomItem.quantity));
+      }
 
       const info = {
         ...(!_.isNil(data.status)
-          ? { item_status: data.status }
+          ? { status: data.status }
           : { status: roomItem.status }),
-        ...(data.quantity
-          ? { quantity: data.quantity }
-          : { quantity: roomItem.quantity }),
+        ...(!_.isNil(data.quantity))
+          && { quantity: data.quantity },
         ...(data.year ? { year: data.year } : { year: roomItem.year }),
         ...(data.remark
           ? { remark: data.remark }
