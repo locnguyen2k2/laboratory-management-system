@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   Length,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { BaseDto } from 'src/common/dtos/base.dto';
@@ -33,6 +34,7 @@ export class AddRoomItemDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsNumber()
+  @Min(1)
   quantity: number;
 
   @ApiProperty({ default: '' })

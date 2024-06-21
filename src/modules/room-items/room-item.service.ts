@@ -397,74 +397,79 @@ export class RoomItemService {
 
       const room = await this.roomService.findById(roomId);
 
+      if (await this.isRoomHasItem(item.id, room.id)) {
+        const isExisted = await this.findByItemRoom(item.id, room.id);
+        if (isExisted?.id !== id) {
+          throw new BusinessException('400:The room has this item!');
+        }
+      }
+
       const availableItemQuantity = await this.itemService.getAvailableQuantity(
         item.id,
       );
 
-      if (item && room) {
-        if (availableItemQuantity - data.quantity < 0)
-          throw new BusinessException('400:The quantity is not available!');
-
-        if (await this.isRoomHasItem(item.id, room.id)) {
-          const isExisted = await this.findByItemRoom(item.id, room.id);
-          if (isExisted?.id !== id) {
-            throw new BusinessException('400:The room has this item!');
-          }
-        }
-
-        if (item.id !== roomItem.item.id) {
-          await this.itemService.updateItemHandover(
-            item.id,
-            data.quantity + item.handover,
-          );
-          await this.itemService.updateItemHandover(
-            roomItem.item.id,
-            roomItem.item.handover - roomItem.quantity,
-          );
-        } else {
-          await this.itemService.updateItemHandover(item.id, data.quantity);
-        }
-
-        if (room.id !== roomItem.room.id) {
-          await this.roomService.updateRoomQuantity(room.id, room.quantity + 1);
-          await this.roomService.updateRoomQuantity(
-            roomItem.room.id,
-            roomItem.room.quantity - 1,
-          );
-        }
-
-        const info = {
-          ...(data.roomId
-            ? { roomId: data.roomId }
-            : { roomId: roomItem.room.id }),
-          ...(data.itemId
-            ? { itemId: data.itemId }
-            : { itemId: roomItem.item.id }),
-          ...(data.status
-            ? { item_status: data.status }
-            : { status: roomItem.status }),
-          ...(data.quantity && data.quantity > 0
-            ? { quantity: data.quantity }
-            : { quantity: roomItem.quantity }),
-          ...(data.year ? { year: data.year } : { year: roomItem.year }),
-          ...(data.remark
-            ? { remark: data.remark }
-            : { remark: roomItem.remark }),
-        };
-        // const room = await this.roomService.findById(info.roomId);
-        // const item = await this.itemService.findById(info.itemId);
-        roomItem.updateBy = data.updateBy;
-        await this.roomItemRepository.save({ ...roomItem, room, item });
-        await this.roomItemRepository.update(
-          { id: id },
-          {
-            year: info.year,
-            quantity: info.quantity,
-            remark: info.remark,
-          },
+      if (availableItemQuantity - data.quantity < 0)
+        throw new BusinessException(
+          `400:The quantity handover of item must less than or equal ${availableItemQuantity}!`,
         );
-        return await this.findById(id);
+
+      if (data.quantity < roomItem.itemQuantityBorrowed)
+        throw new BusinessException(
+          `400:The quantity must equal or greater than ${roomItem.itemQuantityBorrowed} (quantity of item borrwed)!`,
+        );
+
+      if (item.id !== roomItem.item.id) {
+        await this.itemService.updateItemHandover(
+          roomItem.item.id,
+          roomItem.item.handover - roomItem.quantity,
+        );
+
+        await this.itemService.updateItemHandover(
+          item.id,
+          data.quantity + item.handover,
+        );
+      } else {
+        await this.itemService.updateItemHandover(item.id, data.quantity);
       }
+
+      if (room.id !== roomItem.room.id) {
+        await this.roomService.updateRoomQuantity(room.id, room.quantity + 1);
+        await this.roomService.updateRoomQuantity(
+          roomItem.room.id,
+          roomItem.room.quantity - 1,
+        );
+      }
+
+      const info = {
+        ...(data.roomId
+          ? { roomId: data.roomId }
+          : { roomId: roomItem.room.id }),
+        ...(data.itemId
+          ? { itemId: data.itemId }
+          : { itemId: roomItem.item.id }),
+        ...(data.status
+          ? { item_status: data.status }
+          : { status: roomItem.status }),
+        ...(data.quantity && data.quantity > 0
+          ? { quantity: data.quantity }
+          : { quantity: roomItem.quantity }),
+        ...(data.year ? { year: data.year } : { year: roomItem.year }),
+        ...(data.remark
+          ? { remark: data.remark }
+          : { remark: roomItem.remark }),
+      };
+
+      roomItem.updateBy = data.updateBy;
+      await this.roomItemRepository.save({ ...roomItem, room, item });
+      await this.roomItemRepository.update(
+        { id: id },
+        {
+          year: info.year,
+          quantity: info.quantity,
+          remark: info.remark,
+        },
+      );
+      return await this.findById(id);
     }
   }
 
