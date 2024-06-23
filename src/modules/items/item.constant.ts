@@ -2,6 +2,7 @@ import { PageOptionsDto } from '../../common/dtos/page-options.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsEnum, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 
 export enum ItemStatus {
   AVAILABLE = 0,
@@ -11,10 +12,10 @@ export enum ItemStatus {
 
 export class ItemFilterDto extends PageOptionsDto {
   @ApiPropertyOptional({
-    enum: ItemStatus,
+    enum: ItemStatusEnum,
     isArray: true,
   })
-  @IsEnum(ItemStatus, { each: true })
+  @IsEnum(ItemStatusEnum, { each: true })
   @IsOptional()
   @IsArray()
   @Transform(({ value }) =>
