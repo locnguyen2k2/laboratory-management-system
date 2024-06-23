@@ -23,7 +23,7 @@ export class ItemFilterDto extends PageOptionsDto {
       ? value.map((status) => parseInt(status, 10))
       : value.split(',').map((status) => parseInt(status, 10)),
   )
-  readonly status?: ItemStatus[];
+  readonly status?: ItemStatusEnum[];
 
   @ApiPropertyOptional({
     isArray: true,
