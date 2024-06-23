@@ -9,6 +9,6 @@ export interface ItemRegistration {
 }
 
 export enum RegistrationStatusEnum {
-  BORROWING = 0,
-  RETURNED = 1,
+  PENDING = 0,
+  APPROVED = 1,
 }

@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Post,
-  UseGuards,
-  Request,
   Get,
   Patch,
+  Post,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { RegistrationService } from './registration.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';

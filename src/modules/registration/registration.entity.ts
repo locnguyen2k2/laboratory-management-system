@@ -33,7 +33,7 @@ export class RegistrationEntity extends ExtendedEntity {
   @Column({
     type: 'enum',
     enum: RegistrationStatusEnum,
-    default: RegistrationStatusEnum.BORROWING,
+    default: RegistrationStatusEnum.PENDING,
   })
   status: RegistrationStatusEnum;
 

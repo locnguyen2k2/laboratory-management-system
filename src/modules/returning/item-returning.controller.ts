@@ -50,9 +50,11 @@ export class ItemReturningController {
   }
 
   @Get('/:id')
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
-  async getDetail(@IdParam() id: number) {
+  @UseGuards(JwtGuard)
+  async getDetail(@IdParam() id: number, @Request() req: any) {
+    if (req.user.role === RoleEnum.USER) {
+      return await this.itemReturningService.findByIdUid(id, req.user.id);
+    }
     return await this.itemReturningService.findById(id);
   }
 

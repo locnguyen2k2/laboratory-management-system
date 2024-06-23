@@ -59,6 +59,21 @@ export class ItemReturningService {
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
+  async findByIdUid(id: number, uid: number) {
+    const itemReturning = await this.itemReturningRepository
+      .createQueryBuilder('itemReturning')
+      .leftJoinAndSelect('itemReturning.user', 'user')
+      .leftJoinAndSelect('itemReturning.registration', 'registration')
+      .leftJoinAndSelect('itemReturning.itemRegistration', 'itemRegistration')
+      .select(['itemReturning', 'user', 'registration', 'itemRegistration'])
+      .where('(itemReturning.id = :id AND user.id = :uid)', { id, uid })
+      .getOne();
+    if (itemReturning) {
+      return itemReturning;
+    }
+    throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
+  }
+
   async findByUid(uid: number, pageOptionsDto: PageOptionsDto) {
     const items =
       this.itemReturningRepository.createQueryBuilder('itemReturning');
