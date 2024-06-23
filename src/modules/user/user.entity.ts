@@ -39,7 +39,7 @@ export class UserEntity extends ExtendedEntity {
   @Column({ default: null })
   token: string;
 
-  @Column({ default: null })
+  @Column({ default: null, type: 'varchar', length: 600 })
   refresh_token: string;
 
   @Column({ default: null })

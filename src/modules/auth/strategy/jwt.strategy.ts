@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from './../../auth/interfaces/jwt.interface';
+import { IJwtPayload } from './../../auth/interfaces/jwt.interface';
 import { UserService } from 'src/modules/user/user.service';
 import { UserStatus } from './../../user/user.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<JwtPayload> {
+  async validate(payload: IJwtPayload): Promise<IJwtPayload> {
     if (await this.userService.findById(payload.id)) {
       const user = await this.userService.findById(payload.id);
       if (user.status == UserStatus.ACTIVE) {

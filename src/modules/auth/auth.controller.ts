@@ -11,16 +11,29 @@ import {
   RegisterAdminDto,
   RegisterManagerDto,
 } from './../user/dtos/register.dto';
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { Credential } from './interfaces/credential.interface';
 import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
+import { JwtService } from '@nestjs/jwt';
+import { ReqReTokenDto } from './dtos/request-auth.dto';
+import { IdParam } from '../../common/decorators/id-param.decorator';
 
 @Controller('auths')
 @ApiTags('Auths')
 @ApiBearerAuth()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post('login')
   async login(@Body() dto: LoginAuthDto): Promise<Credential> {
@@ -44,6 +57,18 @@ export class AuthController {
       excludeExtraneousValues: true,
     });
     return this.authService.register(user, null);
+  }
+
+  @Post('refresh-token')
+  async refreshToken(@Body() refreshToken: ReqReTokenDto) {
+    const data = ReqReTokenDto.plainToClass(refreshToken);
+    return await this.authService.getNewToken(data);
+  }
+
+  @Get('logout')
+  @UseGuards(JwtGuard)
+  async logout(@Request() req: any) {
+    return await this.authService.logout(req.user.id);
   }
 
   @Post('manager-create')

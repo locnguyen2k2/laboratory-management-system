@@ -1,11 +1,12 @@
 import Mail from 'nodemailer/lib/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { createTransport } from 'nodemailer';
-import { JwtPayload } from './../auth/interfaces/jwt.interface';
+import { IJwtPayload } from './../auth/interfaces/jwt.interface';
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfirmationEmailDto } from '../user/dtos/confirmationEmail-auth.dto';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
+import { IRefreshToken } from '../auth/interfaces/refresh-token.interface';
 
 @Injectable()
 export class MailService {
@@ -67,11 +68,13 @@ export class MailService {
     status: number,
     role: number,
   ): Promise<string> {
-    const payload: JwtPayload = { id, email, status, role };
+    const payload: IJwtPayload = { id, email, status, role };
     const token = this.jwtService.sign(payload);
     const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
     const text = `Welcome to Laboratory Management System. To confirm the email address, click here: ${url}`;
+
     await this.sendEmail({ to: email, subject: 'Email confirmation', text });
+
     return token;
   }
 
@@ -90,9 +93,23 @@ export class MailService {
     }
   }
 
+  async decodeReToken(refreshToken: string): Promise<IRefreshToken> {
+    try {
+      const payload: IRefreshToken = this.jwtService.verify(refreshToken);
+      if (typeof payload === 'object' && 'id' in payload) {
+        return payload;
+      }
+    } catch (error) {
+      if (error?.name === 'TokenExpiredError') {
+        throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+      }
+      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+    }
+  }
+
   async decodeConfirmationToken(token: string) {
     try {
-      const payload: JwtPayload = this.jwtService.verify(token);
+      const payload: IJwtPayload = this.jwtService.verify(token);
       if (typeof payload === 'object' && 'email' in payload) {
         return payload.email;
       }

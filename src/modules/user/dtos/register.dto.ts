@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsPhoneNumber,
   IsString,
   Length,
@@ -38,7 +39,8 @@ export class RegisterUserDto extends UserPasswordDto {
   @Expose()
   @IsString()
   @Validate(IsValidString)
-  address: string;
+  @IsOptional()
+  address?: string;
 }
 
 export class RegisterAdminDto extends RegisterUserDto {

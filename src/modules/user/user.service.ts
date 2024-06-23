@@ -1,4 +1,3 @@
-import * as bcrypt from 'bcryptjs';
 import { Brackets, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from './user.entity';
@@ -15,13 +14,15 @@ import { AccountInfo } from './interfaces/AccountInfo.interface';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { Credential } from '../auth/interfaces/credential.interface';
-import { JwtPayload } from '../auth/interfaces/jwt.interface';
+import { IJwtPayload } from '../auth/interfaces/jwt.interface';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { SortUserEnum } from './dtos/search-user.dto';
+import { IRefreshToken } from '../auth/interfaces/refresh-token.interface';
 
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 @Injectable({})
 export class UserService {
@@ -150,11 +151,12 @@ export class UserService {
   async update(
     id: number,
     dto: UpdateAdminDto,
-    user: JwtPayload,
+    user: IJwtPayload,
   ): Promise<UserEntity> {
     const data = UpdateAdminDto.plainToClass(dto);
     if (await this.findById(id)) {
       const isExisted = await this.findById(id);
+
       const info = {
         ...data,
         ...(data.firstName
@@ -172,8 +174,12 @@ export class UserService {
         ...(data.status >= 0
           ? { status: data.status }
           : { status: isExisted.status }),
+        ...(!_.isNil(data.status) && data.status !== UserStatus.ACTIVE
+          ? { token: null, refresh_token: null }
+          : { token: isExisted.token, refresh_token: isExisted.refresh_token }),
         ...(data.role >= 0 ? { role: data.role } : { role: isExisted.role }),
       };
+
       await this.userRepository.update(
         { id: id },
         {
@@ -183,6 +189,8 @@ export class UserService {
           status: info.status,
           photo: info.photo,
           role: info.role,
+          token: info.token,
+          refresh_token: info.refresh_token,
           updateBy: user.id,
         },
       );
@@ -192,61 +200,105 @@ export class UserService {
 
   async updateStatusByUid(uid: number, status: UserStatus) {
     if (await this.findById(uid)) {
-      await this.userRepository.update({ id: uid }, { status: status });
+      if (status !== UserStatus.ACTIVE) {
+        await this.userRepository.update(
+          { id: uid },
+          { status: status, token: null, refresh_token: null },
+        );
+      } else {
+        await this.userRepository.update({ id: uid }, { status: status });
+      }
     }
   }
 
   async create(user: any): Promise<any> {
     const { email, password } = user;
+
     if (await this.emailService.isCtuetEmail(email)) {
       const isExisted = await this.findByEmail(email);
+
       if (isExisted && isExisted.password) {
         throw new BusinessException(ErrorEnum.USER_EXISTS);
       }
+
       const newPassword = await bcrypt.hashSync(password, 10);
+
       if (isExisted) {
         await this.updatePassword(isExisted.email, newPassword);
         await this.updateStatusByUid(isExisted.id, UserStatus.UNACTIVE);
+
         const { id, status, role } = isExisted;
-        const refresh_token = await this.emailService.sendConfirmationEmail(
+        const token = await this.emailService.sendConfirmationEmail(
           id,
           email,
           status,
           role,
         );
-        await this.updateRefreshTokenByUid(isExisted.id, refresh_token);
+
+        await this.updateToken(isExisted.id, token);
+
         throw new BusinessException(
           'Confirm your account by the link was send to your email!',
         );
       }
+
       const newUser = new UserEntity({ ...user, password: newPassword });
+
       if (_.isNil(newUser.createBy)) {
         newUser.createBy = 0;
         newUser.updateBy = 0;
       } else {
         newUser.updateBy = newUser.createBy;
       }
+
       await this.userRepository.save(newUser);
+
       if (user.status != UserStatus.ACTIVE) {
         const { id, status, role } = newUser;
-        const refresh_token = await this.emailService.sendConfirmationEmail(
+
+        const token = await this.emailService.sendConfirmationEmail(
           id,
           email,
           status,
           role,
         );
-        await this.updateRefreshTokenByUid(id, refresh_token);
+
+        await this.updateToken(id, token);
+
         throw new BusinessException(
           'Confirm your account by the link was send to your email!',
         );
       }
+
       return await this.findById(newUser.id);
     }
   }
 
+  async generateRefreshToken(payload: IRefreshToken) {
+    const refresh_token = this.jwtService.sign(payload, { expiresIn: '90d' });
+    return await this.updateRefreshTokenByUid(payload.id, refresh_token);
+  }
+
   async updateRefreshTokenByUid(uid: number, refresh_token: string) {
     if (await this.findById(uid)) {
-      await this.userRepository.update({ id: uid }, { refresh_token });
+      await this.userRepository.update(
+        { id: uid },
+        { refresh_token: refresh_token },
+      );
+
+      const hashedReToken = await bcrypt.hash(refresh_token, 10);
+      return hashedReToken;
+    }
+  }
+
+  async deleteToken(udi: number) {
+    if (await this.findById(udi)) {
+      await this.userRepository.update(
+        { id: udi },
+        { token: null, refresh_token: null },
+      );
+
+      return new BusinessException('200:Action success!');
     }
   }
 
@@ -254,6 +306,7 @@ export class UserService {
     const { email } = data;
     if (await this.emailService.isCtuetEmail(email)) {
       const user = await this.findByEmail(email);
+
       if (user?.status == UserStatus.DISABLE) {
         throw new BusinessException(ErrorEnum.USER_IS_BLOCKED);
       }
@@ -268,42 +321,50 @@ export class UserService {
       }
       const userInfo = await this.findByEmail(email);
       const newUser = await this.findByEmail(email);
+
       try {
-        if (await this.jwtService.verifyAsync(newUser.token)) {
+        const payload = await this.jwtService.verifyAsync(newUser.token);
+        if (payload) {
           return {
             userInfo,
             access_token: newUser.token,
+            refresh_token: newUser.refresh_token,
           };
         }
       } catch (error: any) {
-        const payload: JwtPayload = {
+        const payload: IJwtPayload = {
           id: newUser.id,
           email: newUser.email,
           status: newUser.status,
           role: newUser.role,
         };
+
         const access_token = await this.jwtService.signAsync(payload);
-        await this.updateToken(payload.email, access_token);
+        const refresh_token = await this.generateRefreshToken({
+          id: newUser.id,
+          access_token,
+        });
+
+        await this.updateToken(newUser.id, access_token);
         return {
           userInfo,
           access_token,
+          refresh_token,
         };
       }
     }
   }
 
-  async updateToken(email: string, access_token: string): Promise<boolean> {
-    const user = await this.findByEmail(email);
-    if (user) {
+  async updateToken(id: number, token: string): Promise<boolean> {
+    if (await this.findById(id)) {
       await this.userRepository.update(
-        { id: user.id },
+        { id },
         {
-          token: access_token,
+          token: token,
         },
       );
       return true;
     }
-    return false;
   }
 
   async updateRepassToken(email: string, repassToken: string) {
@@ -322,7 +383,7 @@ export class UserService {
     if (this.emailService.isCtuetEmail(email)) {
       await this.userRepository.update(
         { email: email },
-        { password: password, repass_token: null },
+        { password: password, repass_token: null, token: null },
       );
     }
   }
@@ -337,7 +398,7 @@ export class UserService {
         await this.updateStatusByUid(user.id, UserStatus.ACTIVE);
         await this.userRepository.update(
           { email: email },
-          { refresh_token: null },
+          { refresh_token: null, token: null },
         );
         throw new BusinessException('Confirmation email is successful');
       }
@@ -368,7 +429,9 @@ export class UserService {
         );
         if (!isCheckPass) {
           const password = await bcrypt.hashSync(data.password, 10);
-          await this.updatePassword(data.email, password);
+          await this.updatePassword(isExisted.email, password);
+          await this.updateToken(isExisted.id, null);
+          await this.updateRefreshTokenByUid(isExisted.id, null);
           return 'Your password is already updated';
         }
         throw new HttpException(
@@ -381,6 +444,37 @@ export class UserService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async generateToken(email: string, refreshToken: string) {
+    const user = await this.findByEmail(email);
+
+    if (!user) throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
+
+    if (!user.refresh_token)
+      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+
+    const isMatch = await bcrypt.compareSync(user.refresh_token, refreshToken);
+    if (isMatch) {
+      try {
+        const decoded = await this.jwtService.verifyAsync(user.refresh_token);
+        if (decoded) {
+          const tokenPayload: IJwtPayload = {
+            id: user.id,
+            status: user.status,
+            role: user.role,
+            email: user.email,
+          };
+          const newToken = this.jwtService.sign(tokenPayload);
+
+          await this.updateToken(user.id, newToken);
+          return { token: newToken };
+        }
+      } catch (error: any) {
+        throw new BusinessException('400:Refresh token is expired');
+      }
+    }
+    throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
   }
 
   async forgotPassword(email: string): Promise<any> {
@@ -421,19 +515,20 @@ export class UserService {
       throw new BusinessException(ErrorEnum.USER_UNCONFIRMED);
     }
     delete user.token;
-    delete user.refresh_token;
     delete user.password;
     delete user.repass_token;
+    delete user.refresh_token;
     return user;
   }
 
   async resendConfirmationLink(dto: EmailLinkConfirmDto) {
     if (await this.emailService.isCtuetEmail(dto.email)) {
       const user = await this.findByEmail(dto.email);
+
       if (user && user.status !== UserStatus.DISABLE) {
         if (user.status == UserStatus.UNACTIVE) {
           try {
-            await this.emailService.decodeConfirmationToken(user.refresh_token);
+            await this.emailService.decodeConfirmationToken(user.token);
           } catch (error: any) {
             const { id, email, status, role } = user;
             const token = await this.emailService.sendConfirmationEmail(
@@ -442,16 +537,13 @@ export class UserService {
               status,
               role,
             );
-            await this.userRepository.update(
-              { email },
-              { refresh_token: token },
-            );
+            await this.userRepository.update({ email }, { token });
             throw new BusinessException(
               'The confirmation email link already send',
             );
           }
           const decode = await this.emailService.decodeConfirmationToken(
-            user.refresh_token,
+            user.token,
           );
           if (decode) {
             throw new BusinessException(

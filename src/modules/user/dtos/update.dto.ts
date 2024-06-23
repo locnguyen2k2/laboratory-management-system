@@ -3,6 +3,7 @@ import { Expose } from 'class-transformer';
 import {
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsPhoneNumber,
   IsString,
   Validate,
@@ -17,32 +18,38 @@ export class UpdateUserDto extends BaseDto {
   @Validate(IsValidString)
   @IsString()
   @Expose()
-  firstName: string;
+  @IsOptional()
+  firstName?: string;
   @ApiProperty({ default: '' })
   @Validate(IsValidString)
   @IsString()
   @Expose()
-  lastName: string;
+  @IsOptional()
+  lastName?: string;
   @ApiProperty({ default: '' })
   @Validate(IsValidString)
   @IsString()
   @Expose()
-  address: string;
+  @IsOptional()
+  address?: string;
   @ApiProperty({ default: '' })
   @Validate(IsValidString)
   @IsString()
   @Expose()
-  photo: string;
+  @IsOptional()
+  photo?: string;
 }
 
 export class UpdateAdminDto extends UpdateUserDto {
   @ApiProperty({ default: '' })
   @IsEnum(UserStatus)
   @Expose()
-  status: UserStatus;
+  @IsOptional()
+  status?: UserStatus;
 
   @ApiProperty({ default: '' })
   @IsEnum(RoleEnum)
   @Expose()
-  role: RoleEnum;
+  @IsOptional()
+  role?: RoleEnum;
 }

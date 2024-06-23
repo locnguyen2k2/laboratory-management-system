@@ -15,6 +15,7 @@ export class RolesGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(
       ROLES_KEY,
@@ -39,6 +40,7 @@ export class RolesGuard implements CanActivate {
     }
     throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
   }
+
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

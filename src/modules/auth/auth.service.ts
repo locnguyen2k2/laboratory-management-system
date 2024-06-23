@@ -2,19 +2,23 @@ import * as bcrypt from 'bcryptjs';
 import { AxiosResponse } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { UserService } from './../user/user.service';
-import { Observable, lastValueFrom, map } from 'rxjs';
+import { lastValueFrom, map, Observable } from 'rxjs';
 import { MailService } from './../email/mail.service';
-import { JwtPayload } from './interfaces/jwt.interface';
+import { IJwtPayload } from './interfaces/jwt.interface';
 import { UserStatus } from './../user/user.constant';
 import { RegisterUserDto } from '../user/dtos/register.dto';
 import { GoogleRedirectDto } from './dtos/googleRedirect-auth.dto';
-import { RegisterAdminDto } from './../user/dtos/register.dto';
+import {
+  RegisterAdminDto,
+  RegisterManagerDto,
+} from './../user/dtos/register.dto';
 import { Injectable } from '@nestjs/common';
-import { RegisterManagerDto } from './../user/dtos/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Credential } from './interfaces/credential.interface';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
+import { ReqReTokenDto } from './dtos/request-auth.dto';
+
 const _ = require('lodash');
 
 @Injectable()
@@ -46,28 +50,45 @@ export class AuthService {
         throw new BusinessException(ErrorEnum.USER_UNCONFIRMED);
       }
       const userInfo = await this.userService.getAccountInfo(email);
+
       try {
         if (await this.jwtService.verifyAsync(user.token)) {
           return {
             userInfo,
             access_token: user.token,
+            refresh_token: user.refresh_token,
           };
         }
       } catch (error: any) {
-        const payload: JwtPayload = {
+        const payload: IJwtPayload = {
           id: user.id,
           email: user.email,
           status: user.status,
           role: user.role,
         };
-        const access_token = await this.jwtService.signAsync(payload);
-        await this.userService.updateToken(payload.email, access_token);
+        const access_token = this.jwtService.sign(payload);
+        await this.userService.updateToken(user.id, access_token);
+
+        const refresh_token = await this.userService.generateRefreshToken({
+          id: payload.id,
+          access_token,
+        });
+
         return {
           userInfo,
           access_token,
+          refresh_token,
         };
       }
     }
+  }
+
+  async logout(uid: number) {
+    return await this.userService.deleteToken(uid);
+  }
+
+  async getNewToken(data: ReqReTokenDto) {
+    return await this.userService.generateToken(data.email, data.refreshToken);
   }
 
   async ggAccessTokenVerify(
@@ -98,7 +119,7 @@ export class AuthService {
 
   async register(
     dto: RegisterUserDto | RegisterManagerDto | RegisterAdminDto,
-    user: JwtPayload | null,
+    user: IJwtPayload | null,
   ): Promise<any> {
     return await this.userService.create({
       ...dto,
