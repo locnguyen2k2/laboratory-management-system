@@ -287,8 +287,14 @@ export class UserService {
   }
 
   async generateRefreshToken(payload: IRefreshToken) {
-    const refresh_token = this.jwtService.sign(payload, { expiresIn: '90d' });
-    return await this.updateRefreshTokenByUid(payload.id, refresh_token);
+    const token = this.jwtService.sign(payload, { expiresIn: '90d' });
+    const hashedReToken = await bcrypt.hash(token, 10);
+    const refresh_token = this.jwtService.sign(
+      { refresh_token: hashedReToken },
+      { expiresIn: '90d' },
+    );
+    await this.updateRefreshTokenByUid(payload.id, refresh_token);
+    return hashedReToken;
   }
 
   async updateRefreshTokenByUid(uid: number, refresh_token: string) {
@@ -298,8 +304,7 @@ export class UserService {
         { refresh_token: refresh_token },
       );
 
-      const hashedReToken = await bcrypt.hash(refresh_token, 10);
-      return hashedReToken;
+      return refresh_token;
     }
   }
 
@@ -333,39 +338,31 @@ export class UserService {
       }
       const userInfo = await this.findByEmail(email);
       const newUser = await this.findByEmail(email);
+      const payload: IJwtPayload = {
+        id: newUser.id,
+        email: newUser.email,
+        status: newUser.status,
+        role: newUser.role,
+      };
 
+      !newUser.refresh_token &&
+        (await this.generateRefreshToken({ id: newUser.id, payload }));
       try {
         const payload = await this.jwtService.verifyAsync(newUser.token);
         if (payload) {
-          const refresh_token = await this.generateRefreshToken({
-            id: payload.id,
-            access_token: payload.token,
-          });
           return {
             userInfo,
             access_token: newUser.token,
-            refresh_token,
+            refresh_token: newUser.refresh_token,
           };
         }
       } catch (error: any) {
-        const payload: IJwtPayload = {
-          id: newUser.id,
-          email: newUser.email,
-          status: newUser.status,
-          role: newUser.role,
-        };
-
         const access_token = await this.jwtService.signAsync(payload);
-        const refresh_token = await this.generateRefreshToken({
-          id: newUser.id,
-          access_token,
-        });
-
         await this.updateToken(newUser.id, access_token);
         return {
           userInfo,
           access_token,
-          refresh_token,
+          refresh_token: newUser.refresh_token,
         };
       }
     }
@@ -470,27 +467,29 @@ export class UserService {
     if (!user.refresh_token)
       throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
 
-    const isMatch = await bcrypt.compareSync(user.refresh_token, refreshToken);
-    if (isMatch) {
-      try {
-        const decoded = await this.jwtService.verifyAsync(user.refresh_token);
-        if (decoded) {
-          const tokenPayload: IJwtPayload = {
-            id: user.id,
-            status: user.status,
-            role: user.role,
-            email: user.email,
-          };
-          const newToken = this.jwtService.sign(tokenPayload);
+    try {
+      const inpDecoded = await this.jwtService.verifyAsync(refreshToken);
+      const userDecoded = await this.jwtService.verifyAsync(user.refresh_token);
+      if (
+        inpDecoded &&
+        userDecoded &&
+        inpDecoded.refresh_token === userDecoded.refresh_token
+      ) {
+        const tokenPayload: IJwtPayload = {
+          id: user.id,
+          status: user.status,
+          role: user.role,
+          email: user.email,
+        };
+        const newToken = this.jwtService.sign(tokenPayload);
 
-          await this.updateToken(user.id, newToken);
-          return { token: newToken };
-        }
-      } catch (error: any) {
-        throw new BusinessException('400:Refresh token is expired');
+        await this.updateToken(user.id, newToken);
+        return { token: newToken };
       }
+      throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
+    } catch (error: any) {
+      throw new BusinessException(`400:${error.message}`);
     }
-    throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_TOKEN);
   }
 
   async forgotPassword(email: string): Promise<any> {

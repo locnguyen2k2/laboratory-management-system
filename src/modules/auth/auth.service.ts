@@ -50,38 +50,32 @@ export class AuthService {
         throw new BusinessException(ErrorEnum.USER_UNCONFIRMED);
       }
       const userInfo = await this.userService.getAccountInfo(email);
+      const payload: IJwtPayload = {
+        id: user.id,
+        email: user.email,
+        status: user.status,
+        role: user.role,
+      };
+
+      !user.refresh_token &&
+        (await this.userService.generateRefreshToken({ id: user.id, payload }));
 
       try {
         if (await this.jwtService.verifyAsync(user.token)) {
-          const refresh_token = await this.userService.generateRefreshToken({
-            id: user.id,
-            access_token: user.token,
-          });
           return {
             userInfo,
             access_token: user.token,
-            refresh_token,
+            refresh_token: user.refresh_token,
           };
         }
       } catch (error: any) {
-        const payload: IJwtPayload = {
-          id: user.id,
-          email: user.email,
-          status: user.status,
-          role: user.role,
-        };
         const access_token = this.jwtService.sign(payload);
         await this.userService.updateToken(user.id, access_token);
-
-        const refresh_token = await this.userService.generateRefreshToken({
-          id: payload.id,
-          access_token,
-        });
 
         return {
           userInfo,
           access_token,
-          refresh_token,
+          refresh_token: user.refresh_token,
         };
       }
     }

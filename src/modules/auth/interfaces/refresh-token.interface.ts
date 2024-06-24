@@ -1,4 +1,6 @@
+import { IJwtPayload } from './jwt.interface';
+
 export interface IRefreshToken {
   id: number;
-  access_token: string;
+  payload: IJwtPayload;
 }
