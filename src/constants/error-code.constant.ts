@@ -11,7 +11,7 @@ export enum ErrorEnum {
   INVALID_DATE = '400:Date invalid',
   ROLE_NOT_FOUND = '400:Role not found',
   USER_NOT_FOUND = '400:User not found',
-  INVALID_VERIFICATION_TOKEN = '400:Invalid token',
+  INVALID_VERIFICATION_TOKEN = '401:Invalid token',
   RECORD_NOT_FOUND = '400:This record does not exist',
   RECORD_IS_EXISTED = '400:This record already exist',
   INVALID_LOGIN = '400:Invalid login, please check use or password, and login again',
