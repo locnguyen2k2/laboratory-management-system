@@ -53,10 +53,14 @@ export class AuthService {
 
       try {
         if (await this.jwtService.verifyAsync(user.token)) {
+          const refresh_token = await this.userService.generateRefreshToken({
+            id: user.id,
+            access_token: user.token,
+          });
           return {
             userInfo,
             access_token: user.token,
-            refresh_token: user.refresh_token,
+            refresh_token,
           };
         }
       } catch (error: any) {

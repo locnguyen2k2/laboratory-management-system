@@ -49,7 +49,7 @@ export class UserController {
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   async findById(@IdParam() id: number): Promise<UserEntity> {
-    return this.userService.findById(id);
+    return this.userService.findOne(id);
   }
 
   @Patch('update')

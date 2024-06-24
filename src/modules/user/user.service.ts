@@ -122,6 +122,18 @@ export class UserService {
     throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
   }
 
+  async findOne(id: number): Promise<UserEntity> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where({ id: id })
+      .getOne();
+    if (user) {
+      delete user.token;
+      delete user.refresh_token;
+    }
+    throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
+  }
+
   async updateAccountInfo(
     id: number,
     data: UpdateUserDto,
@@ -325,10 +337,14 @@ export class UserService {
       try {
         const payload = await this.jwtService.verifyAsync(newUser.token);
         if (payload) {
+          const refresh_token = await this.generateRefreshToken({
+            id: payload.id,
+            access_token: payload.token,
+          });
           return {
             userInfo,
             access_token: newUser.token,
-            refresh_token: newUser.refresh_token,
+            refresh_token,
           };
         }
       } catch (error: any) {
