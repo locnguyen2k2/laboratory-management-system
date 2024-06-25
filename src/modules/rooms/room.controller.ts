@@ -34,7 +34,7 @@ export class RoomController {
   @Get()
   @ApiPaginatedRespone(CategoryDto)
   async get(
-    @Query() pageOptionsDto: PageOptionsDto, 
+    @Query() pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<RoomDto>> {
     return await this.roomService.findAll(pageOptionsDto);
   }

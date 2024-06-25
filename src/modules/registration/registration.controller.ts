@@ -21,6 +21,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { RegistrationDto } from './dtos/registration.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { PageDto } from 'src/common/dtos/page.dto';
+import { RegistrationFilterDto } from "./registration.constant";
 
 @Controller('registration')
 @ApiTags('Registration')
@@ -33,7 +34,7 @@ export class RegistrationController {
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
   async getAll(
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() pageOptionsDto: RegistrationFilterDto,
   ): Promise<PageDto<RegistrationDto>> {
     return await this.registrationService.findAll(pageOptionsDto);
   }

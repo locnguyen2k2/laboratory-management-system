@@ -24,7 +24,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { MailService } from '../email/mail.service';
 import { CategoryEnum } from '../categories/category.constant';
-import { UpdateRoomItemDto } from "./dtos/update-room-item.dto";
+import { UpdateRoomItemDto } from './dtos/update-room-item.dto';
 
 @Controller('room-items')
 @ApiTags('Room items')

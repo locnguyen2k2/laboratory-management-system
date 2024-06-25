@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString, Min, Validate } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  Validate,
+} from 'class-validator';
 import { IsValidString } from 'src/common/decorators/string-validation.decorator';
 import { BaseDto } from 'src/common/dtos/base.dto';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';

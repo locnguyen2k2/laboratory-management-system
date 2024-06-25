@@ -7,7 +7,10 @@ import { UserService } from '../user/user.service';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { ItemRegistrationService } from './../item-registration/item-registration.service';
-import { ItemRegistration } from './registration.constant';
+import {
+  ItemRegistration,
+  RegistrationFilterDto,
+} from './registration.constant';
 import { isEmpty } from 'lodash';
 import { RoomService } from '../rooms/room.service';
 import { RoomItemService } from '../room-items/room-item.service';
@@ -49,10 +52,27 @@ export class RegistrationService {
   }
 
   async findAll(
-    pageOptionsDto: PageOptionsDto,
+    pageOptionsDto: RegistrationFilterDto,
   ): Promise<PageDto<RegistrationDto>> {
     const items =
       this.registrationRepository.createQueryBuilder('registration');
+
+    if (pageOptionsDto.status && pageOptionsDto.status.length > 0) {
+      items.andWhere('registration.status IN (:status)', {
+        status: pageOptionsDto.status.map((value) => value + 1),
+      });
+    }
+
+    if (
+      (await items.getRawAndEntities()).entities.length > 0 &&
+      pageOptionsDto.user &&
+      pageOptionsDto.user.length > 0
+    ) {
+      const emailCondition = pageOptionsDto.user
+        .map((domain) => `user.email LIKE '%${domain}'`)
+        .join(' OR ');
+      items.andWhere(emailCondition);
+    }
 
     items
       .leftJoinAndSelect('registration.user', 'user')

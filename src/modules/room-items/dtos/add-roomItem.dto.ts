@@ -1,17 +1,24 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsNumber, Length, Min, ValidateNested } from "class-validator";
-import { BaseDto } from "src/common/dtos/base.dto";
-import { ItemStatusEnum } from "src/enums/item-status-enum.enum";
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  Length,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { BaseDto } from 'src/common/dtos/base.dto';
+import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 
 export class AddRoomItemDto extends BaseDto {
-  @ApiProperty({ default: "" })
+  @ApiProperty({ default: '' })
   @Expose()
   @IsNotEmpty()
   @IsNumber()
   roomId: number;
 
-  @ApiProperty({ default: "" })
+  @ApiProperty({ default: '' })
   @Expose()
   @IsNotEmpty()
   @IsNumber()
@@ -23,14 +30,14 @@ export class AddRoomItemDto extends BaseDto {
   @IsEnum(ItemStatusEnum)
   status: ItemStatusEnum;
 
-  @ApiProperty({ default: "" })
+  @ApiProperty({ default: '' })
   @Expose()
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   quantity: number;
 
-  @ApiProperty({ default: "" })
+  @ApiProperty({ default: '' })
   @Expose()
   @IsNotEmpty()
   @Length(4)
@@ -50,9 +57,9 @@ export class AddListRoomItemDto extends BaseDto {
         itemId: null,
         status: null,
         quantity: null,
-        year: ""
-      }
-    ]
+        year: '',
+      },
+    ],
   })
   @Expose()
   @Type(() => AddRoomItemDto)
