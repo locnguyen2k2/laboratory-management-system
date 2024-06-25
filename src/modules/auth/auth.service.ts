@@ -35,7 +35,7 @@ export class AuthService {
     password: string,
   ): Promise<Credential> {
     if (await this.emailService.isCtuetEmail(email)) {
-      const user = await this.userService.findByEmail(email);
+      let user = await this.userService.findByEmail(email);
       if (
         !user ||
         !user?.password ||
@@ -57,8 +57,9 @@ export class AuthService {
         role: user.role,
       };
 
-      !user.refresh_token &&
-        (await this.userService.generateRefreshToken({ id: user.id, payload }));
+      if (!user.refresh_token) {
+        await this.userService.generateRefreshToken({ id: user.id, payload });
+      }
 
       try {
         if (await this.jwtService.verifyAsync(user.token)) {
@@ -71,7 +72,7 @@ export class AuthService {
       } catch (error: any) {
         const access_token = this.jwtService.sign(payload);
         await this.userService.updateToken(user.id, access_token);
-
+        user = await this.userService.findById(user.id)
         return {
           userInfo,
           access_token,
