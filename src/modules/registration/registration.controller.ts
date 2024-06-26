@@ -63,16 +63,15 @@ export class RegistrationController {
     return await this.registrationService.createRegistration(data);
   }
 
-  @Patch(':id')
+  @Post('update-status')
   @UseGuards(JwtGuard)
   async updateRegistration(
-    @IdParam() id: number,
     @Request() req: any,
     @Body() dto: UpdateRegStatusDto,
   ) {
     dto.updateBy = req.user.id;
     const data = UpdateRegStatusDto.plainToClass(dto);
-    return await this.registrationService.updateRegStatus(id, data);
+    return await this.registrationService.updateRegStatus(data);
   }
 
   @Patch('item-registration/:id')

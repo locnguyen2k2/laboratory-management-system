@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsObject, Min } from 'class-validator';
 import { RegistrationStatusEnum } from '../registration.constant';
 import { BaseDto } from '../../../common/dtos/base.dto';
-import { Expose } from "class-transformer";
+import { Expose } from 'class-transformer';
 
 export class RegistrationDto {
   @ApiProperty()
@@ -33,12 +33,30 @@ export class RegistrationDto {
   };
 }
 
-export class UpdateRegStatusDto extends BaseDto {
+class UpdateRegDto {
+  @ApiProperty({ default: null })
+  @IsNumber()
   @Expose()
-  updateBy: number;
+  id: number;
 
   @ApiProperty({ default: null })
   @IsEnum(RegistrationStatusEnum)
   @Expose()
   status: RegistrationStatusEnum;
+}
+
+export class UpdateRegStatusDto extends BaseDto {
+  @Expose()
+  updateBy: number;
+
+  @ApiProperty({
+    default: [
+      {
+        id: 0,
+        status: 0,
+      },
+    ],
+  })
+  @Expose()
+  items: UpdateRegDto[];
 }

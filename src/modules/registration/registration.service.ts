@@ -233,17 +233,33 @@ export class RegistrationService {
     }
   }
 
-  async updateRegStatus(id, data: UpdateRegStatusDto) {
-    if (await this.findById(id)) {
-      await this.registrationRepository.update(
-        { id },
-        {
-          status: data.status,
-          updateBy: data.updateBy,
-        },
-      );
-
-      return await this.findById(id);
+  async updateRegStatus(data: UpdateRegStatusDto) {
+    let listItem = [];
+    await Promise.all(
+      data.items.map(async (item: any) => {
+        if (await this.findById(item.id)) {
+          if (isEmpty(listItem)) {
+            listItem = [{ ...item }];
+          } else {
+            const index = listItem.findIndex((value) => value.id === item.id);
+            if (index === -1) {
+              listItem.push({ ...item });
+            }
+          }
+        }
+      }),
+    );
+    if (listItem.length > 0) {
+      listItem.map(async (item: any) => {
+        await this.registrationRepository.update(
+          { id: item.id },
+          {
+            status: item.status,
+            updateBy: data.updateBy,
+          },
+        );
+      });
+      return listItem;
     }
   }
 
