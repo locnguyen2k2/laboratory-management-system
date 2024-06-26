@@ -130,6 +130,7 @@ export class UserService {
     if (user) {
       delete user.token;
       delete user.refresh_token;
+      return user;
     }
     throw new BusinessException(ErrorEnum.USER_NOT_FOUND);
   }
