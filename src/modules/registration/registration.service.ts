@@ -18,7 +18,7 @@ import { UpdateItemRegistrationDto } from '../item-registration/dtos/update-borr
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
-import { RegistrationDto } from './dtos/registration.dto';
+import { RegistrationDto, UpdateRegStatusDto } from './dtos/registration.dto';
 
 const _ = require('lodash');
 
@@ -230,6 +230,20 @@ export class RegistrationService {
     } else {
       await this.registrationRepository.delete({ id: registration.id });
       return { registration: { id: registrationId } };
+    }
+  }
+
+  async updateRegStatus(id, data: UpdateRegStatusDto) {
+    if (await this.findById(id)) {
+      await this.registrationRepository.update(
+        { id },
+        {
+          status: data.status,
+          updateBy: data.updateBy,
+        },
+      );
+
+      return await this.findById(id);
     }
   }
 

@@ -18,10 +18,10 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/enums/role-enum.enum';
 import { UpdateItemRegistrationDto } from '../item-registration/dtos/update-borrowing.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
-import { RegistrationDto } from './dtos/registration.dto';
+import { RegistrationDto, UpdateRegStatusDto } from './dtos/registration.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { PageDto } from 'src/common/dtos/page.dto';
-import { RegistrationFilterDto } from "./registration.constant";
+import { RegistrationFilterDto } from './registration.constant';
 
 @Controller('registration')
 @ApiTags('Registration')
@@ -61,6 +61,18 @@ export class RegistrationController {
     dto.createBy = dto.updateBy = dto.user = req.user.id;
     const data = AddItemRegistrationDto.plainToClass(dto);
     return await this.registrationService.createRegistration(data);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtGuard)
+  async updateRegistration(
+    @IdParam() id: number,
+    @Request() req: any,
+    @Body() dto: UpdateRegStatusDto,
+  ) {
+    dto.updateBy = req.user.id;
+    const data = UpdateRegStatusDto.plainToClass(dto);
+    return await this.registrationService.updateRegStatus(id, data);
   }
 
   @Patch('item-registration/:id')

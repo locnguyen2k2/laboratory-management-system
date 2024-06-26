@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsObject } from 'class-validator';
+import { IsEnum, IsNumber, IsObject, Min } from 'class-validator';
+import { RegistrationStatusEnum } from '../registration.constant';
+import { BaseDto } from '../../../common/dtos/base.dto';
+import { Expose } from "class-transformer";
 
 export class RegistrationDto {
   @ApiProperty()
@@ -28,4 +31,14 @@ export class RegistrationDto {
     status?: number;
     role?: number;
   };
+}
+
+export class UpdateRegStatusDto extends BaseDto {
+  @Expose()
+  updateBy: number;
+
+  @ApiProperty({ default: null })
+  @IsEnum(RegistrationStatusEnum)
+  @Expose()
+  status: RegistrationStatusEnum;
 }

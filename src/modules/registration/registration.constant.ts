@@ -15,6 +15,8 @@ export interface ItemRegistration {
 export enum RegistrationStatusEnum {
   PENDING = 0,
   APPROVED = 1,
+  CANCELED = 2,
+  RETURNED = 3,
 }
 
 export enum UserBorrowedEnum {
