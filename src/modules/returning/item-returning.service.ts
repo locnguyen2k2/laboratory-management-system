@@ -13,6 +13,12 @@ import { ItemRegistrationService } from '../item-registration/item-registration.
 import { UserService } from '../user/user.service';
 import { RoomItemService } from '../room-items/room-item.service';
 import { RegistrationService } from '../registration/registration.service';
+import { ItemRegistrationStatus } from '../item-registration/item-registration.constant';
+import {
+  AddListReturningDto,
+  ReturningDto,
+} from './dtos/add-list-returning.dto';
+import { isEmpty } from 'lodash';
 
 @Injectable()
 export class ItemReturningService {
@@ -127,6 +133,12 @@ export class ItemReturningService {
           data.quantity + itemRegistration.quantityReturned,
         );
 
+        await this.itemRegistrationService.updateStatus(
+          itemRegistration.id,
+          data.createBy,
+          ItemRegistrationStatus.RETURNED,
+        );
+
         const newItem = new ItemReturningEntity({
           ...data,
           itemRegistration,
@@ -139,6 +151,106 @@ export class ItemReturningService {
       }
       throw new BusinessException('400:The quantity invalid!');
     }
+  }
+
+  async addList(data: AddListReturningDto) {
+    let listItem: ReturningDto[] = [];
+
+    await Promise.all(
+      data.items.map(async (item: ReturningDto) => {
+        if (
+          await this.itemRegistrationService.itemRegHasInReg(
+            item.registrationId,
+            item.itemRegistrationId,
+          )
+        ) {
+          if (isEmpty(listItem)) {
+            listItem = [{ ...item }];
+          } else {
+            const index = listItem.findIndex(
+              (value) =>
+                value.itemRegistrationId === item.itemRegistrationId &&
+                item.registrationId === value.registrationId,
+            );
+            if (index === -1) {
+              listItem.push({ ...item });
+            } else {
+              listItem[index].quantity += item.quantity;
+            }
+          }
+        }
+      }),
+    );
+
+    if (listItem.length > 0) {
+      const listNewItem = [];
+      await Promise.all(
+        listItem.map(async (item) => {
+          const regHasItemReg =
+            await this.itemRegistrationService.itemRegHasInReg(
+              item.registrationId,
+              item.itemRegistrationId,
+            );
+          if (regHasItemReg) {
+            const user = await this.userService.findById(data.uid);
+
+            const itemRegistration =
+              await this.itemRegistrationService.findById(
+                item.itemRegistrationId,
+              );
+
+            const registration = await this.registrationService.findById(
+              item.registrationId,
+            );
+
+            if (
+              itemRegistration.quantityReturned + item.quantity <=
+              itemRegistration.quantity
+            ) {
+              const roomItem = await this.roomItemService.findById(
+                itemRegistration.roomItem.id,
+              );
+
+              await this.roomItemService.updateRoomItemQuantityReturned(
+                roomItem.id,
+                roomItem.itemQuantityReturned + item.quantity,
+              );
+
+              await this.itemRegistrationService.updateQuantityReturned(
+                item.itemRegistrationId,
+                item.quantity + itemRegistration.quantityReturned,
+              );
+
+              await this.itemRegistrationService.updateStatus(
+                itemRegistration.id,
+                data.createBy,
+                ItemRegistrationStatus.RETURNED,
+              );
+
+              const newItem = new ItemReturningEntity({
+                createBy: data.createBy,
+                updateBy: data.createBy,
+                itemStatus: item.itemStatus,
+                status: data.status,
+                quantity: item.quantity,
+                date_returning: data.date_returning,
+                remark: item.remark,
+                itemRegistration,
+                registration,
+                user,
+              });
+              await this.itemReturningRepository.save(newItem);
+
+              listNewItem.push(newItem);
+            } else {
+              throw new BusinessException('400:The quantity invalid!');
+            }
+          }
+        }),
+      );
+      return listNewItem;
+    }
+    throw new BusinessException('200:Nothing changes!');
   }
 
   async update() {}

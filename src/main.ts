@@ -26,7 +26,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const config = new DocumentBuilder()
     .addBearerAuth()
-    .setTitle('Laboratory Management System - CTUT')
+    .setTitle('Laboratory Management System - CTUET')
     .setDescription('APIs calling')
     .setVersion('1.0')
     .build();

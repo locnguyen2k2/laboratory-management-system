@@ -6,10 +6,10 @@ import { IsArray, IsEnum, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export interface ItemRegistration {
-  roomItemId: number;
-  quantity: number;
-  status: ItemRegistrationStatus;
-  itemStatus: ItemStatusEnum;
+  roomItemId?: number;
+  quantity?: number;
+  status?: ItemRegistrationStatus;
+  itemStatus?: ItemStatusEnum;
 }
 
 export enum RegistrationStatusEnum {

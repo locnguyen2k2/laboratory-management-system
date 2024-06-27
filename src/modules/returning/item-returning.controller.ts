@@ -19,6 +19,7 @@ import { PageDto } from '../../common/dtos/page.dto';
 import { ItemReturningDto } from './dtos/item-returning.dto';
 import { AddItemReturningDto } from './dtos/add-item-returning.dto';
 import { IdParam } from '../../common/decorators/id-param.decorator';
+import { AddListReturningDto } from './dtos/add-list-returning.dto';
 
 @ApiTags('Item Returning')
 @ApiBearerAuth()
@@ -71,16 +72,29 @@ export class ItemReturningController {
     return await this.itemReturningService.add(data);
   }
 
-  @Post('')
+  @Post('list-item-returning')
   @UseGuards(JwtGuard)
-  async createChemicalItemReturning(
-    @Body() dto: AddItemReturningDto,
+  async createListItemReturning(
+    @Body() dto: AddListReturningDto,
     @Request() req: any,
   ) {
     dto.createBy = dto.updateBy = req.user.id;
     const dateNow = new Date();
     dto.date_returning = dateNow.valueOf();
-    const data = AddItemReturningDto.plainToClass(dto);
-    return await this.itemReturningService.add(data);
+    const data = AddListReturningDto.plainToClass(dto);
+    return await this.itemReturningService.addList(data);
   }
+
+  // @Post('')
+  // @UseGuards(JwtGuard)
+  // async createChemicalItemReturning(
+  //   @Body() dto: AddItemReturningDto,
+  //   @Request() req: any,
+  // ) {
+  //   dto.createBy = dto.updateBy = req.user.id;
+  //   const dateNow = new Date();
+  //   dto.date_returning = dateNow.valueOf();
+  //   const data = AddItemReturningDto.plainToClass(dto);
+  //   return await this.itemReturningService.add(data);
+  // }
 }

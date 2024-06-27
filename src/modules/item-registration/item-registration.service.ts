@@ -8,6 +8,7 @@ import { IAddItemRegistration } from './interfaces/add-registration.interface';
 import { ItemService } from 'src/modules/items/item.service';
 import { UpdateItemRegistrationDto } from './dtos/update-borrowing.dto';
 import { RoomItemService } from '../room-items/room-item.service';
+import { ItemRegistrationStatus } from './item-registration.constant';
 const _ = require('lodash');
 
 @Injectable()
@@ -24,7 +25,7 @@ export class ItemRegistrationService {
       .createQueryBuilder('itemRegistration')
       .leftJoinAndSelect('itemRegistration.registration', 'registration')
       .select(['itemRegistration', 'registration'])
-      .where('itemRegistration.id = :regId AND registration.id = :itemRegId', {
+      .where('registration.id = :regId AND itemRegistration.id = :itemRegId', {
         regId,
         itemRegId,
       })
@@ -183,6 +184,17 @@ export class ItemRegistrationService {
     }
   }
 
+  async updateStatus(id: number, uid: number, status: ItemRegistrationStatus) {
+    if (await this.findById(id)) {
+      await this.itemRegistrationRepository.update(
+        { id },
+        { status, updateBy: uid },
+      );
+
+      return await this.findById(id);
+    }
+  }
+
   async update(id: number, uid: number, data: UpdateItemRegistrationDto) {
     const isExisted = await this.findByUidRegid(uid, id);
 
@@ -194,15 +206,31 @@ export class ItemRegistrationService {
         { id },
         {
           roomItem,
-          quantity: data.items.quantity,
-          status: data.items.status,
-          itemStatus: data.items.itemStatus,
-          end_day: data.end_day === 0 ? isExisted.end_day : data.end_day,
+          ...(data.items.quantity
+            ? { quantity: data.items.quantity }
+            : { quantity: isExisted.quantity }),
+          ...(data.items.status
+            ? { status: data.items.status }
+            : { status: isExisted.status }),
+          ...(data.items.itemStatus
+            ? { itemStatus: data.items.itemStatus }
+            : { itemStatus: isExisted.itemStatus }),
+          ...(data.end_day
+            ? { end_day: data.end_day }
+            : { end_day: isExisted.end_day }),
           updateBy: uid,
         },
       );
       return await this.findByUidRegid(uid, id);
     }
+  }
+
+  async deleteByRegId(id: number) {
+    const listItemReg = await this.findByRegistrationId(id);
+    // if (listItemReg.length > 0) {
+    //   const items =
+    //     await this.itemRegistrationRepository.createQueryBuilder('items');
+    // }
   }
 
   async updateQuantityReturned(id: number, quantity: number) {
