@@ -19,6 +19,7 @@ import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { RegistrationDto, UpdateRegStatusDto } from './dtos/registration.dto';
+import { ItemRegistrationStatus } from '../item-registration/item-registration.constant';
 
 const _ = require('lodash');
 
@@ -271,7 +272,7 @@ export class RegistrationService {
     const items: ItemRegistration[] = [data.items];
     const itemReg = await this.itemRegistrationServce.findById(id);
 
-    if (itemReg) {
+    if (itemReg && itemReg.status == ItemRegistrationStatus.PENDING) {
       await Promise.all(
         items.map(async (item: ItemRegistration) => {
           if (await this.roomItemService.findById(item.roomItemId)) {
@@ -326,5 +327,6 @@ export class RegistrationService {
 
       return await this.itemRegistrationServce.update(id, uid, data);
     }
+    throw new BusinessException('400:The item registration is not pending!');
   }
 }
