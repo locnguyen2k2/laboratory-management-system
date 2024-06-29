@@ -57,7 +57,7 @@ export class AddListReturningDto extends BaseDto {
       {
         registrationId: 0,
         itemRegistrationId: 0,
-        remaining_volume: 0,
+        remaining_volume: null,
         quantity: 0,
         remark: '',
         itemStatus: ItemStatusEnum.STILLINGOODUSE,
