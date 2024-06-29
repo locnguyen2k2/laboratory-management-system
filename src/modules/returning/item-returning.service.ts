@@ -273,6 +273,7 @@ export class ItemReturningService {
                       '400:The quantity or volume is invalid!',
                     );
                   }
+                  throw new BusinessException('test')
                 }
               } else {
                 delete item.remaining_volume;
@@ -302,6 +303,7 @@ export class ItemReturningService {
                 quantity: item.quantity,
                 date_returning: data.date_returning,
                 remark: item.remark,
+                remaining_volume: item.remaining_volume,
                 itemRegistration,
                 registration,
                 user,
