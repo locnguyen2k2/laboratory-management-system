@@ -273,7 +273,6 @@ export class ItemReturningService {
                       '400:The quantity or volume is invalid!',
                     );
                   }
-                  throw new BusinessException('test')
                 }
               } else {
                 delete item.remaining_volume;
