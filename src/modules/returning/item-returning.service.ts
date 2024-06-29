@@ -243,6 +243,41 @@ export class ItemReturningService {
                 itemRegistration.roomItem.id,
               );
 
+              const itemEntity = await this.itemService.findById(
+                roomItem.item.id,
+              );
+              if (itemEntity.category.id === CategoryEnum.CHEMICALS) {
+                if (_.isNil(item.remaining_volume)) {
+                  throw new BusinessException(
+                    '400:Remaining volume is require for chemical item!',
+                  );
+                }
+                if (item.remaining_volume !== 0) {
+                  const remainingVolume =
+                    item.remaining_volume / itemEntity.volume;
+                  if (
+                    item.quantity >= remainingVolume &&
+                    remainingVolume > item.quantity - 1
+                  ) {
+                    if (
+                      itemEntity.volume * item.quantity >
+                      item.remaining_volume
+                    ) {
+                      await this.roomItemService.updateRoomItemRemainingVolume(
+                        roomItem.id,
+                        roomItem.remaining_volume + item.remaining_volume,
+                      );
+                    }
+                  } else {
+                    throw new BusinessException(
+                      '400:The quantity or volume is invalid!',
+                    );
+                  }
+                }
+              } else {
+                delete item.remaining_volume;
+              }
+
               await this.roomItemService.updateRoomItemQuantityReturned(
                 roomItem.id,
                 roomItem.itemQuantityReturned + item.quantity,

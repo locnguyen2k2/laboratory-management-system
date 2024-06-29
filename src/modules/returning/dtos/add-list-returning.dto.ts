@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 import { ItemStatusEnum } from '../../../enums/item-status-enum.enum';
 import { BaseDto } from '../../../common/dtos/base.dto';
 import { BaseStatusEnum } from '../../../enums/base-status.enum';
@@ -19,6 +19,12 @@ export class ReturningDto {
   @IsNumber()
   @Min(0)
   quantity: number;
+
+  @ApiProperty({ default: null })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  remaining_volume: number;
 
   @ApiProperty({ default: ItemStatusEnum.NORMALOPERATION })
   @Expose()
@@ -51,6 +57,7 @@ export class AddListReturningDto extends BaseDto {
       {
         registrationId: 0,
         itemRegistrationId: 0,
+        remaining_volume: 0,
         quantity: 0,
         remark: '',
         itemStatus: ItemStatusEnum.STILLINGOODUSE,
