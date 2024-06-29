@@ -41,6 +41,12 @@ export class RoomItemEntity extends ExtendedEntity {
   quantity: number;
 
   @Column({ type: 'int', default: 0 })
+  remaining_volume: number;
+
+  @Column({ type: 'int', default: 0 })
+  borrowed_volume: number;
+
+  @Column({ type: 'int', default: 0 })
   itemQuantityBorrowed: number;
 
   @Column({ type: 'int', default: 0 })

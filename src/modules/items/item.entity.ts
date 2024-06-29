@@ -24,7 +24,10 @@ export class ItemEntity extends ExtendedEntity {
   serial_number: string;
 
   @Column({ nullable: true })
-  specification: string;
+  volume: number;
+
+  @Column({ type: 'enum', enum: UnitEnum, nullable: true })
+  specification: UnitEnum;
 
   @Column({ type: 'varchar', nullable: true })
   remark: string;
@@ -34,6 +37,12 @@ export class ItemEntity extends ExtendedEntity {
 
   @Column({ type: 'int', default: 0 })
   handover: number;
+
+  @Column({ type: 'int', default: 0 })
+  total_volume: number;
+
+  @Column({ type: 'int', default: 0 })
+  remaining_volume: number;
 
   @Column({ type: 'enum', enum: UnitEnum, nullable: false })
   unit: UnitEnum;

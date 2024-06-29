@@ -19,6 +19,10 @@ import {
   ReturningDto,
 } from './dtos/add-list-returning.dto';
 import { isEmpty } from 'lodash';
+import { ItemService } from '../items/item.service';
+import { CategoryEnum } from '../categories/category.constant';
+
+const _ = require('lodash');
 
 @Injectable()
 export class ItemReturningService {
@@ -29,6 +33,7 @@ export class ItemReturningService {
     private readonly registrationService: RegistrationService,
     private readonly userService: UserService,
     private readonly roomItemService: RoomItemService,
+    private readonly itemService: ItemService,
   ) {}
 
   async findAll(
@@ -122,6 +127,33 @@ export class ItemReturningService {
         const roomItem = await this.roomItemService.findById(
           itemRegistration.roomItem.id,
         );
+
+        const item = await this.itemService.findById(roomItem.item.id);
+        if (item.category.id === CategoryEnum.CHEMICALS) {
+          if (_.isNil(data.remaining_volume)) {
+            throw new BusinessException(
+              '400:Remaining volume is require for chemical item!',
+            );
+          }
+          const remainingVolume = data.remaining_volume / item.volume;
+          if (
+            data.quantity >= remainingVolume &&
+            remainingVolume > data.quantity - 1
+          ) {
+            if (item.volume * data.quantity > data.remaining_volume) {
+              await this.roomItemService.updateRoomItemRemainingVolume(
+                roomItem.id,
+                roomItem.remaining_volume + data.remaining_volume,
+              );
+            }
+          } else {
+            throw new BusinessException(
+              '400:The quantity or volume is invalid!',
+            );
+          }
+        } else {
+          delete data.remaining_volume;
+        }
 
         await this.roomItemService.updateRoomItemQuantityReturned(
           roomItem.id,

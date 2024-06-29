@@ -15,6 +15,7 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { CategoryService } from '../categories/category.service';
 import { UpdateRoomItemDto } from './dtos/update-room-item.dto';
+import { CategoryEnum } from '../categories/category.constant';
 
 const _ = require('lodash');
 
@@ -224,7 +225,9 @@ export class RoomItemService {
       itemQuantityReturned >= 0 &&
         (await this.roomItemRepository.update(
           { id: roomItem.id },
-          { itemQuantityReturned },
+          {
+            itemQuantityReturned,
+          },
         ));
 
       return await this.findById(id);
@@ -236,12 +239,33 @@ export class RoomItemService {
     itemQuantityBorrowed: number,
   ) {
     const roomItem = await this.findById(id);
-
     if (roomItem) {
+      const item = await this.itemService.findById(roomItem.item.id);
+      const borrowed_volume =
+        itemQuantityBorrowed < roomItem.itemQuantityBorrowed
+          ? roomItem.borrowed_volume -
+            item.volume * (roomItem.itemQuantityBorrowed - itemQuantityBorrowed)
+          : roomItem.borrowed_volume +
+            item.volume *
+              (itemQuantityBorrowed - roomItem.itemQuantityBorrowed);
+
+      const remaining_volume =
+        itemQuantityBorrowed < roomItem.itemQuantityBorrowed
+          ? roomItem.remaining_volume +
+            item.volume * (roomItem.itemQuantityBorrowed - itemQuantityBorrowed)
+          : roomItem.remaining_volume -
+            item.volume *
+              (itemQuantityBorrowed - roomItem.itemQuantityBorrowed);
       itemQuantityBorrowed >= 0 &&
         (await this.roomItemRepository.update(
           { id: roomItem.id },
-          { itemQuantityBorrowed },
+          {
+            itemQuantityBorrowed,
+            ...(item.category.id === CategoryEnum.CHEMICALS && {
+              borrowed_volume,
+              remaining_volume,
+            }),
+          },
         ));
 
       return await this.findById(id);
@@ -251,7 +275,21 @@ export class RoomItemService {
   async updateRoomItemQuantity(id: number, quantity: number) {
     const roomItem = await this.findById(id);
     if (roomItem) {
-      await this.roomItemRepository.update({ id }, { quantity });
+      const item = await this.itemService.findById(roomItem.item.id);
+      await this.roomItemRepository.update(
+        { id },
+        {
+          quantity,
+          ...(item.category.id === CategoryEnum.CHEMICALS && {
+            remaining_volume:
+              quantity < roomItem.quantity
+                ? roomItem.remaining_volume -
+                  roomItem.item.volume * (roomItem.quantity - quantity)
+                : roomItem.remaining_volume +
+                  roomItem.item.volume * (quantity - roomItem.quantity),
+          }),
+        },
+      );
       return await this.findById(id);
     }
   }
@@ -273,6 +311,11 @@ export class RoomItemService {
         item.handover + data.quantity,
       );
 
+      item.category.id === CategoryEnum.CHEMICALS &&
+        (await this.itemService.update(item.id, {
+          remaining_volume: item.remaining_volume - item.volume * data.quantity,
+        }));
+
       if (await this.isRoomHasItem(data.itemId, data.roomId)) {
         const roomItem = await this.findByItemRoom(data.itemId, data.roomId);
         return await this.updateRoomItemQuantity(
@@ -288,7 +331,19 @@ export class RoomItemService {
         delete data.itemId;
         delete data.roomId;
 
-        const newItem = new RoomItemEntity({ ...data, room, item });
+        item.category.id === CategoryEnum.CHEMICALS &&
+          (await this.itemService.update(item.id, {
+            remaining_volume: item.total_volume - item.volume * data.quantity,
+          }));
+
+        const newItem = new RoomItemEntity({
+          ...data,
+          room,
+          item,
+          ...(item.category.id === CategoryEnum.CHEMICALS && {
+            remaining_volume: item.volume * data.quantity,
+          }),
+        });
         await this.roomItemRepository.save(newItem);
         return newItem;
       }
@@ -315,6 +370,28 @@ export class RoomItemService {
       }
     });
     if (listItem.length >= 1) return listItem;
+  }
+
+  async updateRoomItemRemainingVolume(id: number, volume: number) {
+    if (await this.findById(id)) {
+      await this.roomItemRepository.update(
+        { id },
+        {
+          remaining_volume: volume,
+        },
+      );
+    }
+  }
+
+  async updateRoomItemBorrowedVolume(id: number, volume: number) {
+    if (await this.findById(id)) {
+      await this.roomItemRepository.update(
+        { id },
+        {
+          borrowed_volume: volume,
+        },
+      );
+    }
   }
 
   async updateRoomItem(id, data: UpdateRoomItemDto) {
@@ -351,7 +428,17 @@ export class RoomItemService {
         ...(!_.isNil(data.status)
           ? { status: data.status }
           : { status: roomItem.status }),
-        ...(!_.isNil(data.quantity) && { quantity: data.quantity }),
+        ...(!_.isNil(data.quantity) && {
+          quantity: data.quantity,
+          ...(roomItem.item.volume > 0 && {
+            remaining_volume:
+              data.quantity < roomItem.quantity
+                ? roomItem.remaining_volume -
+                  roomItem.item.volume * (roomItem.quantity - data.quantity)
+                : roomItem.remaining_volume +
+                  roomItem.item.volume * (data.quantity - roomItem.quantity),
+          }),
+        }),
         ...(data.year ? { year: data.year } : { year: roomItem.year }),
         ...(data.remark
           ? { remark: data.remark }
@@ -473,7 +560,14 @@ export class RoomItemService {
         );
       } else {
         await this.roomService.updateRoomQuantity(roomId, room.quantity + 1);
-        const newItem = new RoomItemEntity({ ...data, room, item });
+        const newItem = new RoomItemEntity({
+          ...data,
+          room,
+          item,
+          ...(item.category.id === CategoryEnum.CHEMICALS && {
+            remaining_volume: item.volume * data.quantity,
+          }),
+        });
 
         newItem.createBy = newItem.updateBy = data.updateBy;
         await this.roomItemRepository.save(newItem);

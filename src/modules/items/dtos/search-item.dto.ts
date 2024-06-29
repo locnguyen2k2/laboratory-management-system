@@ -5,7 +5,8 @@ export class SearchItemDto {
   origin?: string;
   serial_number?: string;
   quantity?: number;
-  specification?: string;
+  specification?: number;
+  volume?: number;
   unit?: number;
   status?: number;
   handover?: number;
@@ -21,6 +22,7 @@ export enum SortItemDto {
   name = 'name',
   origin = 'origin',
   serial_number = 'serial_number',
+  volume = 'volume',
   quantity = 'quantity',
   specification = 'specification',
   remark = 'remark',

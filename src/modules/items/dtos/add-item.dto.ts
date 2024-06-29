@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   Validate,
@@ -27,18 +28,20 @@ class AddItemBaseDto extends BaseDto {
   @Expose()
   @IsString()
   @Validate(IsValidString)
-  origin: string;
+  @IsOptional()
+  origin?: string;
 
   @ApiProperty({ default: '' })
   @Expose()
+  @IsOptional()
   @Validate(IsValidString)
-  serial_number: string;
+  serial_number?: string;
 
-  @ApiProperty({ default: '' })
+  @ApiProperty({ default: UnitEnum.ml })
   @Expose()
-  @IsString()
-  @Validate(IsValidString)
-  specification: string;
+  @IsEnum(UnitEnum)
+  @IsOptional()
+  specification?: UnitEnum;
 
   @ApiProperty({ default: null })
   @Expose()
@@ -54,7 +57,8 @@ class AddItemBaseDto extends BaseDto {
 
   @ApiProperty({ default: '' })
   @Expose()
-  remark: string;
+  @IsOptional()
+  remark?: string;
 
   @ApiProperty({ default: 1 })
   @Expose()
@@ -62,6 +66,13 @@ class AddItemBaseDto extends BaseDto {
   @Min(1)
   @IsNotEmpty()
   quantity: number;
+
+  @ApiProperty({ default: 1 })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  volume?: number;
 
   @ApiProperty({ default: null })
   @Expose()
@@ -85,7 +96,8 @@ export class AddListItemDto extends BaseDto {
         name: '',
         origin: '',
         serial_number: '',
-        specification: '',
+        specification: null,
+        volume: 0,
         unit: null,
         status: null,
         quantity: null,

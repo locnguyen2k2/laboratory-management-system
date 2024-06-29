@@ -5,22 +5,12 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Min,
   Validate,
 } from 'class-validator';
 import { IsValidString } from 'src/common/decorators/string-validation.decorator';
 import { BaseDto } from 'src/common/dtos/base.dto';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 import { UnitEnum } from 'src/enums/unit-enum.enum';
-import { HandoverStatus } from '../../../enums/handover-status-enum.enum';
-
-export class UpdateItemHandoverStatusDto extends BaseDto {
-  @ApiProperty({ default: HandoverStatus.IsHandover })
-  @Expose()
-  @IsEnum(HandoverStatus)
-  @IsOptional()
-  handoverStatus?: HandoverStatus;
-}
 
 export class UpdateItemDto extends BaseDto {
   @ApiProperty({ default: '' })
@@ -42,12 +32,11 @@ export class UpdateItemDto extends BaseDto {
   @IsOptional()
   serial_number?: string;
 
-  @ApiProperty({ default: '' })
+  @ApiProperty({ default: null })
   @Expose()
-  @IsString()
-  @Validate(IsValidString)
+  @IsEnum(UnitEnum)
   @IsOptional()
-  specification?: string;
+  specification?: UnitEnum;
 
   @ApiProperty({ default: null })
   @Expose()
@@ -66,6 +55,24 @@ export class UpdateItemDto extends BaseDto {
   @IsNumber()
   @IsOptional()
   quantity?: number;
+
+  @ApiProperty({ default: null })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  volume?: number;
+
+  @ApiProperty({ default: null })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  total_volume?: number;
+
+  @ApiProperty({ default: null })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  remaining_volume?: number;
 
   @ApiProperty({ default: '' })
   @Expose()

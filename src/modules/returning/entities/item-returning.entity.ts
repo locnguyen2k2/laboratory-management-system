@@ -22,6 +22,9 @@ export class ItemReturningEntity extends ExtendedEntity {
   @JoinColumn({ name: 'item_registration_id' })
   itemRegistration: Relation<ItemRegistrationEntity>;
 
+  @Column({ default: null, type: 'int' })
+  remaining_volume: number;
+
   @ManyToOne(() => UserEntity, (user) => user.itemReturning)
   @JoinColumn()
   user: Relation<UserEntity>;

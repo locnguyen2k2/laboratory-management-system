@@ -14,6 +14,7 @@ import { ItemDto } from './dtos/item.dto';
 import { RoomService } from '../rooms/room.service';
 import { SortItemDto } from './dtos/search-item.dto';
 import { ItemFilterDto } from './item.constant';
+import { CategoryEnum } from '../categories/category.constant';
 const _ = require('lodash');
 
 @Injectable()
@@ -35,9 +36,6 @@ export class ItemService {
             keyword: `%${pageOptionsDto.keyword}%`,
           })
             .orWhere('LOWER(item.origin) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(item.specification) LIKE LOWER(:keyword)', {
               keyword: `%${pageOptionsDto.keyword}%`,
             })
             .orWhere('LOWER(item.remark) LIKE LOWER(:keyword)', {
@@ -100,14 +98,20 @@ export class ItemService {
     throw new BusinessException(ErrorEnum.RECORD_NOT_FOUND);
   }
 
-  async findByName(name: string, specification: string, serial_number: string) {
+  async findByName(
+    name: string,
+    specification: number,
+    volume: number,
+    serial_number: string,
+  ) {
     return await this.itemRepository
       .createQueryBuilder('item')
       .where(
-        "(replace(item.name, ' ', '') LIKE :name && replace(item.specification, ' ', '') LIKE :specification && replace(item.serial_number, ' ', '') LIKE :serial_number)",
+        "(replace(item.name, ' ', '') LIKE :name && item.specification = :specification && item.volume = :volume && replace(item.serial_number, ' ', '') LIKE :serial_number)",
         {
           name: name.replace(/\s/g, ''),
-          specification: specification.replace(/\s/g, ''),
+          specification: specification,
+          volume: volume,
           serial_number: serial_number.replace(/\s/g, ''),
         },
       )
@@ -153,7 +157,15 @@ export class ItemService {
     const item = await this.findById(id);
     if (item) {
       item.quantity >= quantity &&
-        (await this.itemRepository.update({ id: id }, { handover: quantity }));
+        (await this.itemRepository.update(
+          { id: id },
+          {
+            handover: quantity,
+            ...(item.category.id === CategoryEnum.CHEMICALS && {
+              remaining_volume: item.total_volume - item.volume * quantity,
+            }),
+          },
+        ));
       return await this.findById(id);
     }
   }
@@ -162,11 +174,20 @@ export class ItemService {
     const item = await this.findByName(
       data.name,
       data.specification,
+      data.volume,
       data.serial_number,
     );
 
     if (item) {
       throw new HttpException(`The item is existed`, HttpStatus.BAD_REQUEST);
+    }
+
+    if (data.categoryId === CategoryEnum.CHEMICALS) {
+      if (_.isNil(data.volume)) {
+        throw new BusinessException('400:Volume is require for this item!');
+      }
+    } else {
+      delete item.volume;
     }
 
     let category = await this.categoryService.findById(data.categoryId);
@@ -181,6 +202,8 @@ export class ItemService {
     const newItem = await this.itemRepository.save(
       new ItemEntity({
         ...data,
+        ...(data.volume && { total_volume: data.volume * data.quantity }),
+        ...(data.volume && { remaining_volume: data.volume * data.quantity }),
         category,
       }),
     );
@@ -196,6 +219,7 @@ export class ItemService {
           !(await this.findByName(
             item.name,
             item.specification,
+            item.volume,
             item.serial_number,
           ))
         ) {
@@ -205,6 +229,17 @@ export class ItemService {
               item1?.specification === item?.specification &&
               item1?.serial_number === item?.serial_number,
           );
+
+          if (item.categoryId === CategoryEnum.CHEMICALS) {
+            if (_.isNil(item.volume)) {
+              throw new BusinessException(
+                '400:Volume is require for chemical item!',
+              );
+            }
+          } else {
+            delete item.volume;
+          }
+
           if (isReplace === -1) {
             listItem.push(item);
           }
@@ -220,13 +255,14 @@ export class ItemService {
           category.id,
           category.quantity + 1,
         );
-
         delete item.categoryId;
 
         const newItem = new ItemEntity({
           ...item,
           createBy: data.createBy,
           updateBy: data.updateBy,
+          ...(item.volume && { total_volume: item.volume * item.quantity }),
+          ...(item.volume && { remaining_volume: item.volume * item.quantity }),
           category,
         });
 
@@ -251,7 +287,8 @@ export class ItemService {
       if (item && category) {
         const isExisted = await this.findByName(
           data?.name ? data.name : '',
-          data?.specification ? data.specification : '',
+          data?.specification ? data.specification : 0,
+          data?.volume ? data.volume : 0,
           data?.serial_number ? data.serial_number : '',
         );
 
@@ -261,6 +298,11 @@ export class ItemService {
             HttpStatus.BAD_REQUEST,
           );
         }
+
+        if (data?.quantity < item.handover)
+          throw new BusinessException(
+            `400:the amount must be greater than or equal ${item.handover}`,
+          );
 
         if (item.category.id !== category.id) {
           await this.categoryService.updateQuantity(
@@ -274,11 +316,16 @@ export class ItemService {
           );
         }
 
-        if (data?.quantity < item.handover) {
-          throw new BusinessException(
-            `400:the amount must be greater than ${isExisted.handover}`,
-          );
+        if (category.id === CategoryEnum.CHEMICALS) {
+          const quantity = data.quantity ? data.quantity : item.quantity;
+          const total =
+            quantity < item.quantity
+              ? item.total_volume - item.volume * (item.quantity - quantity)
+              : item.total_volume + item.volume * (quantity - item.quantity);
+          data.total_volume = total;
+          data.remaining_volume = total - item.volume * item.handover;
         }
+
         const info = {
           ...(data.name ? { name: data.name } : { name: item.name }),
           ...(!_.isNil(data.status)
@@ -292,6 +339,13 @@ export class ItemService {
           ...(data.specification
             ? { specification: data.specification }
             : { specification: item.specification }),
+          ...(data.volume ? { volume: data.volume } : { volume: item.volume }),
+          ...(!_.isNil(data.total_volume)
+            ? { total_volume: data.total_volume }
+            : { total_volume: item.total_volume }),
+          ...(!_.isNil(data.remaining_volume)
+            ? { remaining_volume: data.remaining_volume }
+            : { remaining_volume: item.remaining_volume }),
           ...(!_.isNil(data.quantity)
             ? { quantity: data.quantity }
             : { quantity: item.quantity }),

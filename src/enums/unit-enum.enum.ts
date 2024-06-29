@@ -6,4 +6,9 @@ export enum UnitEnum {
   BAG = 5,
   PACK = 6,
   SACHET = 7,
+  ml = 8,
+  l = 9,
+  g = 10,
+  kg = 11,
+  m = 12,
 }

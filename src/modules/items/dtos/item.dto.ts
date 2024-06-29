@@ -25,7 +25,16 @@ export class ItemDto {
   quantity: number;
 
   @ApiProperty()
-  specification: string;
+  volume: number;
+
+  @ApiProperty()
+  total_volume: number;
+
+  @ApiProperty()
+  remaining_volume: number;
+
+  @ApiProperty()
+  specification: number;
 
   @ApiProperty()
   remark: string;
