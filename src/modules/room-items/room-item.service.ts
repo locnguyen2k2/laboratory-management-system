@@ -262,8 +262,8 @@ export class RoomItemService {
           {
             itemQuantityBorrowed,
             ...(item.category.id === CategoryEnum.CHEMICALS && {
-              borrowed_volume,
-              remaining_volume,
+              borrowed_volume: borrowed_volume,
+              remaining_volume: remaining_volume <= 0 ? 0 : remaining_volume,
             }),
           },
         ));
