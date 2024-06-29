@@ -39,10 +39,9 @@ export class AddItemReturningDto extends BaseDto {
   @Min(0)
   quantity: number;
 
-  @ApiProperty({ default: 0 })
+  @ApiProperty({ default: null })
   @Expose()
   @IsNumber()
-  @Min(0)
   @IsOptional()
   remaining_volume: number;
 
