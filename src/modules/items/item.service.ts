@@ -318,12 +318,10 @@ export class ItemService {
 
         if (category.id === CategoryEnum.CHEMICALS) {
           const quantity = data.quantity ? data.quantity : item.quantity;
-          const total =
-            quantity < item.quantity
-              ? item.total_volume - item.volume * (item.quantity - quantity)
-              : item.total_volume + item.volume * (quantity - item.quantity);
+          const volume = !_.isNil(data.volume) ? data.volume : item.volume;
+          const total = volume * quantity;
           data.total_volume = total;
-          data.remaining_volume = total - item.volume * item.handover;
+          data.remaining_volume = total - volume * item.handover;
         }
 
         const info = {
