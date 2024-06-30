@@ -187,7 +187,7 @@ export class ItemService {
         throw new BusinessException('400:Volume is require for this item!');
       }
     } else {
-      delete item.volume;
+      item?.volume && delete item.volume;
     }
 
     let category = await this.categoryService.findById(data.categoryId);
