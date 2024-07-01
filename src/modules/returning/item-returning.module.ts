@@ -7,7 +7,7 @@ import { ItemRegistrationModule } from '../item-registration/item-registration.m
 import { UserModule } from '../user/user.module';
 import { RoomItemModule } from '../room-items/room-item.module';
 import { RegistrationModule } from '../registration/registration.module';
-import { ItemModule } from "../items/item.module";
+import { ItemModule } from '../items/item.module';
 
 @Module({
   imports: [

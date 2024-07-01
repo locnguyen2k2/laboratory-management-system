@@ -21,6 +21,8 @@ import {
 import { isEmpty } from 'lodash';
 import { ItemService } from '../items/item.service';
 import { CategoryEnum } from '../categories/category.constant';
+import { UpdateRegStatusDto } from '../registration/dtos/registration.dto';
+import { RegistrationStatusEnum } from '../registration/registration.constant';
 
 const _ = require('lodash');
 
@@ -171,6 +173,25 @@ export class ItemReturningService {
           ItemRegistrationStatus.RETURNED,
         );
 
+        const listItemReturned =
+          await this.itemRegistrationService.getListByStatusWithRegId(
+            registration.id,
+            ItemRegistrationStatus.RETURNED,
+          );
+
+        if (listItemReturned.items.length === listItemReturned.total) {
+          const uRegStatusData: UpdateRegStatusDto = {
+            updateBy: data.updateBy,
+            items: [
+              {
+                id: registration.id,
+                status: RegistrationStatusEnum.RETURNED,
+              },
+            ],
+          };
+          await this.registrationService.updateRegStatus(uRegStatusData);
+        }
+
         const newItem = new ItemReturningEntity({
           ...data,
           itemRegistration,
@@ -293,6 +314,25 @@ export class ItemReturningService {
                 data.createBy,
                 ItemRegistrationStatus.RETURNED,
               );
+
+              const listItemReturned =
+                await this.itemRegistrationService.getListByStatusWithRegId(
+                  registration.id,
+                  ItemRegistrationStatus.RETURNED,
+                );
+
+              if (listItemReturned.items.length === listItemReturned.total) {
+                const uRegStatusData: UpdateRegStatusDto = {
+                  updateBy: data.updateBy,
+                  items: [
+                    {
+                      id: registration.id,
+                      status: RegistrationStatusEnum.RETURNED,
+                    },
+                  ],
+                };
+                await this.registrationService.updateRegStatus(uRegStatusData);
+              }
 
               const newItem = new ItemReturningEntity({
                 createBy: data.createBy,

@@ -5,10 +5,10 @@ import { Repository } from 'typeorm';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { IAddItemRegistration } from './interfaces/add-registration.interface';
-import { ItemService } from 'src/modules/items/item.service';
 import { UpdateItemRegistrationDto } from './dtos/update-borrowing.dto';
 import { RoomItemService } from '../room-items/room-item.service';
 import { ItemRegistrationStatus } from './item-registration.constant';
+
 const _ = require('lodash');
 
 @Injectable()
@@ -16,7 +16,6 @@ export class ItemRegistrationService {
   constructor(
     @InjectRepository(ItemRegistrationEntity)
     private readonly itemRegistrationRepository: Repository<ItemRegistrationEntity>,
-    private readonly itemService: ItemService,
     private readonly roomItemService: RoomItemService,
   ) {}
 
@@ -190,8 +189,15 @@ export class ItemRegistrationService {
         { id },
         { status, updateBy: uid },
       );
-
       return await this.findById(id);
+    }
+  }
+
+  async getListByStatusWithRegId(regId: number, status: number) {
+    const items = await this.findByRegistrationId(regId);
+    if (items && items.length > 0) {
+      const listItem = items.filter((item) => item.status === status);
+      return { items: listItem, total: items.length };
     }
   }
 
@@ -226,7 +232,7 @@ export class ItemRegistrationService {
   }
 
   async deleteByRegId(id: number) {
-    const listItemReg = await this.findByRegistrationId(id);
+    // const listItemReg = await this.findByRegistrationId(id);
     // if (listItemReg.length > 0) {
     //   const items =
     //     await this.itemRegistrationRepository.createQueryBuilder('items');
