@@ -125,6 +125,9 @@ export class ItemService {
   ): Promise<PageDto<ItemDto>> {
     if (await this.categoryService.findById(categoryId)) {
       const item = this.itemRepository.createQueryBuilder('item');
+      item.leftJoinAndSelect('item.category', 'category');
+      item.andWhere('category.id = :categoryId', { categoryId: categoryId });
+
       if (pageOptionsDto.keyword) {
         item.andWhere(
           new Brackets((qb) => {
@@ -172,8 +175,6 @@ export class ItemService {
       }
 
       item
-        .leftJoinAndSelect('item.category', 'category')
-        .where('(category.id = :categoryId)', { categoryId: categoryId })
         .select(['item'])
         .orderBy('item.createdAt', pageOptionsDto.order)
         .skip(pageOptionsDto.skip)
