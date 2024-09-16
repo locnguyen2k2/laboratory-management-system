@@ -18,11 +18,11 @@ import { AddItemDto, AddListItemDto } from './dtos/add-item.dto';
 import { ItemService } from './item.service';
 import { IdParam } from 'src/common/decorators/id-param.decorator';
 import { UpdateItemDto } from './dtos/update-item.dto';
-import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { ApiPaginatedRespone } from 'src/common/decorators/api-paginated-respone.decorate';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ItemDto } from './dtos/item.dto';
 import { ItemFilterDto } from './item.constant';
+
 const _ = require('lodash');
 
 @Controller('items')
@@ -90,7 +90,7 @@ export class ItemController {
   @Roles(RoleEnum.ADMIN, RoleEnum.MANAGER)
   async getEquipmentByCategory(
     @IdParam() id: number,
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() pageOptionsDto: ItemFilterDto,
   ): Promise<PageDto<ItemDto>> {
     return await this.itemService.findByCategory(id, pageOptionsDto);
   }

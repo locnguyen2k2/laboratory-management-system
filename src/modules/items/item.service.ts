@@ -15,6 +15,7 @@ import { RoomService } from '../rooms/room.service';
 import { SortItemDto } from './dtos/search-item.dto';
 import { ItemFilterDto } from './item.constant';
 import { CategoryEnum } from '../categories/category.constant';
+
 const _ = require('lodash');
 
 @Injectable()
@@ -120,10 +121,55 @@ export class ItemService {
 
   async findByCategory(
     categoryId: number,
-    pageOptionsDto: PageOptionsDto,
+    pageOptionsDto: ItemFilterDto,
   ): Promise<PageDto<ItemDto>> {
     if (await this.categoryService.findById(categoryId)) {
       const item = this.itemRepository.createQueryBuilder('item');
+      if (pageOptionsDto.keyword) {
+        item.andWhere(
+          new Brackets((qb) => {
+            qb.where('LOWER(item.name) LIKE LOWER(:keyword)', {
+              keyword: `%${pageOptionsDto.keyword}%`,
+            })
+              .orWhere('LOWER(item.origin) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              })
+              .orWhere('LOWER(item.remark) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              })
+              .orWhere('LOWER(item.serial_number) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              })
+              .orWhere('LOWER(item.handover) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              })
+              .orWhere('LOWER(item.quantity) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              })
+              .orWhere('LOWER(category.name) LIKE LOWER(:keyword)', {
+                keyword: `%${pageOptionsDto.keyword}%`,
+              });
+          }),
+        );
+      }
+
+      if (pageOptionsDto.producer && pageOptionsDto.producer.length > 0) {
+        item.where('LOWER(item.origin) in (:origin)', {
+          origin: pageOptionsDto.producer.map((value) => value.toLowerCase()),
+        });
+      }
+
+      if (pageOptionsDto.status && pageOptionsDto.status.length > 0) {
+        item.andWhere('item.status IN (:status)', {
+          status: pageOptionsDto.status.map((value) => value + 1),
+        });
+      }
+
+      if (Object.values<string>(SortItemDto).includes(pageOptionsDto.sort)) {
+        item.orderBy(`item.${pageOptionsDto.sort}`, pageOptionsDto.order);
+      } else {
+        item.orderBy('item.createdAt', pageOptionsDto.order);
+      }
 
       item
         .leftJoinAndSelect('item.category', 'category')
