@@ -34,7 +34,8 @@ export class RoomItemService {
     roomItem
       .leftJoinAndSelect('roomItem.item', 'item')
       .leftJoinAndSelect('roomItem.room', 'room')
-      .select(['roomItem', 'item', 'item.category', 'room'])
+      .leftJoinAndSelect('item.category', 'category')
+      .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
       .orderBy('roomItem.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -57,7 +58,8 @@ export class RoomItemService {
       ? roomItem
           .leftJoinAndSelect('roomItem.item', 'item')
           .leftJoinAndSelect('roomItem.room', 'room')
-          .select(['roomItem', 'item', 'room'])
+          .leftJoinAndSelect('item.category', 'category')
+          .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
           .andWhere('(item.id NOT IN (:...itemsId))', { itemsId })
           .orderBy('roomItem.createdAt', pageOptionsDto.order)
           .skip(pageOptionsDto.skip)
@@ -65,7 +67,8 @@ export class RoomItemService {
       : roomItem
           .leftJoinAndSelect('roomItem.item', 'item')
           .leftJoinAndSelect('roomItem.room', 'room')
-          .select(['roomItem', 'item', 'room'])
+          .leftJoinAndSelect('item.category', 'category')
+          .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
           .orderBy('roomItem.createdAt', pageOptionsDto.order)
           .skip(pageOptionsDto.skip)
           .take(pageOptionsDto.take);
@@ -81,9 +84,9 @@ export class RoomItemService {
       .createQueryBuilder('roomItem')
       .leftJoinAndSelect('roomItem.item', 'item')
       .leftJoinAndSelect('roomItem.room', 'room')
+      .leftJoinAndSelect('item.category', 'category')
       .where('(roomItem.id = :id)', { id })
-      .select('roomItem')
-      .select(['roomItem', 'item', 'room'])
+      .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
       .getOne();
     if (roomItem) {
       return roomItem;
@@ -107,8 +110,9 @@ export class RoomItemService {
       roomItem
         .leftJoinAndSelect('roomItem.item', 'item')
         .leftJoinAndSelect('roomItem.room', 'room')
+        .leftJoinAndSelect('item.category', 'category')
         .where('(item.id IN (:...itemsId))', { itemsId })
-        .select(['roomItem', 'item', 'room'])
+        .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
         .orderBy('roomItem.createdAt', pageOptionsDto.order)
         .skip(pageOptionsDto.skip)
         .take(pageOptionsDto.take);
@@ -153,8 +157,9 @@ export class RoomItemService {
     roomItems
       .leftJoinAndSelect('roomItem.room', 'room')
       .leftJoinAndSelect('roomItem.item', 'item')
+      .leftJoinAndSelect('item.category', 'category')
       .where('(item.id = :itemId)', { itemId })
-      .select(['roomItem', 'item', 'room'])
+      .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
       .orderBy('roomItem.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
