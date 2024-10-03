@@ -4,7 +4,6 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
-  Length,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -37,12 +36,6 @@ export class AddRoomItemDto extends BaseDto {
   @Min(1)
   quantity: number;
 
-  @ApiProperty({ default: '' })
-  @Expose()
-  @IsNotEmpty()
-  @Length(4)
-  year: string;
-
   @Expose()
   createBy: number;
   @Expose()
@@ -57,7 +50,6 @@ export class AddListRoomItemDto extends BaseDto {
         itemId: null,
         status: null,
         quantity: null,
-        year: '',
       },
     ],
   })

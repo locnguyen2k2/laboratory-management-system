@@ -343,6 +343,7 @@ export class RoomItemService {
 
         const newItem = new RoomItemEntity({
           ...data,
+          year: `${new Date().getFullYear()}`,
           room,
           item,
           ...(item.category.id === CategoryEnum.CHEMICALS && {
@@ -473,6 +474,7 @@ export class RoomItemService {
         if (isExistItem && isExistRoom) {
           listRoomItem.push({
             ...item,
+            year: `${new Date().getFullYear()}`,
             item: isExistItem,
             room: isExistRoom,
           });
