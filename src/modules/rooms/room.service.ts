@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from './room.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 import { AddRoomDto } from './dtos/add-room.dto';
 import { BusinessException } from 'src/common/exceptions/biz.exception';
@@ -21,6 +21,17 @@ export class RoomService {
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<RoomDto>> {
     const items = this.roomRepository.createQueryBuilder('item');
+
+    if (pageOptionsDto.keyword) {
+      items.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(item.name) LIKE LOWER(:keyword)', {
+            keyword: `%${pageOptionsDto.keyword}%`,
+          });
+        }),
+      );
+    }
+
     items
       .orderBy('item.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
