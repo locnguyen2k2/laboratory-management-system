@@ -188,8 +188,9 @@ export class RoomItemService {
     roomItem
       .leftJoinAndSelect('roomItem.item', 'item')
       .leftJoinAndSelect('roomItem.room', 'room')
+      .leftJoinAndSelect('item.category', 'category')
+      .select(['roomItem', 'item', 'room', 'category.id', 'category.name'])
       .where('(roomItem.room_id = :id)', { id })
-      .select(['roomItem', 'item', 'room'])
       .orderBy('roomItem.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
