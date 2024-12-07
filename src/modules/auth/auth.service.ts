@@ -72,7 +72,7 @@ export class AuthService {
       } catch (error: any) {
         const access_token = this.jwtService.sign(payload);
         await this.userService.updateToken(user.id, access_token);
-        user = await this.userService.findById(user.id)
+        user = await this.userService.findById(user.id);
         return {
           userInfo,
           access_token,

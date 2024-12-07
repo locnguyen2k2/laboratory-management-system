@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, Min } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { BaseDto } from '../../../common/dtos/base.dto';
 import { ItemStatusEnum } from '../../../enums/item-status-enum.enum';
