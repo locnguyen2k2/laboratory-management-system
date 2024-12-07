@@ -14,7 +14,6 @@ import { PageDto } from 'src/common/dtos/page.dto';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { RoomItemDto } from './dtos/room-item.dto';
 import { CategoryService } from '../categories/category.service';
-import { UpdateRoomItemDto } from './dtos/update-room-item.dto';
 import { CategoryEnum } from '../categories/category.constant';
 
 const _ = require('lodash');
@@ -401,7 +400,7 @@ export class RoomItemService {
     }
   }
 
-  async updateRoomItem(id, data: UpdateRoomItemDto) {
+  async updateRoomItem(id, data: any) {
     const roomItem = await this.findById(id);
 
     if (roomItem) {
@@ -445,6 +444,9 @@ export class RoomItemService {
                 : roomItem.remaining_volume +
                   roomItem.item.volume * (data.quantity - roomItem.quantity),
           }),
+        }),
+        ...(!_.isNil(data.itemQuantityBorrowed) && {
+          itemQuantityBorrowed: data.itemQuantityBorrowed,
         }),
         ...(data.year ? { year: data.year } : { year: roomItem.year }),
         ...(data.remark

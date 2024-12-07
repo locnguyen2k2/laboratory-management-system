@@ -184,11 +184,20 @@ export class ItemRegistrationService {
   }
 
   async updateStatus(id: number, uid: number, status: ItemRegistrationStatus) {
-    if (await this.findById(id)) {
+    const isExisted = await this.findById(id);
+    if (isExisted) {
       await this.itemRegistrationRepository.update(
         { id },
         { status, updateBy: uid },
       );
+
+      if (status === ItemRegistrationStatus.RECALLED) {
+        await this.roomItemService.updateRoomItem(isExisted.roomItem.id, {
+          itemQuantityBorrowed:
+            isExisted.roomItem.itemQuantityBorrowed - isExisted.quantity,
+          updateBy: uid,
+        });
+      }
       return await this.findById(id);
     }
   }

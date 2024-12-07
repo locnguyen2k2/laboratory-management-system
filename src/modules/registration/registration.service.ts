@@ -259,6 +259,19 @@ export class RegistrationService {
             updateBy: data.updateBy,
           },
         );
+
+        const itemRegs = await this.itemRegistrationServce.findByRegistrationId(
+          item.id,
+        );
+        await Promise.all(
+          itemRegs.map(async (itemReg) => {
+            await this.itemRegistrationServce.updateStatus(
+              itemReg.id,
+              data.updateBy,
+              item.status,
+            );
+          }),
+        );
       });
       return listItem;
     }
