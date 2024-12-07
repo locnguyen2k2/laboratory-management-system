@@ -185,18 +185,40 @@ export class ItemRegistrationService {
 
   async updateStatus(id: number, uid: number, status: ItemRegistrationStatus) {
     const isExisted = await this.findById(id);
-    if (isExisted) {
+    if (isExisted && isExisted.status !== ItemRegistrationStatus.CANCELLED) {
+      const roomItem = await this.roomItemService.findById(
+        isExisted.roomItem.id,
+      );
       await this.itemRegistrationRepository.update(
         { id },
         { status, updateBy: uid },
       );
 
       if (status === ItemRegistrationStatus.CANCELLED) {
-        await this.roomItemService.updateRoomItem(isExisted.roomItem.id, {
-          itemQuantityBorrowed:
-            isExisted.roomItem.itemQuantityBorrowed - isExisted.quantity,
+        const newRoomItemBorrowed =
+          roomItem.itemQuantityBorrowed - isExisted.quantity;
+
+        await this.roomItemService.updateRoomItem(roomItem.id, {
+          itemQuantityBorrowed: newRoomItemBorrowed,
           updateBy: uid,
         });
+
+        const newRemainingVolume =
+          roomItem.item.volume * roomItem.quantity -
+          (roomItem.itemQuantityReturned * roomItem.item.volume +
+            newRoomItemBorrowed * roomItem.item.volume);
+
+        const newBorrowedVolume = newRoomItemBorrowed * roomItem.item.volume;
+
+        await this.roomItemService.updateRoomItemRemainingVolume(
+          isExisted.roomItem.id,
+          newRemainingVolume,
+        );
+
+        await this.roomItemService.updateRoomItemBorrowedVolume(
+          roomItem.id,
+          newBorrowedVolume,
+        );
       }
       return await this.findById(id);
     }
