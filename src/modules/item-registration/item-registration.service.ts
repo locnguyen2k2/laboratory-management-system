@@ -191,7 +191,7 @@ export class ItemRegistrationService {
         { status, updateBy: uid },
       );
 
-      if (status === ItemRegistrationStatus.RECALLED) {
+      if (status === ItemRegistrationStatus.CANCELLED) {
         await this.roomItemService.updateRoomItem(isExisted.roomItem.id, {
           itemQuantityBorrowed:
             isExisted.roomItem.itemQuantityBorrowed - isExisted.quantity,
