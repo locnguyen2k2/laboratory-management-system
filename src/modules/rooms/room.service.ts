@@ -11,6 +11,7 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageOptionsDto } from 'src/common/dtos/page-options.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { RoomStatus } from './room.constant';
+import * as _ from 'lodash';
 
 @Injectable()
 export class RoomService {
@@ -110,7 +111,9 @@ export class RoomService {
         ...data,
         ...(data.name ? { name: data.name } : { name: room.name }),
         ...(data.remark ? { remark: data.remark } : { remark: room.remark }),
-        ...(data.status ? { status: data.status } : { status: room.status }),
+        ...(!_.isNil(data.status)
+          ? { status: data.status }
+          : { status: room.status }),
       };
       await this.roomRepository.update({ id: id }, { ...info });
       return await this.findById(id);
