@@ -27,7 +27,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('Laboratory Management System - CTUET')
-    .setDescription('APIs calling')
+    .setDescription(
+      'APIs calling - For test account Email: admin@ctuet.edu.vn | Password: admin123456789',
+    )
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -24,7 +24,8 @@ import { Credential } from './interfaces/credential.interface';
 import { AccountInfo } from '../user/interfaces/AccountInfo.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ReqReTokenDto } from './dtos/request-auth.dto';
-import { IdParam } from '../../common/decorators/id-param.decorator';
+import { env } from '../../global/env';
+import { BusinessException } from '../../common/exceptions/biz.exception';
 
 @Controller('auths')
 @ApiTags('Auths')
@@ -56,6 +57,11 @@ export class AuthController {
     const user = plainToClass(RegisterUserDto, dto, {
       excludeExtraneousValues: true,
     });
+    if (!env('EMAIL_USER') || !env('EMAIL_PASSWORD')) {
+      throw new BusinessException(
+        '400:Vui lòng thêm email và mật khẩu cấu hình gửi mail!',
+      );
+    }
     return this.authService.register(user, null);
   }
 
