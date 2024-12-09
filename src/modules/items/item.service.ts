@@ -30,36 +30,14 @@ export class ItemService {
   async findAll(pageOptionsDto: ItemFilterDto): Promise<PageDto<ItemDto>> {
     const items = this.itemRepository.createQueryBuilder('item');
 
-    if (pageOptionsDto.keyword) {
+    !_.isEmpty(pageOptionsDto.keyword) &&
       items.andWhere(
-        new Brackets((qb) => {
-          qb.where('LOWER(item.name) LIKE LOWER(:keyword)', {
-            keyword: `%${pageOptionsDto.keyword}%`,
-          })
-            .orWhere('LOWER(item.origin) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(item.remark) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(item.serial_number) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(item.handover) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(item.quantity) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('LOWER(category.name) LIKE LOWER(:keyword)', {
-              keyword: `%${pageOptionsDto.keyword}%`,
-            });
-        }),
+        `MATCH(item.name, item.remark) AGAINST (:keyword IN NATURAL LANGUAGE MODE)`,
+        { keyword: pageOptionsDto.keyword },
       );
-    }
 
     if (pageOptionsDto.producer && pageOptionsDto.producer.length > 0) {
-      items.where('LOWER(item.origin) in (:origin)', {
+      items.andWhere('LOWER(item.origin) in (:origin)', {
         origin: pageOptionsDto.producer.map((value) => value.toLowerCase()),
       });
     }

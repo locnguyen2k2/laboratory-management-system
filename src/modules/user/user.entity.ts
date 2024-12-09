@@ -1,6 +1,6 @@
 import { ExtendedEntity } from 'src/common/entity/common.entity';
 import { UserStatus } from './user.constant';
-import { Column, Entity, OneToMany, Relation } from 'typeorm';
+import { Column, Entity, Index, OneToMany, Relation } from 'typeorm';
 import { RegistrationEntity } from '../registration/registration.entity';
 import { RoleEnum } from 'src/enums/role-enum.enum';
 import { ItemReturningEntity } from '../returning/entities/item-returning.entity';
@@ -8,18 +8,22 @@ import { ItemReturningEntity } from '../returning/entities/item-returning.entity
 @Entity({ name: 'user_entity' })
 export class UserEntity extends ExtendedEntity {
   @Column()
+  @Index({ fulltext: true })
   firstName: string;
 
   @Column()
+  @Index({ fulltext: true })
   lastName: string;
 
   @Column({ default: null })
+  @Index({ fulltext: true })
   address: string;
 
   @Column({ default: null })
   photo: string;
 
   @Column({ unique: true })
+  @Index({ fulltext: true })
   email: string;
 
   @Column({ nullable: true })

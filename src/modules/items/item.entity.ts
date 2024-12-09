@@ -2,6 +2,7 @@ import { ExtendedEntity } from 'src/common/entity/common.entity';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -13,6 +14,7 @@ import { UnitEnum } from 'src/enums/unit-enum.enum';
 import { ItemStatusEnum } from 'src/enums/item-status-enum.enum';
 
 @Entity('item_entity')
+@Index('searchItems', ['name', 'remark'], { fulltext: true })
 export class ItemEntity extends ExtendedEntity {
   @Column()
   name: string;
