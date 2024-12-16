@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class EmailLinkConfirmDto {
@@ -8,4 +8,22 @@ export class EmailLinkConfirmDto {
   @IsNotEmpty()
   @Expose()
   email: string;
+}
+
+export class EmailFeedBackDto {
+  @ApiProperty({ default: '' })
+  @IsEmail()
+  @IsNotEmpty()
+  @Expose()
+  from: string;
+
+  @ApiProperty({ default: '' })
+  @IsNotEmpty()
+  @Expose()
+  content: string;
+
+  @ApiProperty({ default: '' })
+  @IsNotEmpty()
+  @Expose()
+  key: string;
 }
