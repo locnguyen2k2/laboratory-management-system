@@ -28,7 +28,7 @@ async function bootstrap() {
     .addBearerAuth()
     .setTitle('Laboratory Management System - CTUET')
     .setDescription(
-      'APIs calling - For test account Email: admin@ctuet.edu.vn | Password: admin123456789',
+      'APIs calling - For test account Email: admin@student.ctuet.edu.vn | Password: admin123456789',
     )
     .setVersion('1.0')
     .build();
